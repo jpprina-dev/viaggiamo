@@ -105,6 +105,18 @@ format: ## Formatear código
 	@echo "$(GREEN)Formateando frontend...$(NC)"
 	@cd $(FRONTEND_DIR) && npm run format
 
+precommit-setup: ## Configurar pre-commit hooks
+	@echo "$(GREEN)Configurando pre-commit hooks...$(NC)"
+	@./scripts/setup-precommit.sh
+
+precommit-run: ## Ejecutar pre-commit en todos los archivos
+	@echo "$(GREEN)Ejecutando pre-commit hooks...$(NC)"
+	@uv run --directory $(BACKEND_DIR) pre-commit run --all-files
+
+precommit-update: ## Actualizar pre-commit hooks
+	@echo "$(GREEN)Actualizando pre-commit hooks...$(NC)"
+	@uv run --directory $(BACKEND_DIR) pre-commit autoupdate
+
 health: ## Verificar estado de los servicios
 	@echo "$(GREEN)Verificando estado de los servicios...$(NC)"
 	@echo "Backend: $$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health || echo 'No disponible')"

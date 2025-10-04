@@ -8,8 +8,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 if TYPE_CHECKING:
-    from app.models.trip import Trip
     from app.models.booking import Booking
+    from app.models.trip import Trip
 
 
 class User(Base):
@@ -17,8 +17,12 @@ class User(Base):
 
     __tablename__ = "users"
 
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, index=True, nullable=False
+    )
+    username: Mapped[str] = mapped_column(
+        String(50), unique=True, index=True, nullable=False
+    )
     full_name: Mapped[str] = mapped_column(String(100), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -28,4 +32,6 @@ class User(Base):
 
     # Relationships
     trips: Mapped[list["Trip"]] = relationship("Trip", back_populates="driver")
-    bookings: Mapped[list["Booking"]] = relationship("Booking", back_populates="passenger")
+    bookings: Mapped[list["Booking"]] = relationship(
+        "Booking", back_populates="passenger"
+    )

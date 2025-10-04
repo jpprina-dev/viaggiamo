@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 class TripBase(BaseModel):
     """Base trip schema."""
+
     origin: str
     destination: str
     departure_time: datetime
@@ -19,11 +20,13 @@ class TripBase(BaseModel):
 
 class TripCreate(TripBase):
     """Schema for creating a trip."""
+
     pass
 
 
 class TripUpdate(BaseModel):
     """Schema for updating a trip."""
+
     origin: str | None = None
     destination: str | None = None
     departure_time: datetime | None = None
@@ -35,6 +38,7 @@ class TripUpdate(BaseModel):
 
 class TripInDB(TripBase):
     """Schema for trip in database."""
+
     id: int
     driver_id: int
     is_active: bool
@@ -47,9 +51,11 @@ class TripInDB(TripBase):
 
 class Trip(TripInDB):
     """Schema for trip response."""
+
     pass
 
 
 class TripWithDriver(Trip):
     """Schema for trip with driver information."""
+
     driver: dict  # Will be populated with User schema

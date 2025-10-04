@@ -1,7 +1,5 @@
 """Application configuration settings."""
 
-from typing import Any
-
 from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 

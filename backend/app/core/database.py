@@ -31,6 +31,6 @@ async def get_db() -> AsyncSession:
 async def create_tables() -> None:
     """Create database tables."""
     from app.models.base import Base
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

@@ -95,7 +95,7 @@ backend/
    ```bash
    # Crear base de datos PostgreSQL
    createdb viaggiamo_db
-   
+
    # Ejecutar migraciones
    uv run alembic upgrade head
    ```

@@ -1,0 +1,88 @@
+[flake8]
+max-line-length = 88
+extend-ignore =
+    # Black conflicts
+    E203,  # whitespace before ':'
+    W503,  # line break before binary operator
+    E501,  # line too long (handled by black)
+    # Other ignores
+    D100,  # Missing docstring in public module
+    D101,  # Missing docstring in public class
+    D102,  # Missing docstring in public method
+    D103,  # Missing docstring in public function
+    D104,  # Missing docstring in public package
+    D105,  # Missing docstring in magic method
+    D107,  # Missing docstring in __init__
+    D200,  # One-line docstring should fit on one line
+    D202,  # No blank lines allowed before function docstring
+    D204,  # 1 blank line required after class docstring
+    D205,  # 1 blank line required before summary
+    D206,  # Docstring should be indented with spaces
+    D207,  # Docstring is under-indented
+    D208,  # Docstring is over-indented
+    D209,  # Multi-line docstring closing quotes should be on a separate line
+    D210,  # No whitespaces allowed surrounding docstring text
+    D211,  # No blank lines allowed before class docstring
+    D212,  # Multi-line docstring summary should start at the first line
+    D213,  # Multi-line docstring summary should start at the second line
+    D214,  # Section is over-indented
+    D215,  # Section underline is over-indented
+    D300,  # Use triple double quotes for docstrings
+    D301,  # Use r""" if any backslashes in a docstring
+    D400,  # First line should end with a period
+    D401,  # First line should be in imperative mood
+    D402,  # First line should not be the function's signature
+    D403,  # First word of the first line should be capitalized
+    D404,  # First word of the docstring should not be This
+    D405,  # Section name should be properly capitalized
+    D406,  # Section name should end with a newline
+    D407,  # Missing dashed underline after section
+    D408,  # Section underline should be in the line following the section's name
+    D409,  # Section underline should match the length of its name
+    D410,  # Missing dashed underline after section
+    D411,  # Missing dashed underline before section
+    D412,  # No blank lines allowed between a section header and its content
+    D413,  # Missing dashed underline after section
+    D414,  # Section has no content
+    D415,  # First line should end with a period, question mark, or exclamation point
+    D416,  # Section name should end with a colon
+    D417,  # Missing argument descriptions in the docstring
+    D418,  # Missing docstring in public nested class
+    D419,  # First line should be in imperative mood; try rephrasing
+
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    .pytest_cache,
+    .mypy_cache,
+    build,
+    dist,
+    *.egg-info,
+    alembic/versions,
+    tests
+
+per-file-ignores =
+    # Tests can have longer lines and different docstring requirements
+    tests/*:D100,D101,D102,D103,D104,D105,D107
+    # __init__.py files can be empty or have simple imports
+    __init__.py:D104
+    # Alembic migration files
+    alembic/versions/*:D100,D101,D102,D103,D104,D105,D107
+    # Main application files can have different docstring requirements
+    app/main.py:D100
+
+# Plugin configuration
+enable-extensions =
+    B,  # flake8-bugbear
+    C,  # flake8-comprehensions
+    S,  # flake8-bandit (security)
+
+# Bugbear specific settings
+bugbear-max-line-length = 88
+
+# Security settings (bandit)
+bandit-exclude-dirs = tests
+bandit-skip = B101, B601  # Skip assert_used and shell_injection for tests

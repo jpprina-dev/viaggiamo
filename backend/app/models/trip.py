@@ -10,8 +10,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 if TYPE_CHECKING:
-    from app.models.user import User
     from app.models.booking import Booking
+    from app.models.user import User
 
 
 class Trip(Base):
@@ -22,7 +22,9 @@ class Trip(Base):
     driver_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     origin: Mapped[str] = mapped_column(String(200), nullable=False)
     destination: Mapped[str] = mapped_column(String(200), nullable=False)
-    departure_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    departure_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     available_seats: Mapped[int] = mapped_column(Integer, default=1)
     total_seats: Mapped[int] = mapped_column(Integer, default=1)
     price_per_seat: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
