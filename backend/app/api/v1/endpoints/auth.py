@@ -5,6 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -56,9 +57,7 @@ async def register(
 ) -> User:
     """Register a new user."""
     # Check if user already exists
-    existing_user = await db.execute(
-        User.__table__.select().where(User.email == user_in.email)
-    )
+    existing_user = await db.execute(select(User).where(User.email == user_in.email))
     if existing_user.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
@@ -71,8 +70,8 @@ async def register(
         username=user_in.username,
         full_name=user_in.full_name,
         hashed_password=hashed_password,
-        phone=user_in.phone,
-        profile_picture=user_in.profile_picture,
+        phone=getattr(user_in, "phone", None),
+        profile_picture=getattr(user_in, "profile_picture", None),
     )
 
     db.add(db_user)
@@ -89,9 +88,7 @@ async def login(
 ) -> dict[str, str]:
     """Login user and return access token."""
     # Get user by email
-    result = await db.execute(
-        User.__table__.select().where(User.email == form_data.username)
-    )
+    result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(form_data.password, user.hashed_password):
