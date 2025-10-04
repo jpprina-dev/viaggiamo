@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class Booking(Base):
     """Booking model for trip reservations."""
 
-    __tablename__ = "bookings"
+    __name__ = "bookings"
 
     trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id"), nullable=False)
     passenger_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)

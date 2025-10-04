@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class User(Base):
     """User model for authentication and profile."""
 
-    __tablename__ = "users"
+    __name__ = "users"
 
     email: Mapped[str] = mapped_column(
         String(255), unique=True, index=True, nullable=False

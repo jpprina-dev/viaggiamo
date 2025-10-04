@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class Trip(Base):
     """Trip model for carpooling rides."""
 
-    __tablename__ = "trips"
+    __name__ = "trips"
 
     driver_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     origin: Mapped[str] = mapped_column(String(200), nullable=False)
