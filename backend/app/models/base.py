@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, func
+from sqlalchemy import DateTime, Integer, func
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,7 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 class Base:
     """Base class for all database models."""
 
-    id: Any
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     __name__: str
 
     # Generate __tablename__ automatically

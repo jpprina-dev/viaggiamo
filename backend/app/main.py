@@ -5,10 +5,13 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from strawberry.fastapi import GraphQLRouter
 
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import create_tables
+from app.graphql.context import get_context
+from app.graphql.schema import schema
 
 
 @asynccontextmanager
@@ -40,6 +43,10 @@ def create_application() -> FastAPI:
 
     # Include API router
     app.include_router(api_router, prefix=settings.API_V1_STR)
+
+    # GraphQL endpoint
+    graphql_app = GraphQLRouter(schema)
+    app.include_router(graphql_app, prefix="/graphql")
 
     return app
 
