@@ -7,7 +7,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 
-from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import create_tables
 from app.graphql.context import get_context
@@ -28,7 +27,6 @@ def create_application() -> FastAPI:
     """Create and configure FastAPI application."""
     app = FastAPI(
         title=settings.PROJECT_NAME,
-        openapi_url=f"{settings.API_V1_STR}/openapi.json",
         lifespan=lifespan,
     )
 
@@ -40,9 +38,6 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-    # Include API router
-    app.include_router(api_router, prefix=settings.API_V1_STR)
 
     # GraphQL endpoint
     graphql_app = GraphQLRouter(schema)
@@ -57,7 +52,7 @@ app = create_application()
 @app.get("/")
 async def root() -> dict[str, str]:
     """Root endpoint."""
-    return {"message": "Viaggiamo API - MVP de Carpooling"}
+    return {"message": "Viaggiamo GraphQL API - MVP de Carpooling"}
 
 
 @app.get("/health")

@@ -1,10 +1,11 @@
-# Viaggiamo Backend - FastAPI
+# Viaggiamo Backend - GraphQL API
 
-Backend API para el MVP de carpooling Viaggiamo, desarrollado con FastAPI, SQLAlchemy 2.0 y PostgreSQL.
+Backend API para el MVP de carpooling Viaggiamo, desarrollado con FastAPI, GraphQL (Strawberry), SQLAlchemy 2.0 y PostgreSQL.
 
 ## 🚀 Características
 
 - **FastAPI** con documentación automática
+- **GraphQL** con Strawberry para API moderna y flexible
 - **SQLAlchemy 2.0** con soporte async
 - **PostgreSQL** como base de datos principal
 - **Redis** para caché y sesiones
@@ -21,17 +22,13 @@ backend/
 ├── app/
 │   ├── __init__.py
 │   ├── main.py                 # Punto de entrada de la aplicación
-│   ├── api/                    # Endpoints de la API
+│   ├── graphql/                # GraphQL API
 │   │   ├── __init__.py
-│   │   └── v1/
-│   │       ├── __init__.py
-│   │       ├── api.py          # Router principal de la API
-│   │       └── endpoints/      # Endpoints específicos
-│   │           ├── __init__.py
-│   │           ├── auth.py     # Autenticación
-│   │           ├── users.py    # Gestión de usuarios
-│   │           ├── trips.py    # Gestión de viajes
-│   │           └── bookings.py # Gestión de reservas
+│   │   ├── auth.py            # Autenticación para GraphQL
+│   │   ├── context.py         # Contexto de GraphQL
+│   │   ├── resolvers.py       # Resolvers de GraphQL
+│   │   ├── schema.py          # Schema de GraphQL
+│   │   └── types.py           # Tipos de GraphQL
 │   ├── core/                   # Configuración core
 │   │   ├── __init__.py
 │   │   ├── config.py          # Configuración de la aplicación
@@ -129,7 +126,6 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # API
-API_V1_STR=/api/v1
 PROJECT_NAME=Viaggiamo
 
 # CORS
@@ -140,37 +136,74 @@ ENVIRONMENT=development
 DEBUG=True
 ```
 
-## 📚 API Endpoints
+## 📚 GraphQL API
 
-### Autenticación (`/api/v1/auth`)
+### Endpoint Principal
+- **GraphQL Playground**: http://localhost:8000/graphql
 
-- `POST /register` - Registro de usuario
-- `POST /login` - Inicio de sesión
-- `GET /me` - Información del usuario actual
+### Queries Disponibles
 
-### Usuarios (`/api/v1/users`)
+#### Autenticación y Usuarios
+- `me` - Información del usuario actual autenticado
+- `user(userId: Int!)` - Obtener usuario por ID
+- `trips(origin: String, destination: String, limit: Int, offset: Int)` - Listar viajes disponibles con filtros
+- `trip(tripId: Int!)` - Obtener viaje por ID
+- `myBookings` - Mis reservas como pasajero
 
-- `GET /me` - Perfil del usuario actual
-- `PUT /me` - Actualizar perfil
-- `GET /{user_id}` - Obtener usuario por ID
+### Mutations Disponibles
 
-### Viajes (`/api/v1/trips`)
+#### Autenticación
+- `register(userInput: UserCreateInput!)` - Registro de nuevo usuario
+- `login(loginInput: LoginInput!)` - Inicio de sesión (devuelve JWT token)
 
-- `POST /` - Crear nuevo viaje
-- `GET /` - Listar viajes disponibles (con filtros)
-- `GET /{trip_id}` - Obtener viaje por ID
-- `PUT /{trip_id}` - Actualizar viaje
-- `DELETE /{trip_id}` - Eliminar viaje
-- `GET /my/trips` - Mis viajes como conductor
+#### Gestión de Viajes
+- `createTrip(tripInput: TripCreateInput!)` - Crear nuevo viaje (requiere autenticación)
+- `updateTrip(tripId: Int!, tripInput: TripUpdateInput!)` - Actualizar viaje (requiere autenticación)
 
-### Reservas (`/api/v1/bookings`)
+#### Gestión de Reservas
+- `createBooking(bookingInput: BookingCreateInput!)` - Crear nueva reserva (requiere autenticación)
+- `updateBooking(bookingId: Int!, bookingInput: BookingUpdateInput!)` - Actualizar reserva (requiere autenticación)
 
-- `POST /` - Crear nueva reserva
-- `GET /` - Mis reservas como pasajero
-- `GET /{booking_id}` - Obtener reserva por ID
-- `PUT /{booking_id}` - Actualizar reserva
-- `DELETE /{booking_id}` - Cancelar reserva
-- `GET /trip/{trip_id}/bookings` - Reservas de un viaje (solo conductor)
+### Ventajas de GraphQL
+
+- **Flexibilidad**: Solicita exactamente los campos que necesitas
+- **Una sola solicitud**: Obtén datos relacionados en una sola consulta
+- **Tipado fuerte**: Schema auto-documentado con tipos estrictos
+- **Introspection**: Explora el schema directamente en GraphQL Playground
+- **Versionado**: No necesitas versionar endpoints, evoluciona el schema gradualmente
+
+### Ejemplo de Query Compleja
+
+```graphql
+query GetTripWithBookings($tripId: Int!) {
+  trip(tripId: $tripId) {
+    id
+    origin
+    destination
+    departureTime
+    availableSeats
+    pricePerSeat
+    description
+    driver {
+      id
+      username
+      fullName
+    }
+  }
+  myBookings {
+    id
+    seatsRequested
+    totalPrice
+    status
+    trip {
+      id
+      origin
+      destination
+      departureTime
+    }
+  }
+}
+```
 
 ## 🗄️ Modelos de Base de Datos
 
@@ -225,15 +258,63 @@ El sistema utiliza JWT (JSON Web Tokens) para la autenticación:
 
 ### Ejemplo de uso:
 
-```bash
-# Login
-curl -X POST "http://localhost:8000/api/v1/auth/login" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=user@example.com&password=password123"
+```graphql
+# Mutation para registro
+mutation RegisterUser {
+  register(userInput: {
+    email: "user@example.com"
+    username: "testuser"
+    fullName: "Test User"
+    password: "password123"
+    phone: "+1234567890"
+  }) {
+    id
+    email
+    username
+    fullName
+  }
+}
 
-# Usar token en requests
-curl -X GET "http://localhost:8000/api/v1/users/me" \
-  -H "Authorization: Bearer <your-jwt-token>"
+# Mutation para login
+mutation LoginUser {
+  login(loginInput: {
+    email: "user@example.com"
+    password: "password123"
+  }) {
+    accessToken
+    tokenType
+  }
+}
+
+# Query para obtener usuario actual (requiere token en header)
+query GetCurrentUser {
+  me {
+    id
+    email
+    username
+    fullName
+    isActive
+  }
+}
+
+# Query para obtener viajes
+query GetTrips {
+  trips(origin: "Madrid", limit: 10) {
+    id
+    origin
+    destination
+    departureTime
+    availableSeats
+    pricePerSeat
+  }
+}
+```
+
+### Headers para autenticación:
+```json
+{
+  "Authorization": "Bearer <your-jwt-token>"
+}
 ```
 
 ## 🗃️ Migraciones de Base de Datos
@@ -284,9 +365,8 @@ uv run pytest -v
 
 Una vez que el servidor esté ejecutándose, puedes acceder a:
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **OpenAPI JSON**: http://localhost:8000/openapi.json
+- **GraphQL Playground**: http://localhost:8000/graphql (interfaz interactiva para probar queries y mutations)
+- **Health Check**: http://localhost:8000/health
 
 ## 🚀 Comandos de Desarrollo
 
@@ -368,8 +448,10 @@ redis-cli -h localhost -p 6379
 # Health check
 curl http://localhost:8000/health
 
-# Métricas de la aplicación
-curl http://localhost:8000/metrics
+# Probar GraphQL endpoint
+curl -X POST http://localhost:8000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ __schema { types { name } } }"}'
 ```
 
 ## 🤝 Contribución
@@ -396,7 +478,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 Si tienes problemas o preguntas:
 
-1. Revisa la documentación de la API en `/docs`
+1. Revisa la documentación de la API en GraphQL Playground: http://localhost:8000/graphql
 2. Consulta los issues existentes
 3. Crea un nuevo issue con detalles del problema
 4. Contacta al equipo en jpprina@gmail.com
