@@ -19,15 +19,6 @@ async_session_factory = async_sessionmaker(
 )
 
 
-async def get_db() -> AsyncSession:
-    """Get database session dependency."""
-    async with async_session_factory() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
-
-
 async def create_tables() -> None:
     """Create database tables."""
     from app.models.base import Base

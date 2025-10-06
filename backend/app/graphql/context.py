@@ -5,27 +5,41 @@ from typing import Optional
 import strawberry
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from strawberry.fastapi import BaseContext
 
-from app.core.database import get_db
+from app.core.database import async_session_factory
 from app.graphql.auth import get_current_user_from_token
 from app.models.user import User
 
 
-class Context:
-    """GraphQL context containing database session and current user."""
+class Context(BaseContext):
+    """
+    GraphQL context containing database session and current user.
+
+    This context is injected into all GraphQL resolvers via dependency injection.
+    """
 
     def __init__(self, db: AsyncSession, user: Optional[User] = None):
+        super().__init__()
         self.db = db
         self.user = user
 
 
-async def get_context(request: Request) -> dict:
-    """Get GraphQL context with database session and current user."""
-    db_gen = get_db()
-    db = await db_gen.__anext__()
+async def get_context(request: Request) -> Context:
+    """
+    Dependency injection function to create GraphQL context.
+
+    This function is called by Strawberry on each request to provide
+    the context with database session and authenticated user.
+
+    The session is created from the session factory and will be managed
+    by the request lifecycle.
+    """
+    # Create database session from factory
+    db: AsyncSession = async_session_factory()
 
     # Extract token from Authorization header
-    user = None
+    user: Optional[User] = None
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
@@ -35,4 +49,4 @@ async def get_context(request: Request) -> dict:
             # Invalid token, continue without user
             pass
 
-    return {"db": db, "user": user}
+    return Context(db=db, user=user)

@@ -39,8 +39,8 @@ def create_application() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # GraphQL endpoint
-    graphql_app = GraphQLRouter(schema)
+    # GraphQL endpoint with dependency injection context
+    graphql_app = GraphQLRouter(schema, context_getter=get_context)
     app.include_router(graphql_app, prefix="/graphql")
 
     return app
