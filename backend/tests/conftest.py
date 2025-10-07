@@ -102,20 +102,20 @@ def mock_create_tables(monkeypatch):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def initialize_bcrypt():
+def initialize_password_hash():
     """
-    Initialize bcrypt before running security tests.
+    Initialize password hash before running security tests.
 
-    This fixture ensures bcrypt is properly initialized with a simple password
+    This fixture ensures pwdlib is properly initialized with a simple password
     before running tests, avoiding initialization issues with long test passwords.
     """
-    from passlib.context import CryptContext
+    from pwdlib import PasswordHash
 
-    # Create a context and hash a simple password to trigger initialization
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    # Create a password hash instance and hash a simple password to trigger initialization
+    password_hash = PasswordHash.recommended()
     try:
         # Use a simple, short password for initialization
-        pwd_context.hash("init")
+        password_hash.hash("init")
     except Exception:
         # If initialization fails, tests will handle it
         pass

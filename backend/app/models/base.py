@@ -4,12 +4,11 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, Integer, func
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-@as_declarative()
-class Base:
+class Base(DeclarativeBase):
     """Base class for all database models."""
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)

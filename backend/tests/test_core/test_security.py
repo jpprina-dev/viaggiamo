@@ -3,14 +3,15 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
+import jwt
 import pytest
-from jose import JWTError, jwt
+from jwt.exceptions import InvalidTokenError
 
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
     get_password_hash,
-    pwd_context,
+    password_hash,
     verify_password,
 )
 
@@ -36,13 +37,13 @@ class TestPasswordHashing:
         # Due to salt, hashes should be different
         assert hash1 != hash2
 
-    def test_get_password_hash_creates_bcrypt_hash(self):
-        """Test that password hash uses bcrypt format."""
+    def test_get_password_hash_creates_argon2_hash(self):
+        """Test that password hash uses argon2 format."""
         password = "TestPass123!"  # Short password
         hashed = get_password_hash(password)
 
-        # Bcrypt hashes start with $2b$ or $2a$ or $2y$
-        assert hashed.startswith("$2")
+        # Argon2 hashes start with $argon2id$
+        assert hashed.startswith("$argon2")
 
     def test_password_hash_is_not_plain_text(self):
         """Test that hashed password is not the same as plain text."""
@@ -112,18 +113,14 @@ class TestPasswordVerification:
 
 
 @pytest.mark.unit
-class TestPwdContext:
-    """Tests for password context configuration."""
+class TestPasswordHashContext:
+    """Tests for password hash configuration."""
 
-    def test_pwd_context_uses_bcrypt(self):
-        """Test that password context uses bcrypt scheme."""
-        assert "bcrypt" in pwd_context.schemes()
-
-    def test_pwd_context_is_configured(self):
-        """Test that password context is properly configured."""
-        assert pwd_context is not None
-        assert hasattr(pwd_context, "hash")
-        assert hasattr(pwd_context, "verify")
+    def test_password_hash_is_configured(self):
+        """Test that password hash is properly configured."""
+        assert password_hash is not None
+        assert hasattr(password_hash, "hash")
+        assert hasattr(password_hash, "verify")
 
 
 @pytest.mark.unit
@@ -200,7 +197,7 @@ class TestAccessTokenCreation:
         token = create_access_token(subject="user@example.com")
 
         # Decoding with wrong algorithm should fail
-        with pytest.raises(JWTError):
+        with pytest.raises(InvalidTokenError):
             jwt.decode(token, settings.SECRET_KEY, algorithms=["HS512"])
 
     def test_create_access_token_uses_secret_key(self):
@@ -208,7 +205,7 @@ class TestAccessTokenCreation:
         token = create_access_token(subject="user@example.com")
 
         # Decoding with wrong secret should fail
-        with pytest.raises(JWTError):
+        with pytest.raises(InvalidTokenError):
             jwt.decode(token, "wrong-secret-key", algorithms=[settings.ALGORITHM])
 
     def test_create_access_token_handles_integer_subject(self):
@@ -247,33 +244,33 @@ class TestTokenDecoding:
         assert "exp" in payload
 
     def test_expired_token_raises_error(self):
-        """Test that an expired token raises JWTError."""
+        """Test that an expired token raises InvalidTokenError."""
         # Create token that expired 1 hour ago
         expired_delta = timedelta(hours=-1)
         token = create_access_token(
             subject="user@example.com", expires_delta=expired_delta
         )
 
-        with pytest.raises(JWTError):
+        with pytest.raises(InvalidTokenError):
             jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
     def test_invalid_token_raises_error(self):
-        """Test that an invalid token raises JWTError."""
+        """Test that an invalid token raises InvalidTokenError."""
         invalid_token = "invalid.token.here"
 
-        with pytest.raises(JWTError):
+        with pytest.raises(InvalidTokenError):
             jwt.decode(
                 invalid_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
             )
 
     def test_tampered_token_raises_error(self):
-        """Test that a tampered token raises JWTError."""
+        """Test that a tampered token raises InvalidTokenError."""
         token = create_access_token(subject="user@example.com")
 
         # Tamper with token by modifying it
         tampered_token = token[:-5] + "xxxxx"
 
-        with pytest.raises(JWTError):
+        with pytest.raises(InvalidTokenError):
             jwt.decode(
                 tampered_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
             )

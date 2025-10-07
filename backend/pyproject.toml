@@ -16,14 +16,13 @@ dependencies = [
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
     "redis>=5.0.0",
-    "python-jose[cryptography]>=3.3.0",
-    "passlib[bcrypt]>=1.7.4",
+    "pyjwt>=2.8.0",
+    "pwdlib[argon2]>=0.2.0",
     "python-multipart>=0.0.6",
     "email-validator>=2.1.0",
     "python-dotenv>=1.0.0",
     "strawberry-graphql[fastapi]>=0.216.0",
     "aiosqlite>=0.19.0",
-    "bcrypt>=5.0.0",
 ]
 
 [project.optional-dependencies]
@@ -100,8 +99,7 @@ show_error_context = true
 module = [
     "alembic.*",
     "asyncpg.*",
-    "jose.*",
-    "passlib.*",
+    "pwdlib.*",
     "redis.*",
 ]
 ignore_missing_imports = true
