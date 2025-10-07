@@ -7,14 +7,13 @@ This guide explains how to set up and use OAuth/SSO authentication in the Viaggi
 The system supports multiple OAuth providers with a flexible, extensible architecture. Currently implemented:
 - ✅ **Google OAuth 2.0** (fully functional)
 - 🚧 **Facebook OAuth** (placeholder for future implementation)
-- 🚧 **GitHub OAuth** (placeholder for future implementation)
 
 ## Architecture
 
 ### Key Components
 
 1. **User Model** (`app/models/user.py`):
-   - `auth_provider`: Provider identifier ('local', 'google', 'facebook', 'github')
+   - `auth_provider`: Provider identifier ('local', 'google', 'facebook')
    - `provider_user_id`: Unique user ID from the OAuth provider
    - `hashed_password`: Optional (null for OAuth users)
 
@@ -144,7 +143,7 @@ If a user registers with email/password and later tries to login with Google usi
 
 ## Adding New OAuth Providers
 
-To add support for a new OAuth provider (e.g., Facebook, GitHub):
+To add support for a new OAuth provider (e.g., Facebook):
 
 ### 1. Create Provider Class
 
@@ -186,7 +185,6 @@ Update the `OAUTH_PROVIDERS` registry:
 OAUTH_PROVIDERS: dict[str, OAuthProvider] = {
     "google": GoogleOAuthProvider(),
     "facebook": FacebookOAuthProvider(),  # Add here
-    "github": GithubOAuthProvider(),
 }
 ```
 
@@ -278,7 +276,7 @@ The migration should add:
 Authenticate or register a user via OAuth/SSO.
 
 **Input**: `OAuthLoginInput`
-- `provider`: String ('google', 'facebook', 'github')
+- `provider`: String ('google', 'facebook')
 - `token`: String (OAuth token from provider)
 
 **Returns**: `AuthToken`

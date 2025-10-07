@@ -187,6 +187,7 @@ const withPWA = require('next-pwa')({
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  output: 'standalone',
   images: {
     domains: ['localhost', 'api.viaggiamo.com'],
     formats: ['image/webp', 'image/avif'],

@@ -42,7 +42,7 @@ services:
       dockerfile: Dockerfile
     container_name: viaggiamo-backend-api
     env_file:
-      - docker.env
+      - .env
     ports:
       - "8000:8000"
     volumes:

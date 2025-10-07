@@ -40,30 +40,23 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: data.email,
-          username: data.username,
-          full_name: data.full_name,
-          phone: data.phone || null,
-          password: data.password,
-        }),
+      // Dynamically import register function to avoid SSR issues
+      const { register: registerUser } = await import('@/lib/auth')
+
+      await registerUser({
+        email: data.email,
+        username: data.username,
+        fullName: data.full_name,
+        phone: data.phone || undefined,
+        password: data.password,
       })
 
-      if (response.ok) {
-        const user = await response.json()
-        toast.success('¡Registro exitoso! Por favor inicia sesión.')
-        router.push('/auth/login')
-      } else {
-        const error = await response.json()
-        toast.error(error.detail || 'Error al registrarse')
-      }
-    } catch (error) {
-      toast.error('Error de conexión')
+      toast.success('¡Registro exitoso! Por favor inicia sesión.')
+      router.push('/auth/login')
+    } catch (error: any) {
+      console.error('Register error:', error)
+      const errorMessage = error.response?.errors?.[0]?.message || error.message || 'Error al registrarse'
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
