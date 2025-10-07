@@ -36,6 +36,7 @@ class UserQueries:
             is_verified=context.user.is_verified,
             phone=context.user.phone,
             profile_picture=context.user.profile_picture,
+            auth_provider=context.user.auth_provider,
             created_at=context.user.created_at,
             updated_at=context.user.updated_at,
         )
@@ -67,6 +68,7 @@ class UserQueries:
             is_verified=user.is_verified,
             phone=user.phone,
             profile_picture=user.profile_picture,
+            auth_provider=user.auth_provider,
             created_at=user.created_at,
             updated_at=user.updated_at,
         )
@@ -120,6 +122,7 @@ class UserMutations:
             is_verified=user.is_verified,
             phone=user.phone,
             profile_picture=user.profile_picture,
+            auth_provider=user.auth_provider,
             created_at=user.created_at,
             updated_at=user.updated_at,
         )

@@ -19,6 +19,7 @@ class UserType:
     is_verified: bool
     phone: Optional[str] = None
     profile_picture: Optional[str] = None
+    auth_provider: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -139,3 +140,11 @@ class LoginInput:
 
     email: str
     password: str
+
+
+@strawberry.input
+class OAuthLoginInput:
+    """OAuth/SSO login input."""
+
+    provider: str  # 'google', 'facebook', 'github', etc.
+    token: str  # OAuth token from the provider

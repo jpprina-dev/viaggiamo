@@ -24,11 +24,19 @@ class User(Base):
         String(50), unique=True, index=True, nullable=False
     )
     full_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     profile_picture: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    # OAuth/SSO fields
+    auth_provider: Mapped[str | None] = mapped_column(
+        String(50), nullable=True, default="local"
+    )  # 'local', 'google', 'facebook', 'github', etc.
+    provider_user_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, index=True
+    )  # Unique identifier from OAuth provider
 
     # Relationships
     trips: Mapped[list["Trip"]] = relationship("Trip", back_populates="driver")

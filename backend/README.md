@@ -10,6 +10,7 @@ Backend API para el MVP de carpooling Viaggiamo, desarrollado con FastAPI, Graph
 - **PostgreSQL** como base de datos principal
 - **Redis** para caché y sesiones
 - **JWT Authentication** con tokens seguros
+- **OAuth/SSO Support** - Google, Facebook, GitHub (extensible)
 - **Alembic** para migraciones de base de datos
 - **Pydantic v2** para validación de datos
 - **uv** como gestor de dependencias
@@ -155,6 +156,7 @@ DEBUG=True
 #### Autenticación
 - `register(userInput: UserCreateInput!)` - Registro de nuevo usuario
 - `login(loginInput: LoginInput!)` - Inicio de sesión (devuelve JWT token)
+- `loginWithOauth(oauthInput: OAuthLoginInput!)` - Login/registro con OAuth (Google, Facebook, GitHub)
 
 #### Gestión de Viajes
 - `createTrip(tripInput: TripCreateInput!)` - Crear nuevo viaje (requiere autenticación)
@@ -212,11 +214,13 @@ query GetTripWithBookings($tripId: Int!) {
 - `email` - Email único
 - `username` - Nombre de usuario único
 - `full_name` - Nombre completo
-- `hashed_password` - Contraseña hasheada
+- `hashed_password` - Contraseña hasheada (opcional, null para usuarios OAuth)
 - `is_active` - Estado activo/inactivo
 - `is_verified` - Estado verificado
 - `phone` - Teléfono (opcional)
 - `profile_picture` - URL de foto de perfil
+- `auth_provider` - Proveedor de autenticación ('local', 'google', 'facebook', 'github')
+- `provider_user_id` - ID del usuario en el proveedor OAuth
 - `created_at` - Fecha de creación
 - `updated_at` - Fecha de actualización
 
@@ -249,14 +253,16 @@ query GetTripWithBookings($tripId: Int!) {
 
 ## 🔐 Autenticación
 
-El sistema utiliza JWT (JSON Web Tokens) para la autenticación:
+El sistema soporta dos métodos de autenticación:
+
+### 1. Autenticación Tradicional (Email/Password)
+
+Utiliza JWT (JSON Web Tokens):
 
 1. **Registro/Login**: El usuario se autentica con email y contraseña
 2. **Token JWT**: Se genera un token con expiración configurable
 3. **Headers**: Incluir el token en el header `Authorization: Bearer <token>`
 4. **Protección**: Los endpoints protegidos requieren token válido
-
-### Ejemplo de uso:
 
 ```graphql
 # Mutation para registro
@@ -285,6 +291,47 @@ mutation LoginUser {
     tokenType
   }
 }
+```
+
+### 2. OAuth/SSO Authentication
+
+Soporta múltiples proveedores OAuth con arquitectura extensible:
+
+- ✅ **Google OAuth 2.0** (implementado)
+- 🚧 **Facebook OAuth** (próximamente)
+- 🚧 **GitHub OAuth** (próximamente)
+
+```graphql
+# Login/Registro con Google
+mutation LoginWithGoogle {
+  loginWithOauth(oauthInput: {
+    provider: "google"
+    token: "eyJhbGciOiJSUzI1NiIsImtpZCI6..."  # Google ID token
+  }) {
+    accessToken
+    tokenType
+  }
+}
+```
+
+**Características de OAuth:**
+- Login automático si el usuario no existe (auto-registro)
+- Vinculación de cuentas locales con OAuth
+- Verificación automática de email
+- Foto de perfil desde el proveedor OAuth
+- Sin necesidad de contraseña
+
+**Documentación completa:**
+- [Configuración OAuth](docs/OAUTH_SETUP.md) - Guía de configuración
+- [Ejemplos OAuth](docs/OAUTH_EXAMPLES.md) - Ejemplos de integración
+
+**Variables de entorno necesarias:**
+```bash
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+```
+
+Ver `env.example` para configuración completa
 
 # Query para obtener usuario actual (requiere token en header)
 query GetCurrentUser {
