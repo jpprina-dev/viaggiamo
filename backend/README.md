@@ -189,7 +189,8 @@ query GetTripWithBookings($tripId: Int!) {
     driver {
       id
       username
-      fullName
+      name
+      lastName
     }
   }
   myBookings {
@@ -213,16 +214,23 @@ query GetTripWithBookings($tripId: Int!) {
 - `id` - ID único del usuario
 - `email` - Email único
 - `username` - Nombre de usuario único
-- `full_name` - Nombre completo
+- `name` - Nombre
+- `last_name` - Apellido
 - `hashed_password` - Contraseña hasheada (opcional, null para usuarios OAuth)
-- `is_active` - Estado activo/inactivo
-- `is_verified` - Estado verificado
+- `identification` - Número de identificación (opcional)
+- `identification_type` - Tipo de identificación (passport, national_id, drivers_license)
 - `phone` - Teléfono (opcional)
+- `phone_verified` - Teléfono verificado
+- `email_verified` - Email verificado
 - `profile_picture` - URL de foto de perfil
+- `profile_short_bio` - Biografía corta del perfil
+- `status` - Estado del usuario (active, suspended, under_review)
+- `trip_preferences` - Preferencias de viaje (JSON: pets, children, smoking, etc.)
 - `auth_provider` - Proveedor de autenticación ('local', 'google', 'facebook', 'github')
 - `provider_user_id` - ID del usuario en el proveedor OAuth
 - `created_at` - Fecha de creación
 - `updated_at` - Fecha de actualización
+- **Relationships**: trips (como conductor), bookings (como pasajero), vehicles, ratings
 
 ### Trip
 - `id` - ID único del viaje
@@ -251,6 +259,30 @@ query GetTripWithBookings($tripId: Int!) {
 - `created_at` - Fecha de creación
 - `updated_at` - Fecha de actualización
 
+### Vehicle
+- `id` - ID único del vehículo
+- `user_id` - ID del propietario (FK a User)
+- `make` - Marca del vehículo (ej: Toyota)
+- `model` - Modelo del vehículo (ej: Corolla)
+- `year` - Año del vehículo
+- `color` - Color del vehículo (opcional)
+- `license_plate` - Placa/matrícula (único)
+- `seats` - Número total de asientos
+- `is_active` - Si el vehículo está disponible para viajes
+- `created_at` - Fecha de creación
+- `updated_at` - Fecha de actualización
+
+### Rating
+- `id` - ID único de la calificación
+- `trip_id` - ID del viaje (FK a Trip)
+- `rater_id` - ID del usuario que califica (FK a User)
+- `rated_user_id` - ID del usuario calificado (FK a User)
+- `role` - Rol del usuario calificado (driver o passenger)
+- `rating` - Calificación (1-5 estrellas)
+- `comment` - Comentario sobre la calificación (opcional)
+- `created_at` - Fecha de creación
+- `updated_at` - Fecha de actualización
+
 ## 🔐 Autenticación
 
 El sistema soporta dos métodos de autenticación:
@@ -270,14 +302,18 @@ mutation RegisterUser {
   register(userInput: {
     email: "user@example.com"
     username: "testuser"
-    fullName: "Test User"
+    name: "Test"
+    lastName: "User"
     password: "password123"
     phone: "+1234567890"
   }) {
     id
     email
     username
-    fullName
+    name
+    lastName
+    status
+    emailVerified
   }
 }
 
@@ -339,8 +375,11 @@ query GetCurrentUser {
     id
     email
     username
-    fullName
-    isActive
+    name
+    lastName
+    status
+    emailVerified
+    phoneVerified
   }
 }
 

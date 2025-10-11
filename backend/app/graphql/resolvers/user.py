@@ -31,12 +31,18 @@ class UserQueries:
             id=context.user.id,
             email=context.user.email,
             username=context.user.username,
-            full_name=context.user.full_name,
-            is_active=context.user.is_active,
-            is_verified=context.user.is_verified,
+            name=context.user.name,
+            last_name=context.user.last_name,
+            status=context.user.status,
+            email_verified=context.user.email_verified,
             phone=context.user.phone,
+            phone_verified=context.user.phone_verified,
             profile_picture=context.user.profile_picture,
+            profile_short_bio=context.user.profile_short_bio,
+            identification=context.user.identification,
+            identification_type=context.user.identification_type,
             auth_provider=context.user.auth_provider,
+            trip_preferences=context.user.trip_preferences,
             created_at=context.user.created_at,
             updated_at=context.user.updated_at,
         )
@@ -63,12 +69,18 @@ class UserQueries:
             id=user.id,
             email=user.email,
             username=user.username,
-            full_name=user.full_name,
-            is_active=user.is_active,
-            is_verified=user.is_verified,
+            name=user.name,
+            last_name=user.last_name,
+            status=user.status,
+            email_verified=user.email_verified,
             phone=user.phone,
+            phone_verified=user.phone_verified,
             profile_picture=user.profile_picture,
+            profile_short_bio=user.profile_short_bio,
+            identification=user.identification,
+            identification_type=user.identification_type,
             auth_provider=user.auth_provider,
+            trip_preferences=user.trip_preferences,
             created_at=user.created_at,
             updated_at=user.updated_at,
         )
@@ -103,12 +115,22 @@ class UserMutations:
         # Update fields if provided
         if user_input.username is not None:
             user.username = user_input.username
-        if user_input.full_name is not None:
-            user.full_name = user_input.full_name
+        if user_input.name is not None:
+            user.name = user_input.name
+        if user_input.last_name is not None:
+            user.last_name = user_input.last_name
         if user_input.phone is not None:
             user.phone = user_input.phone
         if user_input.profile_picture is not None:
             user.profile_picture = user_input.profile_picture
+        if user_input.profile_short_bio is not None:
+            user.profile_short_bio = user_input.profile_short_bio
+        if user_input.identification is not None:
+            user.identification = user_input.identification
+        if user_input.identification_type is not None:
+            user.identification_type = user_input.identification_type
+        if user_input.trip_preferences is not None:
+            user.trip_preferences = user_input.trip_preferences
 
         await context.db.commit()
         await context.db.refresh(user)
@@ -117,12 +139,18 @@ class UserMutations:
             id=user.id,
             email=user.email,
             username=user.username,
-            full_name=user.full_name,
-            is_active=user.is_active,
-            is_verified=user.is_verified,
+            name=user.name,
+            last_name=user.last_name,
+            status=user.status,
+            email_verified=user.email_verified,
             phone=user.phone,
+            phone_verified=user.phone_verified,
             profile_picture=user.profile_picture,
+            profile_short_bio=user.profile_short_bio,
+            identification=user.identification,
+            identification_type=user.identification_type,
             auth_provider=user.auth_provider,
+            trip_preferences=user.trip_preferences,
             created_at=user.created_at,
             updated_at=user.updated_at,
         )

@@ -54,10 +54,14 @@ class AuthMutations:
         db_user = User()
         db_user.email = user_input.email
         db_user.username = user_input.username
-        db_user.full_name = user_input.full_name
+        db_user.name = user_input.name
+        db_user.last_name = user_input.last_name
         db_user.hashed_password = hashed_password
         db_user.phone = user_input.phone
         db_user.profile_picture = user_input.profile_picture
+        db_user.profile_short_bio = user_input.profile_short_bio
+        db_user.identification = user_input.identification
+        db_user.identification_type = user_input.identification_type
         db_user.auth_provider = "local"  # Traditional email/password registration
 
         context.db.add(db_user)
@@ -68,12 +72,18 @@ class AuthMutations:
             id=db_user.id,
             email=db_user.email,
             username=db_user.username,
-            full_name=db_user.full_name,
-            is_active=db_user.is_active,
-            is_verified=db_user.is_verified,
+            name=db_user.name,
+            last_name=db_user.last_name,
+            status=db_user.status,
+            email_verified=db_user.email_verified,
             phone=db_user.phone,
+            phone_verified=db_user.phone_verified,
             profile_picture=db_user.profile_picture,
+            profile_short_bio=db_user.profile_short_bio,
+            identification=db_user.identification,
+            identification_type=db_user.identification_type,
             auth_provider=db_user.auth_provider,
+            trip_preferences=db_user.trip_preferences,
             created_at=db_user.created_at,
             updated_at=db_user.updated_at,
         )
@@ -115,8 +125,8 @@ class AuthMutations:
         if not verify_password(login_input.password, user.hashed_password):
             raise ValueError("Incorrect email or password")
 
-        if not user.is_active:
-            raise ValueError("Inactive user")
+        if user.status != "active":
+            raise ValueError(f"User account is {user.status}")
 
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
@@ -176,7 +186,7 @@ class AuthMutations:
                 existing_user.auth_provider = oauth_user_info.provider
                 existing_user.provider_user_id = oauth_user_info.provider_user_id
                 if oauth_user_info.email_verified:
-                    existing_user.is_verified = True
+                    existing_user.email_verified = True
                 if (
                     oauth_user_info.profile_picture
                     and not existing_user.profile_picture
@@ -212,11 +222,12 @@ class AuthMutations:
             user = User()
             user.email = oauth_user_info.email
             user.username = username
-            user.full_name = oauth_user_info.full_name
+            user.name = oauth_user_info.name
+            user.last_name = oauth_user_info.last_name
             user.profile_picture = oauth_user_info.profile_picture
             user.auth_provider = oauth_user_info.provider
             user.provider_user_id = oauth_user_info.provider_user_id
-            user.is_verified = oauth_user_info.email_verified
+            user.email_verified = oauth_user_info.email_verified
             user.hashed_password = None  # No password for OAuth users
 
             context.db.add(user)
@@ -224,8 +235,8 @@ class AuthMutations:
             await context.db.refresh(user)
 
         # Check if user is active
-        if not user.is_active:
-            raise ValueError("Inactive user")
+        if user.status != "active":
+            raise ValueError(f"User account is {user.status}")
 
         # Create access token
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

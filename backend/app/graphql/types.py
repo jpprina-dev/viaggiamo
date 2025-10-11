@@ -14,12 +14,18 @@ class UserType:
     id: int
     email: str
     username: str
-    full_name: str
-    is_active: bool
-    is_verified: bool
+    name: str
+    last_name: str
+    status: str
+    email_verified: bool
     phone: Optional[str] = None
+    phone_verified: bool = False
     profile_picture: Optional[str] = None
+    profile_short_bio: Optional[str] = None
+    identification: Optional[str] = None
+    identification_type: Optional[str] = None
     auth_provider: Optional[str] = None
+    trip_preferences: Optional[dict] = None
     created_at: datetime
     updated_at: datetime
 
@@ -65,10 +71,14 @@ class UserCreateInput:
 
     email: str
     username: str
-    full_name: str
+    name: str
+    last_name: str
     password: str
     phone: Optional[str] = None
     profile_picture: Optional[str] = None
+    profile_short_bio: Optional[str] = None
+    identification: Optional[str] = None
+    identification_type: Optional[str] = None
 
 
 @strawberry.input
@@ -76,9 +86,14 @@ class UserUpdateInput:
     """Input type for user updates."""
 
     username: Optional[str] = None
-    full_name: Optional[str] = None
+    name: Optional[str] = None
+    last_name: Optional[str] = None
     phone: Optional[str] = None
     profile_picture: Optional[str] = None
+    profile_short_bio: Optional[str] = None
+    identification: Optional[str] = None
+    identification_type: Optional[str] = None
+    trip_preferences: Optional[dict] = None
 
 
 @strawberry.input
@@ -148,3 +163,72 @@ class OAuthLoginInput:
 
     provider: str  # 'google', 'facebook', 'github', etc.
     token: str  # OAuth token from the provider
+
+
+@strawberry.type
+class VehicleType:
+    """GraphQL Vehicle type."""
+
+    id: int
+    user_id: int
+    make: str
+    model: str
+    year: int
+    color: Optional[str] = None
+    license_plate: str
+    seats: int
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+@strawberry.input
+class VehicleCreateInput:
+    """Input type for vehicle creation."""
+
+    make: str
+    model: str
+    year: int
+    license_plate: str
+    seats: int
+    color: Optional[str] = None
+    is_active: bool = True
+
+
+@strawberry.input
+class VehicleUpdateInput:
+    """Input type for vehicle updates."""
+
+    make: Optional[str] = None
+    model: Optional[str] = None
+    year: Optional[int] = None
+    color: Optional[str] = None
+    license_plate: Optional[str] = None
+    seats: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+@strawberry.type
+class RatingType:
+    """GraphQL Rating type."""
+
+    id: int
+    trip_id: int
+    rater_id: int
+    rated_user_id: int
+    role: str
+    rating: int
+    comment: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+@strawberry.input
+class RatingCreateInput:
+    """Input type for rating creation."""
+
+    trip_id: int
+    rated_user_id: int
+    role: str  # 'driver' or 'passenger'
+    rating: int  # 1-5
+    comment: Optional[str] = None

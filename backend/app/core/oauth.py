@@ -17,7 +17,8 @@ class OAuthUserInfo:
     provider: str
     provider_user_id: str
     email: str
-    full_name: str
+    name: str
+    last_name: str
     profile_picture: Optional[str] = None
     email_verified: bool = False
 
@@ -61,11 +62,18 @@ class GoogleOAuthProvider(OAuthProvider):
                 raise ValueError("Invalid token issuer")
 
             # Extract user information
+            full_name = idinfo.get("name", "")
+            # Split full name into name and last_name
+            name_parts = full_name.split(" ", 1) if full_name else ["", ""]
+            name = name_parts[0] if len(name_parts) > 0 else ""
+            last_name = name_parts[1] if len(name_parts) > 1 else name_parts[0]
+
             return OAuthUserInfo(
                 provider="google",
                 provider_user_id=idinfo["sub"],
                 email=idinfo["email"],
-                full_name=idinfo.get("name", ""),
+                name=name,
+                last_name=last_name,
                 profile_picture=idinfo.get("picture"),
                 email_verified=idinfo.get("email_verified", False),
             )
