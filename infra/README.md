@@ -43,37 +43,37 @@ NODE_ENV=production
 
 ### Levantar todos los servicios
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Ver logs
 ```bash
-docker-compose logs -f [service-name]
+docker compose logs -f [service-name]
 ```
 
 ### Reiniciar un servicio
 ```bash
-docker-compose restart [service-name]
+docker compose restart [service-name]
 ```
 
 ### Detener todos los servicios
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### Limpiar volúmenes (¡CUIDADO! Borra datos)
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ### Acceder a la base de datos
 ```bash
-docker-compose exec postgres psql -U viaggiamo -d viaggiamo_db
+docker compose exec postgres psql -U viaggiamo -d viaggiamo_db
 ```
 
 ### Acceder a Redis
 ```bash
-docker-compose exec redis redis-cli
+docker compose exec redis redis-cli
 ```
 
 ## Migraciones
@@ -82,7 +82,7 @@ Para ejecutar las migraciones de la base de datos:
 
 ```bash
 cd backend
-docker-compose exec backend uv run alembic upgrade head
+docker compose exec backend uv run alembic upgrade head
 ```
 
 ## Monitoreo
@@ -97,8 +97,8 @@ Todos los servicios incluyen health checks:
 ### Logs
 Los logs están disponibles a través de Docker Compose:
 ```bash
-docker-compose logs -f backend
-docker-compose logs -f frontend
-docker-compose logs -f postgres
-docker-compose logs -f redis
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f postgres
+docker compose logs -f redis
 ```
