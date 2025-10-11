@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Car } from 'lucide-react'
+import Image from 'next/image'
 import { Card } from '@/components/ui'
 
 interface AuthLayoutProps {
@@ -19,8 +19,14 @@ export function AuthLayout({ title, subtitle, subtitleLink, children }: AuthLayo
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link href="/" className="flex items-center justify-center space-x-2 mb-6">
-            <Car className="h-10 w-10 text-primary-600" />
-            <span className="text-3xl font-bold text-gray-900">Viaggiamo</span>
+            <Image
+              src="/icon0.svg"
+              alt="Viajamos logo"
+              width={40}
+              height={40}
+              className="h-10 w-10 brightness-0"
+            />
+            <span className="text-3xl font-bold text-gray-900">Viajamos</span>
           </Link>
           <h2 className="text-3xl font-bold text-gray-900">{title}</h2>
           {subtitle && subtitleLink && (

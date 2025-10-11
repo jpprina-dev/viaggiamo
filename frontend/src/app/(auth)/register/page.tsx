@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
@@ -22,7 +22,14 @@ function RegisterFormWrapper() {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { refreshUser } = useAuth()
+  const { user, loading, refreshUser } = useAuth()
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!loading && user) {
+      router.push(ROUTES.DASHBOARD)
+    }
+  }, [loading, user, router])
 
   const handleEmailSubmit = (submittedEmail: string) => {
     setEmail(submittedEmail)
@@ -72,6 +79,18 @@ function RegisterFormWrapper() {
 
   const handleGoogleError = () => {
     toast.error('Error al registrarse con Google')
+  }
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+          <p className="mt-4 text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

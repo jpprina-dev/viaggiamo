@@ -1,27 +1,20 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { sharedMetadata } from '@/config/metadata'
 
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-})
-
 export const metadata: Metadata = {
   ...sharedMetadata,
   title: {
-    default: 'Viaggiamo - Carpooling MVP',
-    template: '%s | Viaggiamo',
+    default: 'Viajamos - Carpooling MVP',
+    template: '%s | Viajamos',
   },
   description: 'Plataforma de carpooling para compartir viajes de manera segura y económica',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Viaggiamo',
+    title: 'Viajamos',
   },
 }
 
@@ -30,7 +23,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#3b82f6',
+  themeColor: '#48A79F',
 }
 
 export default function RootLayout({
@@ -42,12 +35,12 @@ export default function RootLayout({
     <html lang="es">
       <head>
         <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Viaggiamo" />
+        <meta name="apple-mobile-web-app-title" content="Viajamos" />
       </head>
-      <body className={inter.className}>
+      <body>
         <AuthProvider>
           {children}
         </AuthProvider>

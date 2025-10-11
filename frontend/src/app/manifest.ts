@@ -2,24 +2,26 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Viaggiamo - Carpooling MVP',
-    short_name: 'Viaggiamo',
+    name: 'Viajamos - Carpooling MVP',
+    short_name: 'Viajamos',
     description: 'Plataforma de carpooling para compartir viajes de manera segura y económica',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
-    theme_color: '#3b82f6',
+    theme_color: '#48A79F',
     orientation: 'portrait',
     icons: [
       {
-        src: '/icon-192x192.png',
-        sizes: '192x192',
+        src: '/icon1.png',
+        sizes: '96x96',
         type: 'image/png',
+        purpose: 'any',
       },
       {
-        src: '/icon-512x512.png',
-        sizes: '512x512',
+        src: '/apple-icon.png',
+        sizes: '180x180',
         type: 'image/png',
+        purpose: 'any',
       },
     ],
     categories: ['travel', 'transportation', 'lifestyle'],

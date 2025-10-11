@@ -6,7 +6,7 @@ import type { Metadata } from 'next'
  */
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-const siteName = 'Viaggiamo'
+const siteName = 'Viajamos'
 const siteDescription = 'Plataforma de carpooling para compartir viajes de manera segura y económica'
 
 export const sharedMetadata: Metadata = {
@@ -14,9 +14,9 @@ export const sharedMetadata: Metadata = {
   applicationName: siteName,
   referrer: 'origin-when-cross-origin',
   keywords: ['carpooling', 'viajes compartidos', 'transporte', 'argentina', 'ahorro', 'viajes'],
-  authors: [{ name: 'Viaggiamo Team' }],
-  creator: 'Viaggiamo',
-  publisher: 'Viaggiamo',
+  authors: [{ name: 'Viajamos Team' }],
+  creator: 'Viajamos',
+  publisher: 'Viajamos',
   formatDetection: {
     email: false,
     address: false,

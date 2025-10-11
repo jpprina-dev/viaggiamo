@@ -1,27 +1,21 @@
 {
-  "name": "Viaggiamo - Carpooling MVP",
-  "short_name": "Viaggiamo",
-  "description": "MVP de carpooling para compartir viajes",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
-  "orientation": "portrait-primary",
+  "name": "Viajamos",
+  "short_name": "Viajamos",
   "icons": [
     {
-      "src": "/icon-192x192.png",
-      "sizes": "192x192",
+      "src": "/icon1.png",
+      "sizes": "96x96",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
-      "src": "/icon-512x512.png",
-      "sizes": "512x512",
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     }
   ],
-  "categories": ["travel", "transportation", "lifestyle"],
-  "lang": "es",
-  "dir": "ltr"
+  "theme_color": "#48A79F",
+  "background_color": "#ffffff",
+  "display": "standalone"
 }

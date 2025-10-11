@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Car } from 'lucide-react'
+import Image from 'next/image'
 import { FooterSection } from './FooterSection'
 import { FooterLink } from './FooterLink'
 
@@ -10,13 +10,19 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <Car className="h-6 w-6 text-primary-400" />
-              <span className="text-xl font-bold">Viaggiamo</span>
+              <Image
+                src="/icon0.svg"
+                alt="Viajamos logo"
+                width={24}
+                height={24}
+                className="h-6 w-6 brightness-0 invert"
+              />
+              <span className="text-xl font-bold">Viajamos</span>
             </div>
             <p className="text-gray-400 text-sm">
               La plataforma de carpooling que conecta viajeros y reduce costos de transporte.
             </p>
-            <p className="text-gray-500 text-sm mt-4">contacto@viaggiamo.com</p>
+            <p className="text-gray-500 text-sm mt-4">contacto@viajamos.com</p>
             <p className="text-gray-500 text-sm">+54 9 11 2862 0965</p>
           </div>
 
@@ -39,7 +45,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
-          <p>&copy; 2025 Viaggiamo. Todos los derechos reservados.</p>
+          <p>&copy; 2025 Viajamos. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>

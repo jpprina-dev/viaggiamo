@@ -11,19 +11,15 @@ export function middleware(request: NextRequest) {
   const protectedPaths = ['/dashboard', '/profile', '/settings', '/my-trips', '/bookings']
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
 
-  // Auth routes that logged-in users shouldn't access
-  const authPaths = ['/login', '/register']
-  const isAuthPath = authPaths.some(path => pathname.startsWith(path))
-
   // Redirect to login if accessing protected route without token
   if (isProtectedPath && !token) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Redirect to dashboard if accessing auth routes with token
-  if (isAuthPath && token) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
+  // NOTE: Removed automatic redirect from auth routes to dashboard
+  // This was causing issues when users had invalid/expired tokens
+  // Now, the auth pages will handle redirects after successful authentication
+  // and the AuthContext will handle token validation
 
   return NextResponse.next()
 }

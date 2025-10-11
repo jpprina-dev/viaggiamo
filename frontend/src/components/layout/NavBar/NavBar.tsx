@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Car } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { GradientIcon } from '@/components/GradientIcon'
 import { NavLink } from './NavLink'
 import { UserMenu } from './UserMenu'
 import { GuestLinks } from './GuestLinks'
@@ -17,9 +17,9 @@ export default function NavBar() {
       <div className="container">
         <div className="flex justify-between items-center py-4">
           <Link href="/" className="flex items-center space-x-2">
-            <Car className="h-8 w-8 text-primary-600" />
+            <GradientIcon width={32} height={32} className="h-8 w-8" />
             <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-600 bg-clip-text text-transparent">
-              Viaggiamo
+              Viajamos
             </span>
           </Link>
 
