@@ -1,0 +1,6 @@
+export { HeroSection } from './HeroSection'
+export { PopularTrips } from './PopularTrips'
+export { BenefitsSection } from './BenefitsSection'
+export { CTASection } from './CTASection'
+export { StatsSection } from './StatsSection'
+export { HowItWorksSection } from './HowItWorksSection'
