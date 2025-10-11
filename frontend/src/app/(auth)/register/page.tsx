@@ -12,6 +12,7 @@ import {
   EmailRegistrationForm,
   CompleteRegistrationForm
 } from '@/features/auth/components'
+import { ROUTES } from '@/config/routes'
 import type { RegisterInput } from '@/types'
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
@@ -34,7 +35,7 @@ function RegisterFormWrapper() {
       const { register: registerUser } = await import('@/lib/auth')
       await registerUser(data)
       toast.success('¡Registro exitoso! Por favor inicia sesión.')
-      router.push('/auth/login')
+      router.push(ROUTES.LOGIN)
     } catch (error: any) {
       console.error('Register error:', error)
       const errorMessage = error.response?.errors?.[0]?.message || error.message || 'Error al registrarse'
@@ -60,7 +61,7 @@ function RegisterFormWrapper() {
       await loginWithGoogle(credentialResponse.credential)
       await refreshUser()
       toast.success('¡Registro con Google exitoso!')
-      router.push('/dashboard')
+      router.push(ROUTES.DASHBOARD)
     } catch (error: any) {
       console.error('Google registration error:', error)
       toast.error(error.message || 'Error al registrarse con Google')
@@ -79,7 +80,7 @@ function RegisterFormWrapper() {
       subtitle="¿Ya tienes cuenta?"
       subtitleLink={{
         text: '¿Ya tienes cuenta?',
-        href: '/auth/login',
+        href: ROUTES.LOGIN,
         label: 'Inicia sesión aquí',
       }}
     >

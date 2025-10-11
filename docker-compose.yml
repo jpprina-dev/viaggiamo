@@ -65,9 +65,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      dockerfile: Dockerfile.dev
     container_name: viaggiamo-frontend
     environment:
       # Runtime variables
@@ -76,10 +74,14 @@ services:
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
       - NEXT_PUBLIC_APP_NAME=Viaggiamo
       - NEXT_PUBLIC_APP_DESCRIPTION=MVP de Carpooling
-      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-your-google-client-id.apps.googleusercontent.com}
       - NODE_ENV=development
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
     networks:
       - viaggiamo-network
     depends_on:

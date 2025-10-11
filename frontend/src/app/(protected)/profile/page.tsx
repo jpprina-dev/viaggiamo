@@ -2,10 +2,9 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { NavBar } from '@/components/layout'
-import ProtectedRoute from '@/components/common/ProtectedRoute'
 import { ProfileHeader, ProfileInfo } from '@/features/profile/components'
 
-function ProfileContent() {
+export default function ProfilePage() {
   const { user } = useAuth()
 
   if (!user) return null
@@ -26,13 +25,5 @@ function ProfileContent() {
         </div>
       </main>
     </div>
-  )
-}
-
-export default function ProfilePage() {
-  return (
-    <ProtectedRoute>
-      <ProfileContent />
-    </ProtectedRoute>
   )
 }

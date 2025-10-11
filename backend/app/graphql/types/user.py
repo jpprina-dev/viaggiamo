@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 
 import strawberry
+from strawberry.scalars import JSON
 
 
 @strawberry.type
@@ -24,7 +25,7 @@ class UserType:
     identification: Optional[str] = None
     identification_type: Optional[str] = None
     auth_provider: Optional[str] = None
-    trip_preferences: Optional[dict] = None
+    trip_preferences: Optional[JSON] = None
     created_at: datetime
     updated_at: datetime
 
@@ -57,4 +58,4 @@ class UserUpdateInput:
     profile_short_bio: Optional[str] = None
     identification: Optional[str] = None
     identification_type: Optional[str] = None
-    trip_preferences: Optional[dict] = None
+    trip_preferences: Optional[JSON] = None

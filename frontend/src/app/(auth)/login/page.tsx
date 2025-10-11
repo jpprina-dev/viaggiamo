@@ -8,6 +8,7 @@ import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oau
 import { login, loginWithGoogle } from '@/lib/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import { AuthLayout, LoginForm } from '@/features/auth/components'
+import { ROUTES } from '@/config/routes'
 import type { LoginInput } from '@/types'
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
@@ -23,7 +24,7 @@ function LoginFormWrapper() {
       await login(data.email, data.password)
       await refreshUser()
       toast.success('¡Inicio de sesión exitoso!')
-      router.push('/dashboard')
+      router.push(ROUTES.DASHBOARD)
     } catch (error: any) {
       console.error('Login error:', error)
       toast.error(error.message || 'Error al iniciar sesión')
@@ -43,7 +44,7 @@ function LoginFormWrapper() {
       await loginWithGoogle(credentialResponse.credential)
       await refreshUser()
       toast.success('¡Inicio de sesión con Google exitoso!')
-      router.push('/dashboard')
+      router.push(ROUTES.DASHBOARD)
     } catch (error: any) {
       console.error('Google login error:', error)
       toast.error(error.message || 'Error al iniciar sesión con Google')
@@ -62,7 +63,7 @@ function LoginFormWrapper() {
       subtitle="¿No tienes cuenta?"
       subtitleLink={{
         text: '¿No tienes cuenta?',
-        href: '/auth/register',
+        href: ROUTES.REGISTER,
         label: 'Regístrate aquí',
       }}
     >
@@ -110,18 +111,18 @@ function LoginFormWrapper() {
               Recordarme
             </label>
           </div>
-          <Link href="/auth/forgot-password" className="font-medium text-primary-600 hover:text-primary-500">
+          <Link href={ROUTES.FORGOT_PASSWORD} className="font-medium text-primary-600 hover:text-primary-500">
             ¿Olvidaste tu contraseña?
           </Link>
         </div>
 
         <div className="text-center text-sm text-gray-600 pt-4 border-t border-gray-200">
           Al iniciar sesión, aceptas nuestros{' '}
-          <Link href="/terms" className="text-primary-600 hover:text-primary-500">
+          <Link href={ROUTES.TERMS} className="text-primary-600 hover:text-primary-500">
             Términos de Servicio
           </Link>{' '}
           y{' '}
-          <Link href="/privacy" className="text-primary-600 hover:text-primary-500">
+          <Link href={ROUTES.PRIVACY} className="text-primary-600 hover:text-primary-500">
             Política de Privacidad
           </Link>
         </div>

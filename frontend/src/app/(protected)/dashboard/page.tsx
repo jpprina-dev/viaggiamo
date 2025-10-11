@@ -1,8 +1,8 @@
 'use client'
 
+import type { Metadata } from 'next'
 import { useAuth } from '@/contexts/AuthContext'
 import { NavBar } from '@/components/layout'
-import ProtectedRoute from '@/components/common/ProtectedRoute'
 import {
   WelcomeCard,
   QuickActions,
@@ -10,7 +10,7 @@ import {
   StatsCards,
 } from '@/features/dashboard/components'
 
-function DashboardContent() {
+export default function DashboardPage() {
   const { user } = useAuth()
 
   if (!user) return null
@@ -28,13 +28,5 @@ function DashboardContent() {
         </div>
       </main>
     </div>
-  )
-}
-
-export default function DashboardPage() {
-  return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
   )
 }

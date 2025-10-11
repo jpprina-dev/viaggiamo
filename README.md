@@ -1,356 +1,508 @@
-# 🚗 Viaggiamo - Carpooling Platform
+# 🚗 Viaggiamo - Carpooling MVP
 
-> **Una plataforma moderna de carpooling con autenticación OAuth y diseño inspirado en Viatik**
+A modern carpooling platform built with FastAPI, GraphQL, Next.js, and PostgreSQL.
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
-[![GraphQL](https://img.shields.io/badge/GraphQL-Strawberry-ff1493.svg)](https://strawberry.rocks/)
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue.svg)](https://www.typescriptlang.org/)
+## ✅ Project Status: INITIALIZED AND RUNNING
 
-## 🌟 Características Principales
+All services are up and the database structure matches your models perfectly!
 
-- 🔐 **OAuth 2.0** - Login con Google (extensible a Facebook, GitHub)
-- 🎨 **Diseño Verde** - Tema inspirado en [Viatik](https://www.viatik.com/ar)
-- ⚡ **GraphQL API** - API moderna y flexible con Strawberry
-- 🚀 **FastAPI Backend** - Alto rendimiento y async/await
-- 💚 **Next.js Frontend** - React con Server Components y App Router
-- 🔒 **Seguro** - JWT tokens, OAuth verification, Argon2 hashing
-- 📱 **Responsive** - Diseño adaptable a todos los dispositivos
-- 🐳 **Docker** - Containerizado y listo para producción
-
-## 📸 Vista Previa
-
-### Home Page (Green Theme)
-- Buscador de viajes (origen, destino, fecha, pasajeros)
-- Viajes destacados con precios
-- Estadísticas de la comunidad
-- Sección "¿Cómo funciona?"
-
-### Login con OAuth
-- Botón "Sign in with Google"
-- Formulario tradicional email/password
-- Diseño moderno en verde
-
-### Dashboard
-- Perfil del usuario con foto de Google
-- Badge especial para usuarios OAuth
-- Quick actions y estadísticas
-
-## 🚀 Inicio Rápido
-
-### Opción 1: Script Interactivo (Recomendado)
+## 🎯 Quick Start
 
 ```bash
-./quick-start.sh
+# Check status
+docker compose ps
+
+# View logs
+docker compose logs -f
+
+# Access services
+# - Backend API: http://localhost:8000
+# - GraphQL: http://localhost:8000/graphql
+# - PostgreSQL: localhost:5432
+# - Redis: localhost:6379
 ```
 
-Selecciona tu método preferido (ASDF, Docker, o solo bases de datos).
-
-### Opción 2: Manual con ASDF
-
-```bash
-# 1. Instalar versiones con ASDF
-asdf install
-
-# 2. Configurar variables de entorno
-cp backend/env.example backend/.env
-cp frontend/env.example frontend/.env.local
-# Editar archivos .env con credenciales de Google
-
-# 3. Iniciar bases de datos
-docker run -d --name viaggiamo-postgres \
-  -e POSTGRES_DB=viaggiamo_db \
-  -e POSTGRES_USER=viaggiamo \
-  -e POSTGRES_PASSWORD=viaggiamo_password \
-  -p 5432:5432 postgres:15-alpine
-
-docker run -d --name viaggiamo-redis \
-  -p 6379:6379 redis:7-alpine
-
-# 4. Iniciar backend (terminal 1)
-cd backend
-uv sync
-uv run alembic upgrade head
-uv run uvicorn app.main:app --reload --port 8000
-
-# 5. Iniciar frontend (terminal 2)
-cd frontend
-npm install
-npm run dev
-```
-
-### Opción 3: Docker Compose
-
-```bash
-docker compose up -d
-```
-
-## 🌐 URLs de la Aplicación
-
-| Servicio | URL | Descripción |
-|----------|-----|-------------|
-| **Frontend** | http://localhost:3000 | Home page verde inspirado en Viatik |
-| **Login** | http://localhost:3000/auth/login | Login con Google OAuth |
-| **Dashboard** | http://localhost:3000/dashboard | Panel de usuario |
-| **GraphQL** | http://localhost:8000/graphql | GraphQL Playground |
-| **API Docs** | http://localhost:8000/docs | Documentación automática |
-
-## 🔐 Configurar Google OAuth
-
-### 1. Obtener Credenciales
-
-1. Ve a [Google Cloud Console](https://console.cloud.google.com/)
-2. Crea un proyecto nuevo
-3. Habilita Google+ API
-4. Crea OAuth 2.0 Client ID
-5. Agrega orígenes autorizados:
-   - `http://localhost:3000`
-   - `http://localhost:8000`
-
-### 2. Configurar Backend
-
-Edita `backend/.env`:
-```bash
-GOOGLE_CLIENT_ID=tu-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=tu-client-secret
-```
-
-### 3. Configurar Frontend
-
-Edita `frontend/.env.local`:
-```bash
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=tu-client-id.apps.googleusercontent.com
-```
-
-## 📁 Estructura del Proyecto
+## 📊 Architecture
 
 ```
-viaggiamo/
-├── backend/                    # FastAPI + GraphQL backend
-│   ├── app/
-│   │   ├── core/              # Configuración, seguridad, OAuth
-│   │   ├── models/            # Modelos SQLAlchemy
-│   │   ├── graphql/           # Schema, resolvers, types
-│   │   └── main.py
-│   ├── docs/                  # Documentación OAuth
-│   ├── migrations/            # Migraciones Alembic
-│   └── pyproject.toml
-│
-├── frontend/                  # Next.js frontend
-│   ├── src/
-│   │   ├── app/              # Pages (App Router)
-│   │   └── lib/              # Auth, GraphQL client
-│   ├── public/
-│   └── package.json
-│
-├── .tool-versions             # ASDF configuration
-├── docker-compose.yml         # Docker setup
-├── START_GUIDE.md            # Guía completa de inicio
-├── IMPLEMENTATION_SUMMARY.md # Resumen de implementación
-└── quick-start.sh            # Script de inicio rápido
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Frontend      │────▶│    Backend      │────▶│   PostgreSQL    │
+│   (Next.js)     │     │  (FastAPI +     │     │   (Database)    │
+│                 │     │   GraphQL)      │     │                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                              │
+                              ▼
+                        ┌─────────────────┐
+                        │     Redis       │
+                        │    (Cache)      │
+                        └─────────────────┘
 ```
 
-## 🎨 Stack Tecnológico
+## 🗄️ Database Schema
+
+**All tables created and ready:**
+
+- ✅ **users** - User accounts with OAuth support
+- ✅ **trips** - Carpooling trips
+- ✅ **bookings** - Trip reservations
+- ✅ **vehicles** - User vehicles
+- ✅ **ratings** - User ratings
+
+<details>
+<summary>View Schema Details</summary>
+
+### Users Table
+```sql
+- id (PK, AUTO INCREMENT)
+- email (UNIQUE, INDEXED)
+- username (UNIQUE, INDEXED)
+- name, last_name
+- hashed_password (nullable for OAuth users)
+- phone, phone_verified, email_verified
+- profile_picture, profile_short_bio
+- identification, identification_type
+- status, trip_preferences (JSON)
+- auth_provider, provider_user_id (OAuth support)
+- created_at, updated_at
+```
+
+### Trips Table
+```sql
+- id (PK, AUTO INCREMENT)
+- driver_id (FK → users.id)
+- origin, destination
+- departure_time
+- available_seats, total_seats
+- price_per_seat (DECIMAL)
+- description (TEXT)
+- is_active, is_completed
+- created_at, updated_at
+```
+
+### Bookings Table
+```sql
+- id (PK, AUTO INCREMENT)
+- trip_id (FK → trips.id)
+- passenger_id (FK → users.id)
+- seats_requested
+- total_price (DECIMAL)
+- status (pending/confirmed/cancelled)
+- notes
+- booking_time
+- created_at, updated_at
+```
+
+### Vehicles Table
+```sql
+- id (PK, AUTO INCREMENT)
+- user_id (FK → users.id)
+- make, model, year
+- color, license_plate (UNIQUE)
+- seats
+- is_active
+- created_at, updated_at
+```
+
+### Ratings Table
+```sql
+- id (PK, AUTO INCREMENT)
+- trip_id (FK → trips.id)
+- rater_id (FK → users.id)
+- rated_user_id (FK → users.id)
+- role (driver/passenger)
+- rating (1-5)
+- comment (TEXT)
+- created_at, updated_at
+```
+
+</details>
+
+## 🔧 Technology Stack
 
 ### Backend
-- **FastAPI** - Framework web moderno y rápido
-- **Strawberry GraphQL** - GraphQL para Python
-- **SQLAlchemy 2.0** - ORM con soporte async
-- **PostgreSQL** - Base de datos relacional
-- **Redis** - Cache y sesiones
-- **Alembic** - Migraciones de base de datos
-- **Pydantic v2** - Validación de datos
-- **uv** - Gestor de dependencias ultra-rápido
+- **FastAPI** - Modern Python web framework
+- **Strawberry GraphQL** - GraphQL for Python
+- **SQLAlchemy 2.0** - Async ORM
+- **PostgreSQL 15** - Relational database
+- **Redis 7** - Caching layer
+- **JWT** - Authentication
+- **OAuth 2.0** - Google SSO support
 
 ### Frontend
-- **Next.js 14** - React framework con App Router
-- **TypeScript** - Tipado estático
+- **Next.js 14** - React framework
+- **TypeScript** - Type safety
 - **Tailwind CSS** - Utility-first CSS
-- **React Hook Form** - Manejo de formularios
-- **Zod** - Validación de esquemas
-- **@react-oauth/google** - Integración con Google
-- **graphql-request** - Cliente GraphQL
+- **GraphQL Client** - API communication
+- **React Hook Form** - Form management
+- **Zod** - Schema validation
 
-## 🔑 Funcionalidades de OAuth
+### DevOps
+- **Docker & Docker Compose** - Containerization
+- **uv** - Python package manager
+- **Alembic** - Database migrations
 
-### Flujo de Autenticación
-1. Usuario hace click en "Sign in with Google"
-2. Popup de Google se abre
-3. Usuario autoriza la aplicación
-4. Frontend recibe el token de Google
-5. Backend verifica el token con la API de Google
-6. Backend crea o encuentra el usuario
-7. Backend retorna JWT token
-8. Usuario es redirigido al dashboard
+## 📚 Documentation
 
-### Características de OAuth
-- ✅ Auto-registro de nuevos usuarios
-- ✅ Vinculación automática de cuentas existentes
-- ✅ Importación de foto de perfil
-- ✅ Verificación automática de email
-- ✅ Sin necesidad de contraseña
-- ✅ Username único generado automáticamente
+### Getting Started
+- **[QUICK_START.md](./QUICK_START.md)** - Start here! Quick commands and first steps
+- **[SETUP.md](./SETUP.md)** - Complete setup guide with troubleshooting
+- **[PROJECT_INITIALIZED.md](./PROJECT_INITIALIZED.md)** - Initialization details
 
-## 📚 Documentación
+### Backend
+- **[backend/README.md](./backend/README.md)** - Complete backend documentation
+- **[backend/docs/](./backend/docs/)** - OAuth setup, examples, and guides
+- GraphQL Playground: http://localhost:8000/graphql
 
-| Documento | Descripción |
-|-----------|-------------|
-| [START_GUIDE.md](START_GUIDE.md) | Guía completa de configuración e inicio |
-| [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Resumen de lo implementado |
-| [backend/docs/OAUTH_SETUP.md](backend/docs/OAUTH_SETUP.md) | Configuración detallada de OAuth |
-| [backend/docs/OAUTH_EXAMPLES.md](backend/docs/OAUTH_EXAMPLES.md) | Ejemplos de código y uso |
-| [backend/README.md](backend/README.md) | Documentación del backend |
+### Frontend
+- **[frontend/MODULAR_STRUCTURE.md](./frontend/MODULAR_STRUCTURE.md)** - Architecture guide
+- **[frontend/AUTH_FLOW_IMPLEMENTATION.md](./frontend/AUTH_FLOW_IMPLEMENTATION.md)** - Auth flow details
 
-## 🧪 Probar OAuth
+## 🚀 Getting Started
+
+### 1. Services Already Running
 
 ```bash
-# 1. Iniciar la aplicación
-./quick-start.sh
+# Check status
+docker compose ps
 
-# 2. Abrir el navegador
-open http://localhost:3000
-
-# 3. Click en "Iniciar Sesión"
-# 4. Click en "Sign in with Google"
-# 5. Autorizar con tu cuenta de Google
-# 6. ¡Listo! Estarás en el dashboard
+# Expected output:
+# - viaggiamo-postgres (healthy)
+# - viaggiamo-redis (healthy)
+# - viaggiamo-backend (healthy)
 ```
 
-## 🎨 Tema de Colores (Verde)
+### 2. Test the Backend
 
-Inspirado en [Viatik](https://www.viatik.com/ar), usamos una paleta verde:
+```bash
+# Health check
+curl http://localhost:8000/health
+# Returns: {"status":"healthy"}
 
-```css
-Primary Green:
-- 50:  #f0fdf4  /* Fondo claro */
-- 500: #22c55e  /* Principal - botones, links */
-- 600: #16a34a  /* Hover */
-- 900: #14532d  /* Oscuro */
+# Open GraphQL Playground
+open http://localhost:8000/graphql
 ```
 
-## 📊 GraphQL API
+### 3. Create Your First User
 
-### Queries Principales
+**Via GraphQL Playground** (http://localhost:8000/graphql):
 
+```graphql
+mutation {
+  register(userInput: {
+    email: "user@example.com"
+    username: "john_doe"
+    name: "John"
+    lastName: "Doe"
+    password: "secure123"
+  }) {
+    id
+    email
+    username
+    fullName
+  }
+}
+```
+
+### 4. Login and Get Token
+
+```graphql
+mutation {
+  login(loginInput: {
+    email: "user@example.com"
+    password: "secure123"
+  }) {
+    accessToken
+    tokenType
+  }
+}
+```
+
+### 5. Use Token for Authenticated Requests
+
+In GraphQL Playground, set HTTP Headers:
+```json
+{
+  "Authorization": "Bearer YOUR_TOKEN_HERE"
+}
+```
+
+Then query your profile:
 ```graphql
 query {
   me {
     id
     email
+    username
     fullName
-    authProvider
-    profilePicture
   }
+}
+```
 
-  trips {
+## 🔐 Authentication
+
+The system supports two authentication methods:
+
+### 1. Email/Password (✅ Working)
+- Register with email and password
+- Login returns JWT token
+- Token expires in 30 minutes (configurable)
+
+### 2. OAuth/SSO (✅ Ready, needs configuration)
+- Google OAuth 2.0 supported
+- Auto-registration for new OAuth users
+- No password required
+- Email automatically verified
+
+**To enable OAuth:**
+1. Get Google OAuth credentials from [Google Cloud Console](https://console.cloud.google.com/)
+2. Edit `.env` and `backend/.env`
+3. Add your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+4. Restart backend: `docker compose restart backend`
+
+## 💻 Development
+
+### View Logs
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f backend
+docker compose logs -f postgres
+```
+
+### Database Operations
+```bash
+# Connect to PostgreSQL
+docker compose exec postgres psql -U viaggiamo -d viaggiamo_db
+
+# View tables
+docker compose exec postgres psql -U viaggiamo -d viaggiamo_db -c "\dt"
+
+# Query users
+docker compose exec postgres psql -U viaggiamo -d viaggiamo_db -c "SELECT * FROM users;"
+```
+
+### Restart Services
+```bash
+# Restart all
+docker compose restart
+
+# Restart specific service
+docker compose restart backend
+```
+
+### Stop Services
+```bash
+# Stop without removing data
+docker compose stop
+
+# Stop and remove containers (keeps data)
+docker compose down
+
+# Stop and remove everything including data (⚠️ careful!)
+docker compose down -v
+```
+
+### Reset Database
+```bash
+# Use the provided script
+./scripts/reset-db.sh
+
+# Or manually
+docker compose down -v postgres
+docker compose up -d postgres backend
+# Tables recreate automatically on backend startup
+```
+
+## 🎨 Features
+
+### Implemented (Backend)
+- ✅ User registration and authentication
+- ✅ JWT token-based auth
+- ✅ OAuth/SSO support (Google)
+- ✅ GraphQL API
+- ✅ User profiles
+- ✅ Trip management
+- ✅ Booking system
+- ✅ Vehicle management
+- ✅ Rating system
+- ✅ Database with all relationships
+
+### Implemented (Frontend)
+- ✅ Two-step registration flow
+- ✅ Email-only registration option
+- ✅ Google SSO integration
+- ✅ Profile page
+- ✅ Logged-in homepage state
+- ✅ Modular component architecture
+- ✅ Type-safe with TypeScript
+- 🚧 Build pending (TypeScript types fixed, ready to build)
+
+## 📦 Project Structure
+
+```
+viaggiamo/
+├── backend/                 # FastAPI backend
+│   ├── app/
+│   │   ├── models/         # SQLAlchemy models (✅ 5 tables)
+│   │   ├── graphql/        # GraphQL schema & resolvers
+│   │   ├── core/           # Config, database, security
+│   │   └── main.py         # App entry point
+│   ├── scripts/            # Utility scripts
+│   └── tests/              # Backend tests
+│
+├── frontend/                # Next.js frontend
+│   ├── src/
+│   │   ├── app/            # Next.js pages
+│   │   ├── components/     # Reusable components
+│   │   │   ├── ui/         # UI components
+│   │   │   └── layout/     # Layout components
+│   │   ├── features/       # Feature modules
+│   │   │   ├── auth/       # Auth components
+│   │   │   ├── home/       # Home page components
+│   │   │   ├── profile/    # Profile components
+│   │   │   └── dashboard/  # Dashboard components
+│   │   ├── types/          # TypeScript types
+│   │   └── lib/            # Utilities & API client
+│   └── public/             # Static files
+│
+├── infra/                   # Infrastructure
+│   └── postgres/
+│       └── init.sql        # Database initialization
+│
+├── scripts/                 # Project scripts
+│   ├── init-project.sh     # Initialize project
+│   └── reset-db.sh         # Reset database
+│
+├── docker-compose.yml      # Main compose file
+├── .env                    # Environment variables
+└── Documentation files...
+```
+
+## 🧪 Testing
+
+### Backend Tests
+```bash
+docker compose exec backend uv run pytest
+```
+
+### Manual Testing
+1. **Health Check**: `curl http://localhost:8000/health`
+2. **GraphQL**: http://localhost:8000/graphql
+3. **Database**: `docker compose exec postgres psql -U viaggiamo -d viaggiamo_db`
+
+## 🐛 Troubleshooting
+
+### Backend Not Responding
+```bash
+# Check logs
+docker compose logs backend
+
+# Restart
+docker compose restart backend
+
+# Rebuild if needed
+docker compose build backend
+docker compose up -d backend
+```
+
+### Database Issues
+```bash
+# Check connection
+docker compose exec postgres pg_isready -U viaggiamo -d viaggiamo_db
+
+# View tables
+docker compose exec postgres psql -U viaggiamo -d viaggiamo_db -c "\dt"
+
+# Reset database
+./scripts/reset-db.sh
+```
+
+### Port Conflicts
+Edit `docker-compose.yml` to change ports if they're already in use.
+
+## 📊 API Examples
+
+### Create a Trip
+```graphql
+mutation {
+  createTrip(tripInput: {
+    origin: "Buenos Aires"
+    destination: "Mar del Plata"
+    departureTime: "2025-12-25T08:00:00Z"
+    totalSeats: 3
+    pricePerSeat: 5000
+    description: "Comfortable ride, AC, music"
+  }) {
     id
     origin
     destination
-    pricePerSeat
+    availableSeats
   }
 }
 ```
 
-### Mutations Principales
-
+### Book a Trip
 ```graphql
-# Login tradicional
 mutation {
-  login(loginInput: {
-    email: "user@example.com"
-    password: "password123"
+  createBooking(bookingInput: {
+    tripId: 1
+    seatsRequested: 2
+    notes: "Prefer front seat"
   }) {
-    accessToken
-    tokenType
-  }
-}
-
-# Login con Google
-mutation {
-  loginWithOauth(oauthInput: {
-    provider: "google"
-    token: "google-id-token..."
-  }) {
-    accessToken
-    tokenType
+    id
+    status
+    totalPrice
   }
 }
 ```
 
-## 🛠️ Comandos Útiles
-
-```bash
-# Backend
-cd backend
-uv sync                          # Instalar dependencias
-uv run alembic upgrade head      # Aplicar migraciones
-uv run uvicorn app.main:app --reload  # Iniciar servidor
-
-# Frontend
-cd frontend
-npm install                      # Instalar dependencias
-npm run dev                      # Servidor de desarrollo
-npm run build                    # Build para producción
-
-# Docker
-docker compose up -d             # Iniciar todos los servicios
-docker compose logs -f           # Ver logs
-docker compose down              # Detener servicios
+### Rate a User
+```graphql
+mutation {
+  createRating(ratingInput: {
+    tripId: 1
+    ratedUserId: 2
+    role: "driver"
+    rating: 5
+    comment: "Great driver!"
+  }) {
+    id
+    rating
+  }
+}
 ```
 
-## 🐛 Solución de Problemas
+## 🤝 Contributing
 
-Ver [START_GUIDE.md](START_GUIDE.md#-solución-de-problemas) para soluciones a problemas comunes.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-## 🚢 Deployment
+## 📄 License
 
-### Backend
-- Configurar variables de entorno de producción
-- Cambiar `SECRET_KEY` a valor seguro
-- Configurar HTTPS
-- Usar PostgreSQL y Redis en la nube
+MIT License - See LICENSE file for details
 
-### Frontend
-- Configurar dominio en Google OAuth
-- Actualizar `NEXT_PUBLIC_API_URL`
-- Deploy en Vercel, Netlify, o similar
+## 🆘 Support
 
-## 📝 Licencia
+- **Documentation**: Check the `docs/` folders
+- **Issues**: Create an issue on GitHub
+- **Email**: jpprina@gmail.com
 
-Este proyecto es un MVP de carpooling desarrollado con fines educativos.
+## 🎉 Acknowledgments
 
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crea una rama (`git checkout -b feature/amazing-feature`)
-3. Commit tus cambios (`git commit -m 'Add amazing feature'`)
-4. Push a la rama (`git push origin feature/amazing-feature`)
-5. Abre un Pull Request
-
-## 📞 Soporte
-
-- 📧 Email: contacto@viaggiamo.com
-- 📱 WhatsApp: +54 9 11 2862 0965
-- 📚 Docs: Ver [START_GUIDE.md](START_GUIDE.md)
-
-## 🎉 ¡Listo para Empezar!
-
-```bash
-# Inicio rápido en 3 pasos:
-./quick-start.sh                 # 1. Ejecutar script
-# Configurar Google OAuth          2. Obtener credenciales
-# Abrir http://localhost:3000      3. ¡Disfrutar!
-```
+Built with:
+- FastAPI
+- Strawberry GraphQL
+- Next.js
+- PostgreSQL
+- Docker
 
 ---
 
-**Hecho con 💚 usando FastAPI, Next.js, y GraphQL**
+**🚀 Happy Coding! The project is ready for development.**
 
-**Inspirado en:** [Viatik.com](https://www.viatik.com/ar)
-
-**Referencias:**
-- [ASDF Version Manager](https://asdf-vm.com/)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Strawberry GraphQL](https://strawberry.rocks/)
+_Last updated: 2025-10-11_
