@@ -21,12 +21,12 @@ export function UserInfoCard({ user }: UserInfoCardProps) {
         <div>
           <label className="text-sm font-medium text-gray-500 block mb-1">Estado</label>
           <div className="flex items-center space-x-2">
-            {user.isVerified ? (
+            {user.email_verified ? (
               <Badge variant="success">✓ Verificado</Badge>
             ) : (
               <Badge variant="warning">Pendiente verificación</Badge>
             )}
-            {user.isActive && (
+            {user.status === 'active' && (
               <Badge variant="primary">Activo</Badge>
             )}
           </div>
@@ -34,7 +34,7 @@ export function UserInfoCard({ user }: UserInfoCardProps) {
         <div>
           <label className="text-sm font-medium text-gray-500 block mb-1">Miembro desde</label>
           <p className="text-gray-900 font-medium">
-            {new Date(user.createdAt).toLocaleDateString('es-AR', {
+            {new Date(user.created_at).toLocaleDateString('es-AR', {
               year: 'numeric',
               month: 'long',
               day: 'numeric',

@@ -1,16 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { Calendar, Search, MapPin, Plus } from 'lucide-react'
+import { Calendar, Search } from 'lucide-react'
 import { Button } from '@/components/ui'
-import type { User } from '@/types'
 
-interface HeroSectionProps {
-  user?: User | null
-}
-
-export function HeroSection({ user }: HeroSectionProps) {
+export function HeroSection() {
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
   const [date, setDate] = useState('')
@@ -21,62 +15,6 @@ export function HeroSection({ user }: HeroSectionProps) {
     console.log({ origin, destination, date, passengers })
   }
 
-  const getFirstName = (fullName: string) => {
-    return fullName.split(' ')[0]
-  }
-
-  // Logged-in Hero
-  if (user) {
-    return (
-      <section className="bg-gradient-to-br from-primary-50 via-emerald-50 to-green-100 py-16 md:py-24">
-        <div className="container">
-          <div className="max-w-4xl mx-auto text-center mb-12">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Bienvenido de nuevo, {getFirstName(user.fullName)}
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-700 mb-8">
-              ¿Listo para tu próximo viaje?
-            </p>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="max-w-3xl mx-auto grid md:grid-cols-2 gap-6">
-            <Link
-              href="/trips"
-              className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all group border-2 border-transparent hover:border-primary-200"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Buscar Viajes</h3>
-                  <p className="text-gray-600">Encuentra tu próximo destino</p>
-                </div>
-                <div className="bg-primary-100 p-4 rounded-full group-hover:bg-primary-200 transition-colors">
-                  <MapPin className="h-8 w-8 text-primary-600" />
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              href="/trips/create"
-              className="bg-gradient-to-br from-primary-600 to-emerald-600 text-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold mb-2">Publicar Viaje</h3>
-                  <p className="text-primary-100">Comparte tu ruta</p>
-                </div>
-                <div className="bg-white/20 p-4 rounded-full group-hover:bg-white/30 transition-colors">
-                  <Plus className="h-8 w-8" />
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  // Public Hero (not logged in)
   return (
     <section className="bg-gradient-to-br from-primary-50 via-emerald-50 to-green-100 py-16 md:py-24">
       <div className="container">

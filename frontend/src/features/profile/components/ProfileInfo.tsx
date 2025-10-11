@@ -60,7 +60,7 @@ export function ProfileInfo({ user }: ProfileInfoProps) {
           <div>
             <label className="text-sm font-medium text-gray-500 block mb-2">Estado</label>
             <div className="flex flex-wrap gap-2">
-              {user.isVerified ? (
+              {user.email_verified ? (
                 <Badge variant="success" size="md">
                   ✓ Verificado
                 </Badge>
@@ -69,7 +69,7 @@ export function ProfileInfo({ user }: ProfileInfoProps) {
                   Pendiente verificación
                 </Badge>
               )}
-              {user.isActive && (
+              {user.status === 'active' && (
                 <Badge variant="primary" size="md">
                   Activo
                 </Badge>
@@ -83,7 +83,7 @@ export function ProfileInfo({ user }: ProfileInfoProps) {
             <div className="flex-1">
               <label className="text-sm font-medium text-gray-500 block mb-1">Método de acceso</label>
               <div>
-                {user.authProvider === 'google' ? (
+                {user.auth_provider === 'google' ? (
                   <Badge variant="info" size="md">
                     Google SSO
                   </Badge>
@@ -101,7 +101,7 @@ export function ProfileInfo({ user }: ProfileInfoProps) {
             <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
             <div className="flex-1">
               <label className="text-sm font-medium text-gray-500 block mb-1">Miembro desde</label>
-              <p className="text-gray-900">{formatDate(user.createdAt)}</p>
+              <p className="text-gray-900">{formatDate(user.created_at)}</p>
             </div>
           </div>
         </div>

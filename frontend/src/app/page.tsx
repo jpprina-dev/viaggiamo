@@ -1,6 +1,5 @@
 'use client'
 
-import { useAuth } from '@/contexts/AuthContext'
 import { NavBar, Footer } from '@/components/layout'
 import {
   HeroSection,
@@ -12,12 +11,10 @@ import {
 } from '@/features/home/components'
 
 export default function HomePage() {
-  const { user } = useAuth()
-
   return (
     <div className="min-h-screen bg-white">
       <NavBar />
-      <HeroSection user={user} />
+      <HeroSection />
       <PopularTrips />
       <CTASection />
       <BenefitsSection />

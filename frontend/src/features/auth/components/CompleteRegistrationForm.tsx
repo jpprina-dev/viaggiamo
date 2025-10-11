@@ -11,7 +11,8 @@ import type { RegisterInput } from '@/types'
 
 const completeRegistrationSchema = z.object({
   username: z.string().min(3, 'El nombre de usuario debe tener al menos 3 caracteres'),
-  fullName: z.string().min(2, 'El nombre completo es requerido'),
+  name: z.string().min(2, 'El nombre es requerido'),
+  last_name: z.string().min(2, 'El apellido es requerido'),
   phone: z.string().optional(),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   confirmPassword: z.string(),
@@ -50,7 +51,8 @@ export function CompleteRegistrationForm({
     await onSubmit({
       email,
       username: data.username,
-      fullName: data.fullName,
+      name: data.name,
+      last_name: data.last_name,
       phone: data.phone,
       password: data.password,
     })
@@ -89,12 +91,21 @@ export function CompleteRegistrationForm({
         />
 
         <Input
-          label="Nombre Completo"
+          label="Nombre"
           type="text"
-          autoComplete="name"
-          placeholder="Juan Pérez"
-          error={errors.fullName?.message}
-          {...register('fullName')}
+          autoComplete="given-name"
+          placeholder="Juan"
+          error={errors.name?.message}
+          {...register('name')}
+        />
+
+        <Input
+          label="Apellido"
+          type="text"
+          autoComplete="family-name"
+          placeholder="Pérez"
+          error={errors.last_name?.message}
+          {...register('last_name')}
         />
 
         <Input

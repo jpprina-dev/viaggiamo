@@ -16,7 +16,7 @@ export default function NavBar() {
     <header className="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
       <div className="container">
         <div className="flex justify-between items-center py-4">
-          <Link href={user ? '/dashboard' : '/'} className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2">
             <Car className="h-8 w-8 text-primary-600" />
             <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-600 bg-clip-text text-transparent">
               Viaggiamo
@@ -26,9 +26,6 @@ export default function NavBar() {
           <nav className="hidden md:flex items-center space-x-8">
             {user ? (
               <>
-                <NavLink href="/dashboard" pathname={pathname}>
-                  Dashboard
-                </NavLink>
                 <NavLink href="/trips" pathname={pathname}>
                   Buscar Viajes
                 </NavLink>

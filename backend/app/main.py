@@ -3,7 +3,7 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 
@@ -30,7 +30,7 @@ def create_application() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS middleware
+    # CORS middleware - must be added BEFORE routes
     cors_origins = [str(origin) for origin in settings.BACKEND_CORS_ORIGINS]
     app.add_middleware(
         CORSMiddleware,
@@ -38,10 +38,16 @@ def create_application() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["*"],
     )
 
     # GraphQL endpoint with dependency injection context
-    graphql_app = GraphQLRouter(schema, context_getter=get_context)
+    # graphiql=True enables the GraphQL IDE
+    graphql_app = GraphQLRouter(
+        schema,
+        context_getter=get_context,
+        graphiql=True,
+    )
     app.include_router(graphql_app, prefix="/graphql")
 
     return app

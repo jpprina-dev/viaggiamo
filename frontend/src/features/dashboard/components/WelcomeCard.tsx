@@ -7,15 +7,17 @@ interface WelcomeCardProps {
 }
 
 export function WelcomeCard({ user }: WelcomeCardProps) {
+  const fullName = `${user.name} ${user.last_name}`
+
   return (
     <Card variant="bordered" padding="lg">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            ¡Bienvenido, {user.fullName}! 👋
+            ¡Bienvenido, {fullName}! 👋
           </h1>
           <div className="flex items-center space-x-2">
-            {user.authProvider === 'google' ? (
+            {user.auth_provider === 'google' ? (
               <>
                 <span className="text-gray-600">Conectado con Google</span>
                 <Badge variant="primary">OAuth</Badge>
@@ -26,10 +28,10 @@ export function WelcomeCard({ user }: WelcomeCardProps) {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          {user.profilePicture ? (
+          {user.profile_picture ? (
             <img
-              src={user.profilePicture}
-              alt={user.fullName}
+              src={user.profile_picture}
+              alt={fullName}
               className="w-16 h-16 rounded-full border-2 border-primary-200"
             />
           ) : (

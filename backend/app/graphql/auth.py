@@ -19,9 +19,16 @@ async def get_current_user_from_token(token: str, db: AsyncSession) -> Optional[
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        user_id: int | None = payload.get("sub")
-        if user_id is None:
+        user_id_str: str | None = payload.get("sub")
+        if user_id_str is None:
             raise credentials_exception
+
+        # Convert string to integer (JWT stores it as string)
+        try:
+            user_id = int(user_id_str)
+        except (ValueError, TypeError):
+            raise credentials_exception
+
     except InvalidTokenError:
         raise credentials_exception
 

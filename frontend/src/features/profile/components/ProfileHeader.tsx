@@ -7,27 +7,29 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {
+  const fullName = `${user.name} ${user.last_name}`
+
   return (
     <div className="flex items-start justify-between">
       <div className="flex items-center space-x-4">
         {/* Avatar */}
-        {user.profilePicture ? (
+        {user.profile_picture ? (
           <img
-            src={user.profilePicture}
-            alt={user.fullName}
+            src={user.profile_picture}
+            alt={fullName}
             className="w-20 h-20 rounded-full border-4 border-primary-200"
           />
         ) : (
           <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center border-4 border-primary-200">
             <span className="text-primary-700 font-bold text-3xl">
-              {user.fullName.charAt(0).toUpperCase()}
+              {user.name.charAt(0).toUpperCase()}
             </span>
           </div>
         )}
 
         {/* User Info */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{user.fullName}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{fullName}</h1>
           <p className="text-gray-600 text-lg">@{user.username}</p>
         </div>
       </div>
