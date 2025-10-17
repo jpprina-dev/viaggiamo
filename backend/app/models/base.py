@@ -1,0 +1,27 @@
+"""Base model with common fields."""
+
+from datetime import datetime
+
+from sqlalchemy import DateTime, Integer, func
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+
+class Base(DeclarativeBase):
+    """Base class for all database models."""
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    __name__: str
+
+    # Generate __tablename__ automatically
+    @declared_attr.directive
+    def __tablename__(cls) -> str:
+        return cls.__name__.lower()
+
+    # Common fields
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
