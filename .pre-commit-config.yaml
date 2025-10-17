@@ -13,19 +13,39 @@ repos:
       - id: mixed-line-ending
       - id: check-case-conflict
 
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
+  - repo: local
     hooks:
       - id: black
-        language_version: python3
-        args: [--line-length=88, --target-version=py311]
+        name: black
+        entry: uv run black
+        language: system
+        types: [python]
         files: ^backend/
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
       - id: isort
-        args: [--profile=black, --multi-line=3, --line-length=88]
+        name: isort
+        entry: uv run isort
+        language: system
+        types: [python]
+        files: ^backend/
+      - id: mypy
+        name: mypy
+        entry: uv run mypy backend/
+        language: system
+        types: [python]
+        files: ^backend/
+        pass_filenames: false
+        stages: [manual]
+      - id: ruff
+        name: ruff
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+        files: ^backend/
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
         files: ^backend/
 
 # Global configuration
@@ -47,5 +67,7 @@ exclude: |
     \.env.*|
     .*\.egg-info/|
     dist/|
-    build/
+    build/|
+    frontend/.*|
+    infra/.*
   )$

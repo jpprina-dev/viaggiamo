@@ -1,7 +1,6 @@
 """Booking-related queries and mutations."""
 
 from datetime import datetime
-from typing import List, Optional
 
 import strawberry
 from sqlalchemy import select
@@ -18,7 +17,7 @@ class BookingQueries:
     """Booking-related queries."""
 
     @strawberry.field
-    async def my_bookings(self, info: Info[Context, None]) -> List[BookingType]:
+    async def my_bookings(self, info: Info[Context, None]) -> list[BookingType]:
         """
         Get current user's bookings.
 
@@ -56,7 +55,7 @@ class BookingQueries:
     @strawberry.field
     async def booking(
         self, info: Info[Context, None], booking_id: int
-    ) -> Optional[BookingType]:
+    ) -> BookingType | None:
         """
         Get booking by ID.
 
@@ -107,7 +106,7 @@ class BookingQueries:
     @strawberry.field
     async def trip_bookings(
         self, info: Info[Context, None], trip_id: int
-    ) -> List[BookingType]:
+    ) -> list[BookingType]:
         """
         Get all bookings for a specific trip.
 
@@ -237,7 +236,7 @@ class BookingMutations:
         info: Info[Context, None],
         booking_id: int,
         booking_input: BookingUpdateInput,
-    ) -> Optional[BookingType]:
+    ) -> BookingType | None:
         """
         Update an existing booking.
 

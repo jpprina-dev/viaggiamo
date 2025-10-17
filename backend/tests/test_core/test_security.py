@@ -1,7 +1,6 @@
 """Unit tests for security.py - Security utilities for authentication."""
 
-from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
+from datetime import UTC, datetime, timedelta
 
 import jwt
 import pytest
@@ -162,10 +161,10 @@ class TestAccessTokenCreation:
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         exp_timestamp = payload["exp"]
-        exp_datetime = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
+        exp_datetime = datetime.fromtimestamp(exp_timestamp, tz=UTC)
 
         # Should expire around ACCESS_TOKEN_EXPIRE_MINUTES from now
-        expected_expiry = datetime.now(timezone.utc) + timedelta(
+        expected_expiry = datetime.now(UTC) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
@@ -184,9 +183,9 @@ class TestAccessTokenCreation:
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         exp_timestamp = payload["exp"]
-        exp_datetime = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
+        exp_datetime = datetime.fromtimestamp(exp_timestamp, tz=UTC)
 
-        expected_expiry = datetime.now(timezone.utc) + custom_delta
+        expected_expiry = datetime.now(UTC) + custom_delta
 
         # Allow 5 seconds tolerance
         time_diff = abs((exp_datetime - expected_expiry).total_seconds())
@@ -309,8 +308,8 @@ class TestSecurityIntegration:
         assert "exp" in payload
 
         # Verify token is not expired
-        exp_datetime = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
-        assert exp_datetime > datetime.now(timezone.utc)
+        exp_datetime = datetime.fromtimestamp(payload["exp"], tz=UTC)
+        assert exp_datetime > datetime.now(UTC)
 
     def test_multiple_users_have_unique_tokens(self):
         """Test that multiple users get unique tokens."""
@@ -321,7 +320,7 @@ class TestSecurityIntegration:
         assert len(tokens) == len(set(tokens))
 
         # All tokens should decode to correct subjects
-        for token, user in zip(tokens, users):
+        for token, user in zip(tokens, users, strict=True):
             payload = jwt.decode(
                 token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
             )

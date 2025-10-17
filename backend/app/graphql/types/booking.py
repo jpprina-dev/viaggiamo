@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 
 import strawberry
 
@@ -17,7 +16,7 @@ class BookingType:
     seats_requested: int
     total_price: Decimal
     status: str
-    notes: Optional[str] = None
+    notes: str | None = None
     booking_time: datetime
     created_at: datetime
     updated_at: datetime
@@ -29,13 +28,13 @@ class BookingCreateInput:
 
     trip_id: int
     seats_requested: int
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 @strawberry.input
 class BookingUpdateInput:
     """Input type for booking updates."""
 
-    seats_requested: Optional[int] = None
-    status: Optional[str] = None
-    notes: Optional[str] = None
+    seats_requested: int | None = None
+    status: str | None = None
+    notes: str | None = None

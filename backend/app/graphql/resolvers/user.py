@@ -1,7 +1,5 @@
 """User-related queries and mutations."""
 
-from typing import Optional
-
 import strawberry
 from sqlalchemy import select
 from strawberry.types import Info
@@ -16,7 +14,7 @@ class UserQueries:
     """User-related queries."""
 
     @strawberry.field
-    async def me(self, info: Info[Context, None]) -> Optional[UserType]:
+    async def me(self, info: Info[Context, None]) -> UserType | None:
         """
         Get current authenticated user information.
 
@@ -48,7 +46,7 @@ class UserQueries:
         )
 
     @strawberry.field
-    async def user(self, info: Info[Context, None], user_id: int) -> Optional[UserType]:
+    async def user(self, info: Info[Context, None], user_id: int) -> UserType | None:
         """
         Get user by ID.
 
@@ -93,7 +91,7 @@ class UserMutations:
     @strawberry.mutation
     async def update_user(
         self, info: Info[Context, None], user_input: UserUpdateInput
-    ) -> Optional[UserType]:
+    ) -> UserType | None:
         """
         Update current user profile.
 

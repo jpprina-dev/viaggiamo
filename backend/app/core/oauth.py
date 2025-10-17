@@ -2,7 +2,6 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
 
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
@@ -19,7 +18,7 @@ class OAuthUserInfo:
     email: str
     name: str
     last_name: str
-    profile_picture: Optional[str] = None
+    profile_picture: str | None = None
     email_verified: bool = False
 
 
@@ -79,9 +78,9 @@ class GoogleOAuthProvider(OAuthProvider):
             )
 
         except ValueError as e:
-            raise ValueError(f"Invalid Google token: {str(e)}")
+            raise ValueError(f"Invalid Google token: {str(e)}") from e
         except Exception as e:
-            raise ValueError(f"Token verification failed: {str(e)}")
+            raise ValueError(f"Token verification failed: {str(e)}") from e
 
 
 class FacebookOAuthProvider(OAuthProvider):

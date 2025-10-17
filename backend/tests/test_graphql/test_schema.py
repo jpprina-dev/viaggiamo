@@ -1,11 +1,7 @@
 """Unit tests for schema.py - GraphQL schema definition."""
 
-from typing import Any
-
 import pytest
-import strawberry
 from strawberry.schema import Schema
-from strawberry.types import ExecutionResult
 
 from app.graphql.schema import Mutation, Query, schema
 
@@ -77,7 +73,7 @@ class TestQueryType:
         health_field = next(f for f in fields if f.python_name == "health")
 
         # Check return type
-        assert health_field.type == str
+        assert health_field.type is str
 
 
 @pytest.mark.unit

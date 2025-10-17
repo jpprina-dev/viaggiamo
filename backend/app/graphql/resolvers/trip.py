@@ -1,7 +1,5 @@
 """Trip-related queries and mutations."""
 
-from typing import List, Optional
-
 import strawberry
 from sqlalchemy import select
 from strawberry.types import Info
@@ -19,11 +17,11 @@ class TripQueries:
     async def trips(
         self,
         info: Info[Context, None],
-        origin: Optional[str] = None,
-        destination: Optional[str] = None,
+        origin: str | None = None,
+        destination: str | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> List[TripType]:
+    ) -> list[TripType]:
         """
         Get trips with optional filtering.
 
@@ -68,7 +66,7 @@ class TripQueries:
         ]
 
     @strawberry.field
-    async def trip(self, info: Info[Context, None], trip_id: int) -> Optional[TripType]:
+    async def trip(self, info: Info[Context, None], trip_id: int) -> TripType | None:
         """
         Get trip by ID.
 
@@ -102,7 +100,7 @@ class TripQueries:
         )
 
     @strawberry.field
-    async def my_trips(self, info: Info[Context, None]) -> List[TripType]:
+    async def my_trips(self, info: Info[Context, None]) -> list[TripType]:
         """
         Get trips created by the current user.
 
@@ -198,7 +196,7 @@ class TripMutations:
     @strawberry.mutation
     async def update_trip(
         self, info: Info[Context, None], trip_id: int, trip_input: TripUpdateInput
-    ) -> Optional[TripType]:
+    ) -> TripType | None:
         """
         Update an existing trip.
 

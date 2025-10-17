@@ -1,15 +1,13 @@
 """Shared pytest fixtures for all tests."""
 
 import asyncio
-from typing import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Generator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import Settings
-from app.core.database import async_session_factory
-from app.main import create_application
 from app.models.base import Base
 
 

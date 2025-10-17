@@ -1,7 +1,6 @@
 """Rating-related GraphQL types."""
 
 from datetime import datetime
-from typing import Optional
 
 import strawberry
 
@@ -16,7 +15,7 @@ class RatingType:
     rated_user_id: int
     role: str
     rating: int
-    comment: Optional[str] = None
+    comment: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -29,4 +28,4 @@ class RatingCreateInput:
     rated_user_id: int
     role: str  # 'driver' or 'passenger'
     rating: int  # 1-5
-    comment: Optional[str] = None
+    comment: str | None = None

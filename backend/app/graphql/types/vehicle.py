@@ -1,7 +1,6 @@
 """Vehicle-related GraphQL types."""
 
 from datetime import datetime
-from typing import Optional
 
 import strawberry
 
@@ -15,7 +14,7 @@ class VehicleType:
     make: str
     model: str
     year: int
-    color: Optional[str] = None
+    color: str | None = None
     license_plate: str
     seats: int
     is_active: bool
@@ -32,7 +31,7 @@ class VehicleCreateInput:
     year: int
     license_plate: str
     seats: int
-    color: Optional[str] = None
+    color: str | None = None
     is_active: bool = True
 
 
@@ -40,10 +39,10 @@ class VehicleCreateInput:
 class VehicleUpdateInput:
     """Input type for vehicle updates."""
 
-    make: Optional[str] = None
-    model: Optional[str] = None
-    year: Optional[int] = None
-    color: Optional[str] = None
-    license_plate: Optional[str] = None
-    seats: Optional[int] = None
-    is_active: Optional[bool] = None
+    make: str | None = None
+    model: str | None = None
+    year: int | None = None
+    color: str | None = None
+    license_plate: str | None = None
+    seats: int | None = None
+    is_active: bool | None = None

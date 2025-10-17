@@ -1,7 +1,6 @@
 """Base model with common fields."""
 
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import DateTime, Integer, func
 from sqlalchemy.ext.declarative import declared_attr

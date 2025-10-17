@@ -31,6 +31,7 @@ dependencies = [
 dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
     "httpx>=0.25.0",
     "black>=23.0.0",
     "isort>=5.12.0",
@@ -39,9 +40,12 @@ dev = [
     "flake8-bugbear>=23.12.0",
     "flake8-comprehensions>=3.14.0",
     "mypy>=1.7.0",
+    "ruff>=0.1.0",
     "pre-commit>=3.5.0",
     "bandit>=1.7.5",
     "coverage>=7.3.0",
+    "types-requests>=2.31.0",
+    "types-PyYAML>=6.0.0",
 ]
 
 [build-system]
@@ -105,6 +109,29 @@ module = [
     "redis.*",
 ]
 ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

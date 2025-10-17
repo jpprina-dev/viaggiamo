@@ -1,7 +1,5 @@
 """Unit tests for database.py - Database configuration and session management."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
@@ -198,7 +196,6 @@ class TestDatabaseIntegration:
     async def test_create_tables_with_real_database(self, test_db_engine):
         """Test create_tables with a real test database."""
         # This uses the test_db_engine fixture which creates a real SQLite database
-        from app.models.base import Base
 
         # Tables should be created
         async with test_db_engine.begin() as conn:
@@ -247,7 +244,6 @@ class TestDatabaseSettings:
 
     def test_engine_uses_settings_database_url(self):
         """Test that engine is created with DATABASE_URL from settings."""
-        from app.core.config import settings
 
         # Engine should be configured with settings URL
         # Note: The actual URL comparison might differ due to driver changes
@@ -274,7 +270,7 @@ class TestDatabaseModularity:
         assert all(isinstance(session, AsyncSession) for session in sessions)
 
         # All should be different instances
-        assert len(set(id(session) for session in sessions)) == 5
+        assert len({id(session) for session in sessions}) == 5
 
     def test_engine_is_singleton(self):
         """Test that engine is a singleton instance."""

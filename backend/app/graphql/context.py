@@ -1,8 +1,5 @@
 """GraphQL context for dependency injection."""
 
-from typing import Optional
-
-import strawberry
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.fastapi import BaseContext
@@ -19,7 +16,7 @@ class Context(BaseContext):
     This context is injected into all GraphQL resolvers via dependency injection.
     """
 
-    def __init__(self, db: AsyncSession, user: Optional[User] = None):
+    def __init__(self, db: AsyncSession, user: User | None = None):
         super().__init__()
         self.db = db
         self.user = user
@@ -39,7 +36,7 @@ async def get_context(request: Request) -> Context:
     db: AsyncSession = async_session_factory()
 
     # Extract token from Authorization header
-    user: Optional[User] = None
+    user: User | None = None
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]

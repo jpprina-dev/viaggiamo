@@ -1,8 +1,6 @@
 """Application configuration settings."""
 
-from typing import List, Union
-
-from pydantic import AnyHttpUrl, field_validator
+from pydantic import AnyHttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,7 +27,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # CORS
-    BACKEND_CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = ["http://localhost:3000"]
+    BACKEND_CORS_ORIGINS: list[str | AnyHttpUrl] = ["http://localhost:3000"]
 
     # Environment
     ENVIRONMENT: str = "development"

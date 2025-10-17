@@ -157,13 +157,13 @@ class AuthMutations:
         try:
             oauth_provider = get_oauth_provider(oauth_input.provider)
         except ValueError as e:
-            raise ValueError(str(e))
+            raise ValueError(str(e)) from e
 
         # Verify the OAuth token and get user info
         try:
             oauth_user_info = await oauth_provider.verify_token(oauth_input.token)
         except ValueError as e:
-            raise ValueError(f"OAuth verification failed: {str(e)}")
+            raise ValueError(f"OAuth verification failed: {str(e)}") from e
 
         # Check if user exists by provider and provider_user_id
         result = await context.db.execute(

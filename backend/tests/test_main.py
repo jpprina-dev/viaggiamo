@@ -1,6 +1,6 @@
 """Unit tests for main.py - FastAPI application entry point."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import FastAPI

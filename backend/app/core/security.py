@@ -1,7 +1,7 @@
 """Security utilities for authentication and password handling."""
 
-from datetime import datetime, timedelta, timezone
-from typing import Any, Union
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import jwt
 from pwdlib import PasswordHash
@@ -12,13 +12,13 @@ password_hash = PasswordHash.recommended()
 
 
 def create_access_token(
-    subject: Union[str, Any], expires_delta: timedelta | None = None
+    subject: str | Any, expires_delta: timedelta | None = None
 ) -> str:
     """Create JWT access token."""
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(
+        expire = datetime.now(UTC) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
