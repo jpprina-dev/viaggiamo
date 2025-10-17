@@ -67,15 +67,6 @@ export function UserMenu({ user }: UserMenuProps) {
             onClick={() => setShowDropdown(false)}
           >
             <UserIcon className="h-4 w-4" />
-            <span>Dashboard</span>
-          </Link>
-
-          <Link
-            href="/profile"
-            className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-            onClick={() => setShowDropdown(false)}
-          >
-            <UserIcon className="h-4 w-4" />
             <span>Mi Perfil</span>
           </Link>
 

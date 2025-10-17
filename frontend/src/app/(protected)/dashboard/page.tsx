@@ -9,7 +9,7 @@ import {
   QuickActions,
   UserInfoCard,
   StatsCards,
-} from '@/features/dashboard/components'
+} from '@/features/profile/components'
 import { ROUTES } from '@/config/routes'
 
 export default function DashboardPage() {
@@ -46,6 +46,12 @@ export default function DashboardPage() {
 
       <main className="container py-8">
         <div className="space-y-8">
+          {/* Page Header */}
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Mi Perfil</h1>
+            <p className="text-gray-600">Gestioná tu cuenta y actividades</p>
+          </div>
+          
           <WelcomeCard user={user} />
           <QuickActions />
           <UserInfoCard user={user} />
