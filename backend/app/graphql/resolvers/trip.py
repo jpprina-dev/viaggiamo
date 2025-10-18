@@ -89,6 +89,7 @@ class TripQueries:
         return TripType(
             id=trip.id,
             driver_id=trip.driver_id,
+            vehicle_id=trip.vehicle_id,
             origin=trip.origin,
             destination=trip.destination,
             departure_time=trip.departure_time,
@@ -98,6 +99,7 @@ class TripQueries:
             description=trip.description,
             is_active=trip.is_active,
             is_completed=trip.is_completed,
+            trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
             created_at=trip.created_at,
             updated_at=trip.updated_at,
         )
@@ -144,7 +146,7 @@ class TripQueries:
         ]
 
     @strawberry.field
-    async def vehicle(
+    async def trip_vehicle(
         self, info: Info[Context, None], trip_id: int
     ) -> VehicleType | None:
         """
@@ -249,6 +251,7 @@ class TripMutations:
         return TripType(
             id=db_trip.id,
             driver_id=db_trip.driver_id,
+            vehicle_id=db_trip.vehicle_id,
             origin=db_trip.origin,
             destination=db_trip.destination,
             departure_time=db_trip.departure_time,
@@ -258,6 +261,7 @@ class TripMutations:
             description=db_trip.description,
             is_active=db_trip.is_active,
             is_completed=db_trip.is_completed,
+            trip_legal_compliance_ack=db_trip.trip_legal_compliance_ack,
             created_at=db_trip.created_at,
             updated_at=db_trip.updated_at,
         )
@@ -337,6 +341,7 @@ class TripMutations:
         return TripType(
             id=trip.id,
             driver_id=trip.driver_id,
+            vehicle_id=trip.vehicle_id,
             origin=trip.origin,
             destination=trip.destination,
             departure_time=trip.departure_time,
@@ -346,6 +351,7 @@ class TripMutations:
             description=trip.description,
             is_active=trip.is_active,
             is_completed=trip.is_completed,
+            trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
             created_at=trip.created_at,
             updated_at=trip.updated_at,
         )

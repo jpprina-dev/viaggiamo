@@ -29,6 +29,15 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: list[str | AnyHttpUrl] = ["http://localhost:3000"]
 
+    @classmethod
+    def assemble_cors_origins(cls, origins_string: str) -> list[str]:
+        """Assemble CORS origins from comma-separated string."""
+        if not origins_string:
+            return []
+        return [
+            origin.strip() for origin in origins_string.split(",") if origin.strip()
+        ]
+
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
