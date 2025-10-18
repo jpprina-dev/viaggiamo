@@ -4,17 +4,18 @@ import strawberry
 
 # Import modular resolvers
 from app.graphql.resolvers.auth import AuthMutations
+from app.graphql.resolvers.booking import BookingMutations, BookingQueries
+from app.graphql.resolvers.trip import TripMutations, TripQueries
 from app.graphql.resolvers.user import UserMutations, UserQueries
-
-# from app.graphql.resolvers.booking import BookingMutations, BookingQueries
-# from app.graphql.resolvers.trip import TripMutations, TripQueries
+from app.graphql.resolvers.vehicle import VehicleMutations, VehicleQueries
 
 
 @strawberry.type
 class Query(
     UserQueries,
-    # TripQueries,
-    # BookingQueries,
+    VehicleQueries,
+    TripQueries,
+    BookingQueries,
 ):
     """
     GraphQL Query root.
@@ -35,8 +36,9 @@ class Query(
 class Mutation(
     AuthMutations,
     UserMutations,
-    # TripMutations,
-    # BookingMutations,
+    VehicleMutations,
+    TripMutations,
+    BookingMutations,
 ):
     """
     GraphQL Mutation root.

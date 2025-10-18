@@ -12,6 +12,7 @@ class TripType:
 
     id: int
     driver_id: int
+    vehicle_id: int
     origin: str
     destination: str
     departure_time: datetime
@@ -21,6 +22,7 @@ class TripType:
     description: str | None = None
     is_active: bool
     is_completed: bool
+    trip_legal_compliance_ack: bool
     created_at: datetime
     updated_at: datetime
 
@@ -32,9 +34,11 @@ class TripCreateInput:
     origin: str
     destination: str
     departure_time: datetime
+    vehicle_id: int
     total_seats: int
     price_per_seat: Decimal
     description: str | None = None
+    trip_legal_compliance_ack: bool
 
 
 @strawberry.input
@@ -44,9 +48,11 @@ class TripUpdateInput:
     origin: str | None = None
     destination: str | None = None
     departure_time: datetime | None = None
+    vehicle_id: int | None = None
     available_seats: int | None = None
     total_seats: int | None = None
     price_per_seat: Decimal | None = None
     description: str | None = None
     is_active: bool | None = None
     is_completed: bool | None = None
+    trip_legal_compliance_ack: bool | None = None
