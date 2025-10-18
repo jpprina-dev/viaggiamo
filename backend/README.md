@@ -147,8 +147,18 @@ DEBUG=True
 #### Autenticación y Usuarios
 - `me` - Información del usuario actual autenticado
 - `user(userId: Int!)` - Obtener usuario por ID
+
+#### Gestión de Vehículos
+- `myVehicles` - Mis vehículos registrados
+- `vehicle(vehicleId: Int!)` - Obtener vehículo por ID
+- `vehicle(tripId: Int!)` - Obtener vehículo asociado a un viaje
+
+#### Viajes
 - `trips(origin: String, destination: String, limit: Int, offset: Int)` - Listar viajes disponibles con filtros
 - `trip(tripId: Int!)` - Obtener viaje por ID
+- `myTrips` - Mis viajes como conductor
+
+#### Reservas
 - `myBookings` - Mis reservas como pasajero
 
 ### Mutations Disponibles
@@ -158,9 +168,15 @@ DEBUG=True
 - `login(loginInput: LoginInput!)` - Inicio de sesión (devuelve JWT token)
 - `loginWithOauth(oauthInput: OAuthLoginInput!)` - Login/registro con OAuth (Google, Facebook, GitHub)
 
+#### Gestión de Vehículos
+- `createVehicle(vehicleInput: VehicleCreateInput!)` - Registrar nuevo vehículo (requiere autenticación)
+- `updateVehicle(vehicleId: Int!, vehicleInput: VehicleUpdateInput!)` - Actualizar vehículo (requiere autenticación)
+- `deleteVehicle(vehicleId: Int!)` - Eliminar vehículo (requiere autenticación)
+
 #### Gestión de Viajes
-- `createTrip(tripInput: TripCreateInput!)` - Crear nuevo viaje (requiere autenticación)
+- `createTrip(tripInput: TripCreateInput!)` - Crear nuevo viaje (requiere autenticación y vehículo)
 - `updateTrip(tripId: Int!, tripInput: TripUpdateInput!)` - Actualizar viaje (requiere autenticación)
+- `deleteTrip(tripId: Int!)` - Eliminar viaje (requiere autenticación)
 
 #### Gestión de Reservas
 - `createBooking(bookingInput: BookingCreateInput!)` - Crear nueva reserva (requiere autenticación)
@@ -208,6 +224,65 @@ query GetTripWithBookings($tripId: Int!) {
 }
 ```
 
+### Ejemplo de Query con Vehículos
+
+```graphql
+query GetTripWithVehicle($tripId: Int!) {
+  trip(tripId: $tripId) {
+    id
+    origin
+    destination
+    departureTime
+    vehicleId
+    tripLegalComplianceAck
+  }
+  vehicle(tripId: $tripId) {
+    id
+    make
+    model
+    year
+    licensePlate
+    seats
+    isActive
+  }
+}
+```
+
+### Ejemplo de Gestión de Vehículos
+
+```graphql
+# Crear vehículo
+mutation {
+  createVehicle(vehicleInput: {
+    make: "Toyota"
+    model: "Corolla"
+    year: 2020
+    licensePlate: "ABC-123"
+    seats: 5
+    color: "Blue"
+    vehicleLegalComplianceAck: true
+  }) {
+    id
+    make
+    model
+    licensePlate
+  }
+}
+
+# Listar mis vehículos
+query {
+  myVehicles {
+    id
+    make
+    model
+    year
+    licensePlate
+    seats
+    isActive
+  }
+}
+```
+
 ## 🗄️ Modelos de Base de Datos
 
 ### User
@@ -235,6 +310,7 @@ query GetTripWithBookings($tripId: Int!) {
 ### Trip
 - `id` - ID único del viaje
 - `driver_id` - ID del conductor (FK a User)
+- `vehicle_id` - ID del vehículo (FK a Vehicle) - **REQUERIDO**
 - `origin` - Origen del viaje
 - `destination` - Destino del viaje
 - `departure_time` - Fecha y hora de salida
@@ -244,8 +320,10 @@ query GetTripWithBookings($tripId: Int!) {
 - `description` - Descripción del viaje
 - `is_active` - Estado activo/inactivo
 - `is_completed` - Estado completado
+- `trip_legal_compliance_ack` - Aceptación de cumplimiento legal del viaje
 - `created_at` - Fecha de creación
 - `updated_at` - Fecha de actualización
+- **Relationships**: driver (User), vehicle (Vehicle), bookings, ratings
 
 ### Booking
 - `id` - ID único de la reserva
@@ -269,8 +347,10 @@ query GetTripWithBookings($tripId: Int!) {
 - `license_plate` - Placa/matrícula (único)
 - `seats` - Número total de asientos
 - `is_active` - Si el vehículo está disponible para viajes
+- `vehicle_legal_compliance_ack` - Aceptación de cumplimiento legal del vehículo
 - `created_at` - Fecha de creación
 - `updated_at` - Fecha de actualización
+- **Relationships**: owner (User), trips (viajes asociados)
 
 ### Rating
 - `id` - ID único de la calificación
