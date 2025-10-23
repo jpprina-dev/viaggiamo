@@ -5,8 +5,9 @@ from sqlalchemy import select
 from strawberry.types import Info
 
 from app.graphql.context import Context
-from app.graphql.types import TripCreateInput, TripType, TripUpdateInput
+from app.graphql.types import TripCreateInput, TripType, TripUpdateInput, VehicleType
 from app.models.trip import Trip
+from app.models.vehicle import Vehicle
 
 
 @strawberry.type
@@ -50,6 +51,7 @@ class TripQueries:
             TripType(
                 id=trip.id,
                 driver_id=trip.driver_id,
+                vehicle_id=trip.vehicle_id,
                 origin=trip.origin,
                 destination=trip.destination,
                 departure_time=trip.departure_time,
@@ -59,6 +61,7 @@ class TripQueries:
                 description=trip.description,
                 is_active=trip.is_active,
                 is_completed=trip.is_completed,
+                trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
                 created_at=trip.created_at,
                 updated_at=trip.updated_at,
             )
@@ -86,6 +89,7 @@ class TripQueries:
         return TripType(
             id=trip.id,
             driver_id=trip.driver_id,
+            vehicle_id=trip.vehicle_id,
             origin=trip.origin,
             destination=trip.destination,
             departure_time=trip.departure_time,
@@ -95,6 +99,7 @@ class TripQueries:
             description=trip.description,
             is_active=trip.is_active,
             is_completed=trip.is_completed,
+            trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
             created_at=trip.created_at,
             updated_at=trip.updated_at,
         )
@@ -123,6 +128,7 @@ class TripQueries:
             TripType(
                 id=trip.id,
                 driver_id=trip.driver_id,
+                vehicle_id=trip.vehicle_id,
                 origin=trip.origin,
                 destination=trip.destination,
                 departure_time=trip.departure_time,
@@ -132,11 +138,56 @@ class TripQueries:
                 description=trip.description,
                 is_active=trip.is_active,
                 is_completed=trip.is_completed,
+                trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
                 created_at=trip.created_at,
                 updated_at=trip.updated_at,
             )
             for trip in trips
         ]
+
+    @strawberry.field
+    async def trip_vehicle(
+        self, info: Info[Context, None], trip_id: int
+    ) -> VehicleType | None:
+        """
+        Get vehicle information for a specific trip.
+
+        Args:
+            trip_id: The trip ID to get vehicle information for
+
+        Returns:
+            VehicleType: Vehicle information or None if not found
+        """
+        context = info.context
+        result = await context.db.execute(select(Trip).where(Trip.id == trip_id))
+        trip = result.scalar_one_or_none()
+
+        if not trip:
+            return None
+
+        # Load the vehicle relationship
+        vehicle_result = await context.db.execute(
+            select(Vehicle).where(Vehicle.id == trip.vehicle_id)
+        )
+        vehicle = vehicle_result.scalar_one_or_none()
+
+        if not vehicle:
+            return None
+
+        return VehicleType(
+            id=vehicle.id,
+            user_id=vehicle.user_id,
+            make=vehicle.make,
+            model=vehicle.model,
+            year=vehicle.year,
+            color=vehicle.color,
+            license_plate=vehicle.license_plate,
+            seats=vehicle.seats,
+            is_active=vehicle.is_active,
+            vehicle_legal_compliance_ack=vehicle.vehicle_legal_compliance_ack,
+            created_at=vehicle.created_at,
+            updated_at=vehicle.updated_at,
+        )
 
 
 @strawberry.type
@@ -163,8 +214,27 @@ class TripMutations:
         if not context.user:
             raise ValueError("Authentication required")
 
+        if not trip_input.trip_legal_compliance_ack:
+            raise ValueError("Legal compliance acknowledgment is required")
+
+        # Validate vehicle exists and belongs to user
+        result = await context.db.execute(
+            select(Vehicle).where(Vehicle.id == trip_input.vehicle_id)
+        )
+        vehicle = result.scalar_one_or_none()
+
+        if not vehicle:
+            raise ValueError("Vehicle not found")
+
+        if vehicle.user_id != context.user.id:
+            raise ValueError("Not authorized to use this vehicle")
+
+        if not vehicle.is_active:
+            raise ValueError("Vehicle is not active")
+
         db_trip = Trip()
         db_trip.driver_id = context.user.id
+        db_trip.vehicle_id = trip_input.vehicle_id
         db_trip.origin = trip_input.origin
         db_trip.destination = trip_input.destination
         db_trip.departure_time = trip_input.departure_time
@@ -172,6 +242,7 @@ class TripMutations:
         db_trip.total_seats = trip_input.total_seats
         db_trip.price_per_seat = trip_input.price_per_seat
         db_trip.description = trip_input.description
+        db_trip.trip_legal_compliance_ack = trip_input.trip_legal_compliance_ack
 
         context.db.add(db_trip)
         await context.db.commit()
@@ -180,6 +251,7 @@ class TripMutations:
         return TripType(
             id=db_trip.id,
             driver_id=db_trip.driver_id,
+            vehicle_id=db_trip.vehicle_id,
             origin=db_trip.origin,
             destination=db_trip.destination,
             departure_time=db_trip.departure_time,
@@ -189,6 +261,7 @@ class TripMutations:
             description=db_trip.description,
             is_active=db_trip.is_active,
             is_completed=db_trip.is_completed,
+            trip_legal_compliance_ack=db_trip.trip_legal_compliance_ack,
             created_at=db_trip.created_at,
             updated_at=db_trip.updated_at,
         )
@@ -230,6 +303,23 @@ class TripMutations:
             trip.destination = trip_input.destination
         if trip_input.departure_time is not None:
             trip.departure_time = trip_input.departure_time
+        if trip_input.vehicle_id is not None:
+            # Validate new vehicle if provided
+            result = await context.db.execute(
+                select(Vehicle).where(Vehicle.id == trip_input.vehicle_id)
+            )
+            vehicle = result.scalar_one_or_none()
+
+            if not vehicle:
+                raise ValueError("Vehicle not found")
+
+            if vehicle.user_id != context.user.id:
+                raise ValueError("Not authorized to use this vehicle")
+
+            if not vehicle.is_active:
+                raise ValueError("Vehicle is not active")
+
+            trip.vehicle_id = trip_input.vehicle_id
         if trip_input.available_seats is not None:
             trip.available_seats = trip_input.available_seats
         if trip_input.total_seats is not None:
@@ -242,6 +332,8 @@ class TripMutations:
             trip.is_active = trip_input.is_active
         if trip_input.is_completed is not None:
             trip.is_completed = trip_input.is_completed
+        if trip_input.trip_legal_compliance_ack is not None:
+            trip.trip_legal_compliance_ack = trip_input.trip_legal_compliance_ack
 
         await context.db.commit()
         await context.db.refresh(trip)
@@ -249,6 +341,7 @@ class TripMutations:
         return TripType(
             id=trip.id,
             driver_id=trip.driver_id,
+            vehicle_id=trip.vehicle_id,
             origin=trip.origin,
             destination=trip.destination,
             departure_time=trip.departure_time,
@@ -258,6 +351,7 @@ class TripMutations:
             description=trip.description,
             is_active=trip.is_active,
             is_completed=trip.is_completed,
+            trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
             created_at=trip.created_at,
             updated_at=trip.updated_at,
         )

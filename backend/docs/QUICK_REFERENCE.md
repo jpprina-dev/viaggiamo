@@ -6,6 +6,7 @@ graphql/
 ├── resolvers/              # 🔹 Domain-specific resolvers
 │   ├── auth.py            # Authentication (register, login)
 │   ├── user.py            # User management
+│   ├── vehicle.py         # Vehicle management
 │   ├── trip.py            # Trip CRUD
 │   └── booking.py         # Booking management
 ├── schema.py              # 🎯 Schema composition (edit here to enable/disable features)
@@ -20,10 +21,10 @@ graphql/
 
 ```python
 # All features enabled (CURRENT)
-class Query(UserQueries, TripQueries, BookingQueries):
+class Query(UserQueries, VehicleQueries, TripQueries, BookingQueries):
     pass
 
-class Mutation(AuthMutations, UserMutations, TripMutations, BookingMutations):
+class Mutation(AuthMutations, UserMutations, VehicleMutations, TripMutations, BookingMutations):
     pass
 
 # -------------------
@@ -76,6 +77,29 @@ mutation {
   createTrip(tripInput: {...}) { id }
   updateTrip(tripId: 1, tripInput: {...}) { id }
   deleteTrip(tripId: 1)
+}
+```
+
+### Vehicles (vehicle.py)
+```graphql
+query {
+  myVehicles { id make model licensePlate }
+  vehicle(vehicleId: 1) { id make model }
+  vehicle(tripId: 1) { id make model }
+}
+
+mutation {
+  createVehicle(vehicleInput: {
+    make: "Toyota"
+    model: "Corolla"
+    year: 2020
+    licensePlate: "ABC-123"
+    seats: 5
+    vehicleLegalComplianceAck: true
+  }) { id }
+
+  updateVehicle(vehicleId: 1, vehicleInput: {...}) { id }
+  deleteVehicle(vehicleId: 1)
 }
 ```
 

@@ -18,6 +18,7 @@ class VehicleType:
     license_plate: str
     seats: int
     is_active: bool
+    vehicle_legal_compliance_ack: bool
     created_at: datetime
     updated_at: datetime
 
@@ -33,6 +34,7 @@ class VehicleCreateInput:
     seats: int
     color: str | None = None
     is_active: bool = True
+    vehicle_legal_compliance_ack: bool
 
 
 @strawberry.input
@@ -46,3 +48,4 @@ class VehicleUpdateInput:
     license_plate: str | None = None
     seats: int | None = None
     is_active: bool | None = None
+    vehicle_legal_compliance_ack: bool | None = None

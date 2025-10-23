@@ -15,6 +15,7 @@ graphql/
 │   ├── __init__.py
 │   ├── auth.py               # Authentication (register, login)
 │   ├── user.py               # User operations
+│   ├── vehicle.py            # Vehicle operations
 │   ├── trip.py               # Trip operations
 │   └── booking.py            # Booking operations
 └── README.md                  # This file
@@ -26,6 +27,7 @@ graphql/
 Each resolver file corresponds to a domain entity from `types.py`:
 - **auth.py**: Authentication operations (no entity, cross-cutting concern)
 - **user.py**: User-related queries and mutations
+- **vehicle.py**: Vehicle-related queries and mutations
 - **trip.py**: Trip-related queries and mutations
 - **booking.py**: Booking-related queries and mutations
 
@@ -34,11 +36,11 @@ The main `schema.py` composes the final GraphQL schema using multiple inheritanc
 
 ```python
 @strawberry.type
-class Query(UserQueries, TripQueries, BookingQueries):
+class Query(UserQueries, VehicleQueries, TripQueries, BookingQueries):
     pass
 
 @strawberry.type
-class Mutation(AuthMutations, UserMutations, TripMutations, BookingMutations):
+class Mutation(AuthMutations, UserMutations, VehicleMutations, TripMutations, BookingMutations):
     pass
 ```
 

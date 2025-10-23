@@ -55,6 +55,7 @@ class TestSettingsCreation:
         test_settings = Settings(
             SECRET_KEY="test-key",
             DATABASE_URL="sqlite+aiosqlite:///:memory:",
+            REDIS_URL="redis://localhost:6379/0",  # Override environment variable
         )
         assert test_settings.REDIS_URL == "redis://localhost:6379/0"
 

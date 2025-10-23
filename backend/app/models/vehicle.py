@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class Vehicle(Base):
     """Vehicle model for cars used in trips."""
 
-    __tablename__ = "vehicles"
+    __tablename__ = "vehicles"  # type: ignore
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     make: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., "Toyota"
@@ -28,6 +28,9 @@ class Vehicle(Base):
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True
     )  # If vehicle is available for trips
+    vehicle_legal_compliance_ack: Mapped[bool] = mapped_column(
+        Boolean, default=False
+    )  # User acknowledges vehicle meets legal requirements for carpooling
 
     # Relationships
     owner: Mapped["User"] = relationship("User", back_populates="vehicles")
