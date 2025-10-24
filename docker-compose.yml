@@ -44,10 +44,13 @@ services:
     container_name: viaggiamo-backend
     env_file:
       - backend/.env
+    environment:
+      - USE_MOCK_DATA=true
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ./data:/data
     networks:
       - viaggiamo-network
     depends_on:

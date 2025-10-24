@@ -67,5 +67,10 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_ID: str = ""
     GITHUB_CLIENT_SECRET: str = ""
 
+    # Mock Data Configuration
+    USE_MOCK_DATA: bool = False
+    MOCK_DATA_PATH: str = "data"
+    MOCK_DATA_AUTO_RELOAD: bool = True
+
 
 settings = Settings()
