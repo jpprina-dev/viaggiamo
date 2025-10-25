@@ -3,10 +3,8 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: viaggiamo-backend-postgres
-    environment:
-      POSTGRES_DB: viaggiamo_db
-      POSTGRES_USER: viaggiamo
-      POSTGRES_PASSWORD: viaggiamo_password
+    env_file:
+      - .env.docker
     ports:
       - "5432:5432"
     volumes:
@@ -14,7 +12,7 @@ services:
     networks:
       - viaggiamo-backend-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U viaggiamo -d viaggiamo_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-viaggiamo} -d ${POSTGRES_DB:-viaggiamo_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,6 +21,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: viaggiamo-backend-redis
+    env_file:
+      - .env.docker
     ports:
       - "6379:6379"
     volumes:
@@ -43,6 +43,7 @@ services:
     container_name: viaggiamo-backend-api
     env_file:
       - .env
+      - .env.docker
     ports:
       - "8000:8000"
     volumes:
