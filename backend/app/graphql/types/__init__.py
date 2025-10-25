@@ -7,7 +7,13 @@ from app.graphql.types.booking import (
     BookingUpdateInput,
 )
 from app.graphql.types.rating import RatingCreateInput, RatingType
-from app.graphql.types.trip import TripCreateInput, TripType, TripUpdateInput
+from app.graphql.types.trip import (
+    TripCreateInput,
+    TripSearchInput,
+    TripSearchResultType,
+    TripType,
+    TripUpdateInput,
+)
 from app.graphql.types.user import UserCreateInput, UserType, UserUpdateInput
 from app.graphql.types.vehicle import (
     VehicleCreateInput,
@@ -28,6 +34,8 @@ __all__ = [
     "TripType",
     "TripCreateInput",
     "TripUpdateInput",
+    "TripSearchInput",
+    "TripSearchResultType",
     # Booking
     "BookingType",
     "BookingCreateInput",

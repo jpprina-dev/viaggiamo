@@ -1,18 +1,29 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Calendar, Search } from 'lucide-react'
 import { Button } from '@/components/ui'
 
 export function HeroSection() {
+  const router = useRouter()
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
   const [date, setDate] = useState('')
   const [passengers, setPassengers] = useState(1)
 
   const handleSearch = () => {
-    // TODO: Implement search functionality
-    console.log({ origin, destination, date, passengers })
+    if (!origin || !destination) {
+      return
+    }
+
+    const params = new URLSearchParams()
+    params.set('origin', origin)
+    params.set('destination', destination)
+    if (date) params.set('date', date)
+    params.set('passengers', passengers.toString())
+
+    router.push(`/search?${params.toString()}`)
   }
 
   return (

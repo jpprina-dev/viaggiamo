@@ -26,7 +26,7 @@ export default function NavBar() {
           <nav className="hidden md:flex items-center space-x-8">
             {user ? (
               <>
-                <NavLink href="/trips" pathname={pathname}>
+                <NavLink href="/search" pathname={pathname}>
                   Buscar Viajes
                 </NavLink>
                 <NavLink href="/trips/create" pathname={pathname}>
@@ -38,7 +38,12 @@ export default function NavBar() {
                 <UserMenu user={user} />
               </>
             ) : (
-              <GuestLinks pathname={pathname} />
+              <>
+                <NavLink href="/search" pathname={pathname}>
+                  Buscar Viajes
+                </NavLink>
+                <GuestLinks pathname={pathname} />
+              </>
             )}
           </nav>
         </div>

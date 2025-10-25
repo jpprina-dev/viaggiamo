@@ -1,9 +1,14 @@
 """Trip-related GraphQL types."""
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 import strawberry
+
+if TYPE_CHECKING:
+    from app.graphql.types.user import UserType
+    from app.graphql.types.vehicle import VehicleType
 
 
 @strawberry.type
@@ -56,3 +61,26 @@ class TripUpdateInput:
     is_active: bool | None = None
     is_completed: bool | None = None
     trip_legal_compliance_ack: bool | None = None
+
+
+@strawberry.input
+class TripSearchInput:
+    """Input type for trip search with filters."""
+
+    origin: str
+    destination: str
+    departure_date: date | None = None
+    min_seats: int = 1
+    max_price: Decimal | None = None
+    limit: int = 20
+    offset: int = 0
+
+
+@strawberry.type
+class TripSearchResultType:
+    """Search result with trip, driver, vehicle, and relevance score."""
+
+    trip: "TripType"
+    driver: "UserType"
+    vehicle: "VehicleType"
+    relevance_score: float
