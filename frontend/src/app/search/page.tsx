@@ -1,5 +1,5 @@
 /**
- * Search page for finding trips
+ * Página de búsqueda para encontrar viajes
  */
 
 'use client'
@@ -83,10 +83,10 @@ function SearchPageContent() {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-4xl font-bold text-gray-900">
-            Search Trips
+            Buscar Viajes
           </h1>
           <p className="text-gray-600">
-            Find the perfect carpool trip for your journey
+            Encuentra el viaje compartido perfecto para tu trayecto
           </p>
         </div>
 
@@ -122,10 +122,10 @@ function SearchPageContent() {
               <span className="text-4xl">🚗</span>
             </div>
             <h3 className="mb-2 text-xl font-semibold text-gray-900">
-              Start Your Search
+              Comienza tu Búsqueda
             </h3>
             <p className="text-gray-600">
-              Enter your origin and destination to find available trips
+              Ingresa tu origen y destino para encontrar viajes disponibles
             </p>
           </div>
         )}
