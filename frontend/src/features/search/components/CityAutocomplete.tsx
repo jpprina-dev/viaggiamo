@@ -15,6 +15,7 @@ interface CityAutocompleteProps {
   placeholder?: string
   error?: string
   disabled?: boolean
+  className?: string
 }
 
 export function CityAutocomplete({
@@ -25,6 +26,7 @@ export function CityAutocomplete({
   placeholder,
   error,
   disabled = false,
+  className = '',
 }: CityAutocompleteProps) {
   const { suggestions, loading, fetchSuggestions } = useCityAutocomplete(type)
   const [isOpen, setIsOpen] = useState(false)
@@ -108,11 +110,14 @@ export function CityAutocomplete({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
-        className={`w-full rounded-lg border px-4 py-3 text-base outline-none transition-colors ${
-          error
-            ? 'border-red-500 focus:border-red-600'
-            : 'border-gray-300 focus:border-primary-600'
-        } ${disabled ? 'cursor-not-allowed bg-gray-100' : 'bg-white'}`}
+        className={
+          className ||
+          `w-full rounded-lg border px-4 py-3 text-base outline-none transition-colors ${
+            error
+              ? 'border-red-500 focus:border-red-600'
+              : 'border-gray-300 focus:border-primary-600'
+          } ${disabled ? 'cursor-not-allowed bg-gray-100' : 'bg-white'}`
+        }
         aria-label={`${type} city`}
         aria-autocomplete="list"
         aria-controls={`${type}-suggestions`}

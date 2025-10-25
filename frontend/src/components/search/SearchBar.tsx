@@ -7,7 +7,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, MapPin, Calendar, Users, ArrowLeftRight } from 'lucide-react'
+import { MapPin, Calendar, Users, ArrowLeftRight } from 'lucide-react'
 import { CityAutocomplete } from '@/features/search/components/CityAutocomplete'
 
 export interface SearchBarData {
@@ -90,7 +90,7 @@ export function SearchBar({
                   onChange={setOrigin}
                   placeholder="¿Desde dónde sales?"
                   disabled={loading}
-                  className="border-0 p-0 focus:ring-0 text-sm font-medium"
+                  className="w-full border-0 p-0 focus:ring-0 text-sm font-medium bg-transparent outline-none"
                 />
               </div>
             </div>
@@ -120,7 +120,7 @@ export function SearchBar({
                   onChange={setDestination}
                   placeholder="¿A dónde vas?"
                   disabled={loading}
-                  className="border-0 p-0 focus:ring-0 text-sm font-medium"
+                  className="w-full border-0 p-0 focus:ring-0 text-sm font-medium bg-transparent outline-none"
                 />
               </div>
             </div>
@@ -173,16 +173,13 @@ export function SearchBar({
           </div>
 
           {/* Search Button */}
-          <div className="flex items-center px-2">
-            <button
-              type="submit"
-              disabled={loading || !origin || !destination}
-              className="flex items-center justify-center bg-primary-600 text-white rounded-xl px-6 py-3 font-semibold hover:bg-primary-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Search className="h-5 w-5 mr-2" />
-              Buscar
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading || !origin || !destination}
+            className="flex items-center justify-center bg-primary-600 text-white rounded-r-xl px-12 py-4 font-semibold hover:bg-primary-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          >
+            {loading ? 'Buscando...' : 'Buscar'}
+          </button>
         </div>
       </form>
 
@@ -207,7 +204,7 @@ export function SearchBar({
                   onChange={setOrigin}
                   placeholder="¿Desde dónde sales?"
                   disabled={loading}
-                  className="border-0 p-0 focus:ring-0 text-base font-medium w-full"
+                  className="w-full border-0 p-0 focus:ring-0 text-base font-medium bg-transparent outline-none"
                 />
               </div>
             </div>
@@ -239,7 +236,7 @@ export function SearchBar({
                   onChange={setDestination}
                   placeholder="¿A dónde vas?"
                   disabled={loading}
-                  className="border-0 p-0 focus:ring-0 text-base font-medium w-full"
+                  className="w-full border-0 p-0 focus:ring-0 text-base font-medium bg-transparent outline-none"
                 />
               </div>
             </div>
@@ -299,17 +296,7 @@ export function SearchBar({
             disabled={loading || !origin || !destination}
             className="w-full flex items-center justify-center bg-primary-600 text-white rounded-xl px-6 py-4 font-semibold text-lg hover:bg-primary-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? (
-              <>
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                Buscando...
-              </>
-            ) : (
-              <>
-                <Search className="h-5 w-5 mr-2" />
-                Buscar
-              </>
-            )}
+            {loading ? 'Buscando...' : 'Buscar'}
           </button>
         </div>
       </form>
