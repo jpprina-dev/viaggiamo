@@ -1,5 +1,5 @@
 /**
- * Página de búsqueda para encontrar viajes
+ * Search page for finding trips
  */
 
 'use client'
@@ -7,10 +7,9 @@
 import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { NavBar, Footer } from '@/components/layout'
-import { SearchForm } from '@/features/search/components/SearchForm'
+import { SearchBar, SearchBarData } from '@/components/search'
 import { SearchResults } from '@/features/search/components/SearchResults'
 import { useSearchTrips } from '@/features/search/hooks/useSearchTrips'
-import type { SearchFormData } from '@/features/search/types'
 
 function SearchPageContent() {
   const router = useRouter()
@@ -22,9 +21,6 @@ function SearchPageContent() {
   const destination = searchParams.get('destination') || ''
   const date = searchParams.get('date') || ''
   const passengers = Number(searchParams.get('passengers')) || 1
-  const maxPrice = searchParams.get('maxPrice')
-    ? Number(searchParams.get('maxPrice'))
-    : undefined
 
   // Perform search on mount if params are present
   useEffect(() => {
@@ -34,20 +30,18 @@ function SearchPageContent() {
         destination,
         departureDate: date || undefined,
         minSeats: passengers,
-        maxPrice,
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [origin, destination, date, passengers, maxPrice])
+  }, [origin, destination, date, passengers])
 
-  const handleSearch = (data: SearchFormData) => {
+  const handleSearch = (data: SearchBarData) => {
     // Update URL parameters
     const params = new URLSearchParams()
     params.set('origin', data.origin)
     params.set('destination', data.destination)
     if (data.date) params.set('date', data.date)
     params.set('passengers', data.passengers.toString())
-    if (data.maxPrice) params.set('maxPrice', data.maxPrice.toString())
 
     router.push(`/search?${params.toString()}`)
 
@@ -57,7 +51,6 @@ function SearchPageContent() {
       destination: data.destination,
       departureDate: data.date,
       minSeats: data.passengers,
-      maxPrice: data.maxPrice,
     })
   }
 
@@ -68,7 +61,6 @@ function SearchPageContent() {
         destination,
         departureDate: date || undefined,
         minSeats: passengers,
-        maxPrice,
       })
     }
   }
@@ -79,32 +71,33 @@ function SearchPageContent() {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="mb-2 text-4xl font-bold text-gray-900">
-            Buscar Viajes
-          </h1>
-          <p className="text-gray-600">
-            Encuentra el viaje compartido perfecto para tu trayecto
-          </p>
-        </div>
+      {/* Header with integrated search bar */}
+      <div className="border-b border-gray-200 bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-6">
+          <div className="mb-6">
+            <h1 className="mb-2 text-3xl font-bold text-gray-900">
+              Buscar Viajes
+            </h1>
+            <p className="text-gray-600">
+              Encuentra el viaje compartido perfecto para tu trayecto
+            </p>
+          </div>
 
-        {/* Search Form */}
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-sm">
-          <SearchForm
+          <SearchBar
             onSearch={handleSearch}
             initialValues={{
               origin,
               destination,
               date,
               passengers,
-              maxPrice,
             }}
             loading={loading}
+            variant="compact"
           />
         </div>
+      </div>
 
+      <main className="container mx-auto px-4 py-8">
         {/* Search Results */}
         {hasSearched && (
           <SearchResults
@@ -115,10 +108,10 @@ function SearchPageContent() {
           />
         )}
 
-        {/* Empty State - Show when no search has been performed */}
+        {/* Empty State */}
         {!hasSearched && !loading && (
           <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-            <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
               <span className="text-4xl">🚗</span>
             </div>
             <h3 className="mb-2 text-xl font-semibold text-gray-900">

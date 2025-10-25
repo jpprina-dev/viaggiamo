@@ -5,6 +5,7 @@
 'use client'
 
 import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 import Link from 'next/link'
 import type { TripSearchResult } from '../types'
 
@@ -20,8 +21,8 @@ export function TripCard({
   const { trip, driver, vehicle, relevanceScore } = result
 
   const departureDate = new Date(trip.departureTime)
-  const formattedDate = format(departureDate, 'MMM dd, yyyy')
-  const formattedTime = format(departureDate, 'hh:mm a')
+  const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
+  const formattedTime = format(departureDate, 'HH:mm')
 
   const seatRatio = trip.availableSeats / trip.totalSeats
   const seatColor =
@@ -52,7 +53,7 @@ export function TripCard({
 
         {showRelevanceScore && relevanceScore >= 80 && (
           <div className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
-            {Math.round(relevanceScore)}% match
+            {Math.round(relevanceScore)}% coincidencia
           </div>
         )}
       </div>
@@ -62,7 +63,7 @@ export function TripCard({
         {/* Driver */}
         <div>
           <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
-            Driver
+            Conductor
           </p>
           <div className="flex items-center space-x-2">
             {driver.profilePicture && (
@@ -84,7 +85,7 @@ export function TripCard({
         {/* Vehicle */}
         <div>
           <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
-            Vehicle
+            Vehículo
           </p>
           <p className="font-medium text-gray-900">
             {vehicle.make} {vehicle.model}
@@ -110,7 +111,7 @@ export function TripCard({
         <div className="flex items-center space-x-4">
           {/* Available Seats */}
           <div>
-            <p className="text-xs text-gray-500">Available Seats</p>
+            <p className="text-xs text-gray-500">Asientos Disponibles</p>
             <p className={`text-lg font-semibold ${seatColor}`}>
               {trip.availableSeats} / {trip.totalSeats}
             </p>
@@ -120,7 +121,7 @@ export function TripCard({
         <div className="flex items-center space-x-4">
           {/* Price */}
           <div className="text-right">
-            <p className="text-xs text-gray-500">Price per Seat</p>
+            <p className="text-xs text-gray-500">Precio por Asiento</p>
             <p className="text-2xl font-bold text-primary-600">
               ${Number(trip.pricePerSeat).toLocaleString()}
             </p>
@@ -131,7 +132,7 @@ export function TripCard({
             href={`/trips/${trip.id}`}
             className="rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-700"
           >
-            View Details
+            Ver Detalles
           </Link>
         </div>
       </div>

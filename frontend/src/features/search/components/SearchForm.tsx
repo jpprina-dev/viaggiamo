@@ -12,8 +12,8 @@ import { CityAutocomplete } from './CityAutocomplete'
 import type { SearchFormData } from '../types'
 
 const searchSchema = z.object({
-  origin: z.string().min(2, 'Origin is required'),
-  destination: z.string().min(2, 'Destination is required'),
+  origin: z.string().min(2, 'El origen es requerido'),
+  destination: z.string().min(2, 'El destino es requerido'),
   date: z.string().optional(),
   passengers: z.number().min(1).max(8),
   maxPrice: z.number().positive().optional(),
@@ -71,13 +71,13 @@ export function SearchForm({
             htmlFor="origin"
             className="mb-2 block text-sm font-medium text-gray-700"
           >
-            From
+            Origen
           </label>
           <CityAutocomplete
             type="origin"
             value={origin}
             onChange={(value) => setValue('origin', value)}
-            placeholder="Enter origin city"
+            placeholder="Ciudad de origen"
             error={errors.origin?.message}
             disabled={loading}
           />
@@ -89,13 +89,13 @@ export function SearchForm({
             htmlFor="destination"
             className="mb-2 block text-sm font-medium text-gray-700"
           >
-            To
+            Destino
           </label>
           <CityAutocomplete
             type="destination"
             value={destination}
             onChange={(value) => setValue('destination', value)}
-            placeholder="Enter destination city"
+            placeholder="Ciudad de destino"
             error={errors.destination?.message}
             disabled={loading}
           />
@@ -109,9 +109,9 @@ export function SearchForm({
           onClick={handleSwapCities}
           disabled={loading}
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          aria-label="Swap origin and destination"
+          aria-label="Intercambiar origen y destino"
         >
-          ⇄ Swap
+          ⇄ Intercambiar
         </button>
       </div>
 
@@ -122,7 +122,7 @@ export function SearchForm({
             htmlFor="date"
             className="mb-2 block text-sm font-medium text-gray-700"
           >
-            Date (optional)
+            Fecha (opcional)
           </label>
           <input
             {...register('date')}
@@ -142,7 +142,7 @@ export function SearchForm({
             htmlFor="passengers"
             className="mb-2 block text-sm font-medium text-gray-700"
           >
-            Passengers
+            Pasajeros
           </label>
           <select
             {...register('passengers', { valueAsNumber: true })}
@@ -151,7 +151,7 @@ export function SearchForm({
           >
             {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
               <option key={num} value={num}>
-                {num} {num === 1 ? 'passenger' : 'passengers'}
+                {num} {num === 1 ? 'pasajero' : 'pasajeros'}
               </option>
             ))}
           </select>
@@ -170,7 +170,7 @@ export function SearchForm({
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="text-sm font-medium text-primary-600 hover:underline"
           >
-          {showAdvanced ? 'Hide' : 'Show'} advanced filters
+          {showAdvanced ? 'Ocultar' : 'Mostrar'} filtros avanzados
         </button>
 
         {showAdvanced && (
@@ -179,12 +179,12 @@ export function SearchForm({
               htmlFor="maxPrice"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Max Price per Seat (optional)
+              Precio Máximo por Asiento (opcional)
             </label>
             <input
               {...register('maxPrice', { valueAsNumber: true })}
               type="number"
-              placeholder="Enter maximum price"
+              placeholder="Ingresa el precio máximo"
               disabled={loading}
               className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none transition-colors focus:border-primary-600 disabled:cursor-not-allowed disabled:bg-gray-100"
               min="0"
@@ -208,10 +208,10 @@ export function SearchForm({
         {loading ? (
           <span className="flex items-center justify-center">
             <span className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            Searching...
+            Buscando...
           </span>
         ) : (
-          'Search Trips'
+          'Buscar Viajes'
         )}
       </button>
     </form>
