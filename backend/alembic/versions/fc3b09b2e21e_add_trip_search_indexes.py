@@ -1,16 +1,16 @@
-"""add_trip_search_indexes
+"""Add trip search indexes
 
-Revision ID: 7d87745a8fcd
-Revises: 7f733f43bdd0
-Create Date: 2025-10-25 00:29:41.502284
+Revision ID: fc3b09b2e21e
+Revises: e55b4e507c39
+Create Date: 2025-10-25 18:05:56.458558
 
 """
 
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "7d87745a8fcd"
-down_revision = "7f733f43bdd0"
+revision = "fc3b09b2e21e"
+down_revision = "e55b4e507c39"
 branch_labels = None
 depends_on = None
 
