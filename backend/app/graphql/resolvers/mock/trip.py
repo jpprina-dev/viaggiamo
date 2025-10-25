@@ -1,12 +1,21 @@
 """Mock trip-related queries and mutations."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import strawberry
 from strawberry.types import Info
 
+from app.core.search_ranking import calculate_trip_relevance
 from app.graphql.mock_context import MockContext
-from app.graphql.types import TripCreateInput, TripType, TripUpdateInput
+from app.graphql.types import (
+    TripCreateInput,
+    TripSearchInput,
+    TripSearchResultType,
+    TripType,
+    TripUpdateInput,
+    UserType,
+    VehicleType,
+)
 
 
 def parse_datetime(dt_str: str) -> datetime:
@@ -169,6 +178,198 @@ class MockTripQueries:
             )
             for trip in trips_data
         ]
+
+    @strawberry.field
+    async def search_trips(
+        self,
+        info: Info[MockContext, None],
+        search: TripSearchInput,
+    ) -> list[TripSearchResultType]:
+        """Advanced trip search with fuzzy matching and relevance ranking."""
+        context = info.context
+
+        # Get all active trips
+        trips_data = context.mock_data.get_trips(is_active=True, is_completed=False)
+
+        # Filter by minimum seats
+        trips_data = [t for t in trips_data if t["available_seats"] >= search.min_seats]
+
+        # Fuzzy match origin and destination (simple case-insensitive contains)
+        trips_data = [
+            t
+            for t in trips_data
+            if search.origin.lower() in t["origin"].lower()
+            and search.destination.lower() in t["destination"].lower()
+        ]
+
+        # Date range filter (±3 days if date provided)
+        if search.departure_date:
+            start = search.departure_date - timedelta(days=3)
+            end = search.departure_date + timedelta(days=4)
+            trips_data = [
+                t
+                for t in trips_data
+                if start <= parse_datetime(t["departure_time"]).date() < end
+            ]
+
+        # Price filter
+        if search.max_price:
+            trips_data = [
+                t
+                for t in trips_data
+                if float(t["price_per_seat"]) <= float(search.max_price)
+            ]
+
+        # Build result objects with driver and vehicle info
+        results = []
+        for trip_data in trips_data:
+            # Get driver info
+            driver_data = context.mock_data.get_user_by_id(trip_data["driver_id"])
+            if not driver_data:
+                continue
+
+            # Get vehicle info
+            vehicle_data = context.mock_data.get_vehicle_by_id(trip_data["vehicle_id"])
+            if not vehicle_data:
+                continue
+
+            # Create mock Trip object for scoring
+            class MockTrip:
+                def __init__(self, data):
+                    self.departure_time = parse_datetime(data["departure_time"])
+                    self.price_per_seat = float(data["price_per_seat"])
+                    self.available_seats = data["available_seats"]
+                    self.total_seats = data["total_seats"]
+
+            mock_trip = MockTrip(trip_data)
+            relevance_score = calculate_trip_relevance(
+                mock_trip, search.departure_date, search.max_price
+            )
+
+            results.append(
+                {
+                    "trip": trip_data,
+                    "driver": driver_data,
+                    "vehicle": vehicle_data,
+                    "score": relevance_score,
+                }
+            )
+
+        # Sort by relevance score
+        results.sort(key=lambda x: x["score"], reverse=True)
+
+        # Apply pagination
+        paginated = results[search.offset : search.offset + search.limit]
+
+        # Convert to GraphQL types
+        return [
+            TripSearchResultType(
+                trip=TripType(
+                    id=item["trip"]["id"],
+                    driver_id=item["trip"]["driver_id"],
+                    vehicle_id=item["trip"]["vehicle_id"],
+                    origin=item["trip"]["origin"],
+                    destination=item["trip"]["destination"],
+                    departure_time=parse_datetime(item["trip"]["departure_time"]),
+                    available_seats=item["trip"]["available_seats"],
+                    total_seats=item["trip"]["total_seats"],
+                    price_per_seat=item["trip"]["price_per_seat"],
+                    description=item["trip"]["description"],
+                    is_active=item["trip"]["is_active"],
+                    is_completed=item["trip"]["is_completed"],
+                    trip_legal_compliance_ack=item["trip"]["trip_legal_compliance_ack"],
+                    created_at=parse_datetime(item["trip"]["created_at"]),
+                    updated_at=parse_datetime(item["trip"]["updated_at"]),
+                ),
+                driver=UserType(
+                    id=item["driver"]["id"],
+                    email=item["driver"]["email"],
+                    username=item["driver"]["username"],
+                    name=item["driver"]["name"],
+                    last_name=item["driver"]["last_name"],
+                    status=item["driver"]["status"],
+                    email_verified=item["driver"]["email_verified"],
+                    phone=item["driver"].get("phone"),
+                    phone_verified=item["driver"].get("phone_verified", False),
+                    profile_picture=item["driver"].get("profile_picture"),
+                    profile_short_bio=item["driver"].get("profile_short_bio"),
+                    identification=item["driver"].get("identification"),
+                    identification_type=item["driver"].get("identification_type"),
+                    auth_provider=item["driver"].get("auth_provider"),
+                    trip_preferences=item["driver"].get("trip_preferences"),
+                    created_at=parse_datetime(item["driver"]["created_at"]),
+                    updated_at=parse_datetime(item["driver"]["updated_at"]),
+                ),
+                vehicle=VehicleType(
+                    id=item["vehicle"]["id"],
+                    user_id=item["vehicle"]["user_id"],
+                    make=item["vehicle"]["make"],
+                    model=item["vehicle"]["model"],
+                    year=item["vehicle"]["year"],
+                    color=item["vehicle"].get("color"),
+                    license_plate=item["vehicle"]["license_plate"],
+                    seats=item["vehicle"]["seats"],
+                    is_active=item["vehicle"]["is_active"],
+                    vehicle_legal_compliance_ack=item["vehicle"][
+                        "vehicle_legal_compliance_ack"
+                    ],
+                    created_at=parse_datetime(item["vehicle"]["created_at"]),
+                    updated_at=parse_datetime(item["vehicle"]["updated_at"]),
+                ),
+                relevance_score=item["score"],
+            )
+            for item in paginated
+        ]
+
+    @strawberry.field
+    async def city_origins(
+        self,
+        info: Info[MockContext, None],
+        prefix: str,
+        limit: int = 10,
+    ) -> list[str]:
+        """Get origin cities matching prefix with active trips."""
+        context = info.context
+        trips_data = context.mock_data.get_trips(is_active=True)
+
+        # Filter by prefix
+        origins = [
+            trip["origin"]
+            for trip in trips_data
+            if trip["origin"].lower().startswith(prefix.lower())
+        ]
+
+        # Count occurrences and get unique origins
+        from collections import Counter
+
+        origin_counts = Counter(origins)
+        # Sort by count (descending) and return top N
+        return [city for city, _ in origin_counts.most_common(limit)]
+
+    @strawberry.field
+    async def city_destinations(
+        self,
+        info: Info[MockContext, None],
+        prefix: str,
+        limit: int = 10,
+    ) -> list[str]:
+        """Get destination cities matching prefix with active trips."""
+        context = info.context
+        trips_data = context.mock_data.get_trips(is_active=True)
+
+        # Filter by prefix
+        destinations = [
+            trip["destination"]
+            for trip in trips_data
+            if trip["destination"].lower().startswith(prefix.lower())
+        ]
+
+        # Count occurrences and get unique destinations
+        from collections import Counter
+
+        destination_counts = Counter(destinations)
+        # Sort by count (descending) and return top N
+        return [city for city, _ in destination_counts.most_common(limit)]
 
 
 @strawberry.type

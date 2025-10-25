@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 import strawberry
 
@@ -80,7 +80,7 @@ class TripSearchInput:
 class TripSearchResultType:
     """Search result with trip, driver, vehicle, and relevance score."""
 
-    trip: "TripType"
-    driver: "UserType"
-    vehicle: "VehicleType"
+    trip: TripType
+    driver: Annotated["UserType", strawberry.lazy("app.graphql.types.user")]
+    vehicle: Annotated["VehicleType", strawberry.lazy("app.graphql.types.vehicle")]
     relevance_score: float

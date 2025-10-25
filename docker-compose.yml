@@ -45,7 +45,7 @@ services:
     env_file:
       - backend/.env
     environment:
-      - USE_MOCK_DATA=true
+      - USE_MOCK_DATA=false
     ports:
       - "8000:8000"
     volumes:
