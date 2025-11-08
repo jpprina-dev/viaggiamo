@@ -1,12 +1,24 @@
 """Trip-related queries and mutations."""
 
+from datetime import timedelta
+
 import strawberry
-from sqlalchemy import select
+from sqlalchemy import func, select
 from strawberry.types import Info
 
+from app.core.search_ranking import calculate_trip_relevance
 from app.graphql.context import Context
-from app.graphql.types import TripCreateInput, TripType, TripUpdateInput, VehicleType
+from app.graphql.types import (
+    TripCreateInput,
+    TripSearchInput,
+    TripSearchResultType,
+    TripType,
+    TripUpdateInput,
+    UserType,
+    VehicleType,
+)
 from app.models.trip import Trip
+from app.models.user import User
 from app.models.vehicle import Vehicle
 
 
@@ -188,6 +200,193 @@ class TripQueries:
             created_at=vehicle.created_at,
             updated_at=vehicle.updated_at,
         )
+
+    @strawberry.field
+    async def search_trips(
+        self,
+        info: Info[Context, None],
+        search: TripSearchInput,
+    ) -> list[TripSearchResultType]:
+        """
+        Advanced trip search with fuzzy matching and relevance ranking.
+
+        Args:
+            search: Search criteria including origin, destination, date, etc.
+
+        Returns:
+            List[TripSearchResultType]: Ranked list of matching trips with driver and vehicle info
+        """
+        context = info.context
+
+        # Build query with fuzzy matching using pg_trgm
+        query = (
+            select(Trip, User, Vehicle)
+            .join(User, Trip.driver_id == User.id)
+            .join(Vehicle, Trip.vehicle_id == Vehicle.id)
+            .where(
+                Trip.is_active == True,  # noqa: E712
+                Trip.is_completed == False,  # noqa: E712
+                Trip.available_seats >= search.min_seats,
+                # Fuzzy match using similarity (threshold 0.3)
+                func.similarity(Trip.origin, search.origin) > 0.3,
+                func.similarity(Trip.destination, search.destination) > 0.3,
+            )
+        )
+
+        # Date range filter (±3 days if date provided)
+        if search.departure_date:
+            start = search.departure_date - timedelta(days=3)
+            end = search.departure_date + timedelta(days=4)
+            query = query.where(
+                func.date(Trip.departure_time) >= start,
+                func.date(Trip.departure_time) < end,
+            )
+
+        # Price filter
+        if search.max_price:
+            query = query.where(Trip.price_per_seat <= search.max_price)
+
+        result = await context.db.execute(query)
+        rows = result.all()
+
+        # Calculate relevance and sort
+        scored_results = [
+            {
+                "trip": trip,
+                "driver": driver,
+                "vehicle": vehicle,
+                "score": calculate_trip_relevance(
+                    trip, search.departure_date, search.max_price
+                ),
+            }
+            for trip, driver, vehicle in rows
+        ]
+
+        scored_results.sort(key=lambda x: x["score"], reverse=True)
+
+        # Apply pagination
+        paginated = scored_results[search.offset : search.offset + search.limit]
+
+        return [
+            TripSearchResultType(
+                trip=TripType(
+                    id=item["trip"].id,
+                    driver_id=item["trip"].driver_id,
+                    vehicle_id=item["trip"].vehicle_id,
+                    origin=item["trip"].origin,
+                    destination=item["trip"].destination,
+                    departure_time=item["trip"].departure_time,
+                    available_seats=item["trip"].available_seats,
+                    total_seats=item["trip"].total_seats,
+                    price_per_seat=item["trip"].price_per_seat,
+                    description=item["trip"].description,
+                    is_active=item["trip"].is_active,
+                    is_completed=item["trip"].is_completed,
+                    trip_legal_compliance_ack=item["trip"].trip_legal_compliance_ack,
+                    created_at=item["trip"].created_at,
+                    updated_at=item["trip"].updated_at,
+                ),
+                driver=UserType(
+                    id=item["driver"].id,
+                    email=item["driver"].email,
+                    username=item["driver"].username,
+                    name=item["driver"].name,
+                    last_name=item["driver"].last_name,
+                    status=item["driver"].status,
+                    email_verified=item["driver"].email_verified,
+                    phone=item["driver"].phone,
+                    phone_verified=item["driver"].phone_verified,
+                    profile_picture=item["driver"].profile_picture,
+                    profile_short_bio=item["driver"].profile_short_bio,
+                    identification=item["driver"].identification,
+                    identification_type=item["driver"].identification_type,
+                    auth_provider=item["driver"].auth_provider,
+                    trip_preferences=item["driver"].trip_preferences,
+                    created_at=item["driver"].created_at,
+                    updated_at=item["driver"].updated_at,
+                ),
+                vehicle=VehicleType(
+                    id=item["vehicle"].id,
+                    user_id=item["vehicle"].user_id,
+                    make=item["vehicle"].make,
+                    model=item["vehicle"].model,
+                    year=item["vehicle"].year,
+                    color=item["vehicle"].color,
+                    license_plate=item["vehicle"].license_plate,
+                    seats=item["vehicle"].seats,
+                    is_active=item["vehicle"].is_active,
+                    vehicle_legal_compliance_ack=item[
+                        "vehicle"
+                    ].vehicle_legal_compliance_ack,
+                    created_at=item["vehicle"].created_at,
+                    updated_at=item["vehicle"].updated_at,
+                ),
+                relevance_score=item["score"],
+            )
+            for item in paginated
+        ]
+
+    @strawberry.field
+    async def city_origins(
+        self,
+        info: Info[Context, None],
+        prefix: str,
+        limit: int = 10,
+    ) -> list[str]:
+        """
+        Get origin cities matching prefix with active trips.
+
+        Args:
+            prefix: City name prefix to search for
+            limit: Maximum number of cities to return (default: 10)
+
+        Returns:
+            List[str]: List of city names, ordered by trip count
+        """
+        context = info.context
+        query = (
+            select(Trip.origin, func.count(Trip.id))
+            .where(
+                Trip.is_active == True,  # noqa: E712
+                Trip.origin.ilike(f"{prefix}%"),
+            )
+            .group_by(Trip.origin)
+            .order_by(func.count(Trip.id).desc())
+            .limit(limit)
+        )
+        result = await context.db.execute(query)
+        return [row[0] for row in result.all()]
+
+    @strawberry.field
+    async def city_destinations(
+        self,
+        info: Info[Context, None],
+        prefix: str,
+        limit: int = 10,
+    ) -> list[str]:
+        """
+        Get destination cities matching prefix with active trips.
+
+        Args:
+            prefix: City name prefix to search for
+            limit: Maximum number of cities to return (default: 10)
+
+        Returns:
+            List[str]: List of city names, ordered by trip count
+        """
+        context = info.context
+        query = (
+            select(Trip.destination, func.count(Trip.id))
+            .where(
+                Trip.is_active == True,  # noqa: E712
+                Trip.destination.ilike(f"{prefix}%"),
+            )
+            .group_by(Trip.destination)
+            .order_by(func.count(Trip.id).desc())
+            .limit(limit)
+        )
+        result = await context.db.execute(query)
+        return [row[0] for row in result.all()]
 
 
 @strawberry.type

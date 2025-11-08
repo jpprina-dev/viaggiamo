@@ -3,10 +3,8 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: viaggiamo-postgres
-    environment:
-      POSTGRES_DB: viaggiamo_db
-      POSTGRES_USER: viaggiamo
-      POSTGRES_PASSWORD: viaggiamo_password
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
@@ -15,7 +13,7 @@ services:
     networks:
       - viaggiamo-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U viaggiamo -d viaggiamo_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-viaggiamo} -d ${POSTGRES_DB:-viaggiamo_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,6 +22,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: viaggiamo-redis
+    env_file:
+      - .env
     ports:
       - "6379:6379"
     volumes:
@@ -44,13 +44,11 @@ services:
     container_name: viaggiamo-backend
     env_file:
       - backend/.env
-    environment:
-      - USE_MOCK_DATA=true
+      - .env
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - ./data:/data
     networks:
       - viaggiamo-network
     depends_on:
@@ -70,16 +68,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     container_name: viaggiamo-frontend
-    environment:
-      # Runtime variables
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_GRAPHQL_URL=http://localhost:8000/graphql
-      - NEXT_PUBLIC_GRAPHQL_URL_INTERNAL=http://backend:8000/graphql
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - NEXT_PUBLIC_APP_NAME=Viaggiamo
-      - NEXT_PUBLIC_APP_DESCRIPTION=MVP de Carpooling
-      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-your-google-client-id.apps.googleusercontent.com}
-      - NODE_ENV=development
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     volumes:
