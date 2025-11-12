@@ -7,6 +7,7 @@
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import type { TripSearchResult } from '../types'
 
 interface TripCardProps {
@@ -19,6 +20,7 @@ export function TripCard({
   showRelevanceScore = false,
 }: TripCardProps) {
   const { trip, driver, vehicle, relevanceScore } = result
+  const searchParams = useSearchParams()
 
   const departureDate = new Date(trip.departureTime)
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
@@ -129,7 +131,7 @@ export function TripCard({
 
           {/* View Details Button */}
           <Link
-            href={`/trips/${trip.id}`}
+            href={`/trips/${trip.id}?${searchParams.toString()}`}
             className="rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-700"
           >
             Ver Detalles

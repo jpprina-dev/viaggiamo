@@ -8,6 +8,7 @@ import { useTripDetails } from '@/features/trip-details/hooks/useTripDetails'
 import { TripDetailsView } from '@/features/trip-details/components/TripDetailsView'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 interface TripPageProps {
   params: {
@@ -17,8 +18,14 @@ interface TripPageProps {
 
 export default function TripPage({ params }: TripPageProps) {
   const tripId = parseInt(params.id, 10)
+  const searchParams = useSearchParams()
 
   const { tripData, loading, error } = useTripDetails(tripId)
+  
+  // Build the return URL with search params
+  const returnUrl = searchParams.toString() 
+    ? `/search?${searchParams.toString()}`
+    : '/search'
 
   if (loading) {
     return (
@@ -26,7 +33,13 @@ export default function TripPage({ params }: TripPageProps) {
         {/* Loading Skeleton */}
         <div className="bg-white border-b border-gray-200">
           <div className="mx-auto max-w-4xl px-4 py-4">
-            <div className="h-6 w-32 animate-pulse rounded bg-gray-200" />
+            <Link
+              href={returnUrl}
+              className="inline-flex items-center text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Volver a resultados
+            </Link>
           </div>
         </div>
 
@@ -88,16 +101,16 @@ export default function TripPage({ params }: TripPageProps) {
               : 'Hubo un problema al cargar la información del viaje.'}
           </p>
           <Link
-            href="/search"
+            href={returnUrl}
             className="inline-flex items-center rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-700"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver a búsqueda
+            Volver a resultados
           </Link>
         </div>
       </div>
     )
   }
 
-  return <TripDetailsView tripData={tripData} />
+  return <TripDetailsView tripData={tripData} returnUrl={returnUrl} />
 }

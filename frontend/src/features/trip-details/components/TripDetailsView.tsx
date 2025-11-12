@@ -17,10 +17,11 @@ import Link from 'next/link'
 
 interface TripDetailsViewProps {
   tripData: TripDetailsData
+  returnUrl?: string
   onBookingSuccess?: () => void
 }
 
-export function TripDetailsView({ tripData, onBookingSuccess }: TripDetailsViewProps) {
+export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSuccess }: TripDetailsViewProps) {
   const { trip, driver, vehicle } = tripData
   const { user } = useAuth()
   const router = useRouter()
@@ -98,7 +99,7 @@ export function TripDetailsView({ tripData, onBookingSuccess }: TripDetailsViewP
       <div className="bg-white border-b border-gray-200">
         <div className="mx-auto max-w-4xl px-4 py-4">
           <Link
-            href="/search"
+            href={returnUrl}
             className="inline-flex items-center text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
