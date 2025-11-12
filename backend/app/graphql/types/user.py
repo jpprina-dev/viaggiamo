@@ -3,7 +3,10 @@
 from datetime import datetime
 
 import strawberry
+from sqlalchemy import func, select
 from strawberry.scalars import JSON
+
+from app.models.rating import Rating
 
 
 @strawberry.type
@@ -27,6 +30,21 @@ class UserType:
     trip_preferences: JSON | None = None
     created_at: datetime
     updated_at: datetime
+
+    @strawberry.field
+    async def average_rating(self, info: strawberry.Info) -> float | None:
+        """Calculate the average rating for this user as a driver."""
+        db = info.context.db
+
+        # Calculate average rating for user as driver
+        result = await db.execute(
+            select(func.avg(Rating.rating))
+            .where(Rating.rated_user_id == self.id)
+            .where(Rating.role == "driver")
+        )
+        avg = result.scalar()
+
+        return float(avg) if avg is not None else None
 
 
 @strawberry.input
