@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
@@ -34,15 +34,22 @@ export function TripDetailsView({ tripData, onBookingSuccess }: TripDetailsViewP
 
   const totalPrice = Number(trip.pricePerSeat) * seatsRequested
 
+  // Ensure seats requested never exceeds available seats
+  useEffect(() => {
+    if (seatsRequested > trip.availableSeats) {
+      setSeatsRequested(Math.min(1, trip.availableSeats))
+    }
+  }, [trip.availableSeats, seatsRequested])
+
   const handleIncreaseSeats = () => {
     if (seatsRequested < trip.availableSeats) {
-      setSeatsRequested(prev => prev + 1)
+      setSeatsRequested((prev: number) => prev + 1)
     }
   }
 
   const handleDecreaseSeats = () => {
     if (seatsRequested > 1) {
-      setSeatsRequested(prev => prev - 1)
+      setSeatsRequested((prev: number) => prev - 1)
     }
   }
 
@@ -50,6 +57,12 @@ export function TripDetailsView({ tripData, onBookingSuccess }: TripDetailsViewP
     if (!user) {
       // Redirect to login with return URL
       router.push(`/login?returnUrl=/trips/${trip.id}`)
+      return
+    }
+
+    // Validate seats requested
+    if (seatsRequested < 1 || seatsRequested > trip.availableSeats) {
+      toast.error(`Debes seleccionar entre 1 y ${trip.availableSeats} asientos`)
       return
     }
 
@@ -236,6 +249,7 @@ export function TripDetailsView({ tripData, onBookingSuccess }: TripDetailsViewP
                         onClick={handleDecreaseSeats}
                         disabled={seatsRequested <= 1}
                         className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Disminuir asientos"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
@@ -247,6 +261,7 @@ export function TripDetailsView({ tripData, onBookingSuccess }: TripDetailsViewP
                         onClick={handleIncreaseSeats}
                         disabled={seatsRequested >= trip.availableSeats}
                         className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Aumentar asientos"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
@@ -265,7 +280,7 @@ export function TripDetailsView({ tripData, onBookingSuccess }: TripDetailsViewP
                       id="notes"
                       rows={3}
                       value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
                       placeholder="¿Algo que el conductor deba saber?"
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                       maxLength={500}
