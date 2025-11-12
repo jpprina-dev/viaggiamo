@@ -1,11 +1,8 @@
-import { NavBar } from '@/components/layout'
 import { Card } from '@/components/ui'
 
 export default function DashboardLoading() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-emerald-50">
-      <NavBar />
-
       <main className="container py-8">
         <div className="space-y-8">
           {/* Skeleton for WelcomeCard */}

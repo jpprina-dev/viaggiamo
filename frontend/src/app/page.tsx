@@ -1,6 +1,6 @@
 'use client'
 
-import { NavBar, Footer } from '@/components/layout'
+import { Footer } from '@/components/layout'
 import {
   HeroSection,
   PopularTrips,
@@ -13,7 +13,6 @@ import {
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      <NavBar />
       <HeroSection />
       <PopularTrips />
       <CTASection />
