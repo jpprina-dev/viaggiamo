@@ -60,4 +60,6 @@ export interface BookingResult {
   status: string
   notes?: string
   bookingTime: string
+  createdAt?: string
+  updatedAt?: string
 }

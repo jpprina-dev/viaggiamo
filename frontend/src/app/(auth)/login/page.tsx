@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oauth/google'
 import { login, loginWithGoogle } from '@/lib/auth'
@@ -16,14 +16,18 @@ const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
 function LoginFormWrapper() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, loading, refreshUser } = useAuth()
+  
+  // Get return URL from query params, default to dashboard
+  const returnUrl = searchParams.get('returnUrl') || ROUTES.DASHBOARD
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (!loading && user) {
-      router.push(ROUTES.DASHBOARD)
+      router.push(returnUrl)
     }
-  }, [loading, user, router])
+  }, [loading, user, router, returnUrl])
 
   const handleSubmit = async (data: LoginInput) => {
     setIsLoading(true)
@@ -31,7 +35,7 @@ function LoginFormWrapper() {
       await login(data.email, data.password)
       await refreshUser()
       toast.success('¡Inicio de sesión exitoso!')
-      router.push(ROUTES.DASHBOARD)
+      router.push(returnUrl)
     } catch (error: any) {
       console.error('Login error:', error)
       toast.error(error.message || 'Error al iniciar sesión')
@@ -51,7 +55,7 @@ function LoginFormWrapper() {
       await loginWithGoogle(credentialResponse.credential)
       await refreshUser()
       toast.success('¡Inicio de sesión con Google exitoso!')
-      router.push(ROUTES.DASHBOARD)
+      router.push(returnUrl)
     } catch (error: any) {
       console.error('Google login error:', error)
       toast.error(error.message || 'Error al iniciar sesión con Google')

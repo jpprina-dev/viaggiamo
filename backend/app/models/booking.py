@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -18,6 +18,18 @@ class Booking(Base):
     """Booking model for trip reservations."""
 
     __tablename__ = "bookings"
+
+    # Add a partial unique index to prevent duplicate active bookings
+    # Only non-cancelled bookings are considered for uniqueness
+    __table_args__ = (
+        Index(
+            "idx_unique_active_booking",
+            "trip_id",
+            "passenger_id",
+            unique=True,
+            postgresql_where="status != 'cancelled'",
+        ),
+    )
 
     trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id"), nullable=False)
     passenger_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)

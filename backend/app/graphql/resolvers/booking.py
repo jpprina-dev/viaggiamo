@@ -4,6 +4,7 @@ from datetime import datetime
 
 import strawberry
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from strawberry.types import Info
 
 from app.graphql.context import Context
@@ -173,11 +174,25 @@ class BookingMutations:
             BookingType: The newly created booking
 
         Raises:
-            ValueError: If user is not authenticated, trip not found, or not enough seats
+            ValueError: If user is not authenticated, trip not found, not enough seats,
+                       or user already has an active booking for this trip
         """
         context = info.context
         if not context.user:
             raise ValueError("Authentication required")
+
+        # Check if user already has an active booking for this trip
+        existing_booking_result = await context.db.execute(
+            select(Booking).where(
+                Booking.trip_id == booking_input.trip_id,
+                Booking.passenger_id == context.user.id,
+                Booking.status != "cancelled",
+            )
+        )
+        existing_booking = existing_booking_result.scalar_one_or_none()
+
+        if existing_booking:
+            raise ValueError("You already have an active booking for this trip")
 
         # Get trip and verify availability
         result = await context.db.execute(
@@ -214,8 +229,13 @@ class BookingMutations:
         # Update available seats
         trip.available_seats -= booking_input.seats_requested
 
-        await context.db.commit()
-        await context.db.refresh(db_booking)
+        try:
+            await context.db.commit()
+            await context.db.refresh(db_booking)
+        except IntegrityError as e:
+            # Handle database constraint violations (e.g., duplicate booking)
+            await context.db.rollback()
+            raise ValueError("You already have an active booking for this trip") from e
 
         return BookingType(
             id=db_booking.id,
