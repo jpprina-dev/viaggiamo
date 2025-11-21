@@ -45,8 +45,8 @@ export default function NavBar() {
                 <NavLink href="/trips/create" pathname={pathname}>
                   Publicar Viaje
                 </NavLink>
-                <NavLink href="/my-trips" pathname={pathname}>
-                  Mis Viajes
+                <NavLink href="/bookings" pathname={pathname}>
+                  Mis viajes
                 </NavLink>
                 <UserMenu user={user} />
               </>
@@ -162,11 +162,11 @@ export default function NavBar() {
                     Publicar Viaje
                   </Link>
                   <Link
-                    href="/my-trips"
+                    href="/bookings"
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
-                    Mis Viajes
+                    Mis Reservas
                   </Link>
                   <Link
                     href="/dashboard"

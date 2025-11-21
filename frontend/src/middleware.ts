@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('accessToken')?.value
 
   // Protected routes that require authentication
-  const protectedPaths = ['/dashboard', '/profile', '/settings', '/my-trips', '/bookings']
+  const protectedPaths = ['/dashboard', '/profile', '/settings', '/bookings']
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
 
   // Redirect to login if accessing protected route without token

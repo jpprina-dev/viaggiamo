@@ -26,10 +26,10 @@ export const ROUTES = {
   // Trip routes
   TRIPS: '/trips',
   TRIPS_CREATE: '/trips/create',
-  MY_TRIPS: '/my-trips',
   TRIP_DETAIL: (id: string | number) => `/trips/${id}`,
 
-  // Booking routes
+  // Booking routes (user's seat requests)
+  BOOKINGS: '/bookings',
   MY_BOOKINGS: '/bookings',
   BOOKING_DETAIL: (id: string | number) => `/bookings/${id}`,
 } as const
@@ -52,7 +52,6 @@ export function isProtectedRoute(pathname: string): boolean {
     ROUTES.DASHBOARD,
     ROUTES.PROFILE,
     ROUTES.SETTINGS,
-    ROUTES.MY_TRIPS,
     ROUTES.MY_BOOKINGS,
     ROUTES.TRIPS_CREATE,
   ]
