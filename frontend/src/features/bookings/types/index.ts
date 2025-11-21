@@ -30,6 +30,10 @@ export interface BookingWithTrip {
   bookingTime: string
   notes?: string
   trip: TripInfo
+  // Cancellation tracking
+  cancelledBy?: 'passenger' | 'driver' | 'system' | null
+  cancellationReason?: string
+  cancellationTime?: string
 }
 
 export interface BookingsByStatus {

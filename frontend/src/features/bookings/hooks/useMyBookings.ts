@@ -18,6 +18,9 @@ const MY_BOOKINGS_WITH_DETAILS = gql`
       status
       bookingTime
       notes
+      cancelledBy
+      cancellationReason
+      cancellationTime
       trip {
         id
         origin

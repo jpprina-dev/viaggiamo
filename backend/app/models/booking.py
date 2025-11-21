@@ -43,6 +43,15 @@ class Booking(Base):
         DateTime(timezone=True), nullable=False
     )
 
+    # Cancellation tracking fields
+    cancelled_by: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )  # passenger, driver, system
+    cancellation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    cancellation_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     # Relationships
     trip: Mapped["Trip"] = relationship("Trip", back_populates="bookings")
     passenger: Mapped["User"] = relationship("User", back_populates="bookings")

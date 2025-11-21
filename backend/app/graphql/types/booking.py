@@ -27,6 +27,11 @@ class BookingType:
     created_at: datetime
     updated_at: datetime
 
+    # Cancellation tracking
+    cancelled_by: str | None = None
+    cancellation_reason: str | None = None
+    cancellation_time: datetime | None = None
+
     @strawberry.field
     async def trip(
         self, info: strawberry.Info

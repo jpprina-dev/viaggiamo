@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCreateBooking } from '../hooks/useCreateBooking'
 import { useMyBookingForTrip } from '../hooks/useMyBookingForTrip'
 import { useCancelBooking } from '../hooks/useCancelBooking'
+import { useCheckDriverBlock } from '@/features/bookings'
 import type { TripDetailsData } from '../types'
 import toast from 'react-hot-toast'
 import { ArrowLeft, Calendar, MapPin, User, Car, Users, DollarSign, Minus, Plus, X, CheckCircle } from 'lucide-react'
@@ -30,6 +31,7 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
   const { createBooking, loading: bookingLoading } = useCreateBooking()
   const { booking, loading: bookingQueryLoading, refetch: refetchBooking } = useMyBookingForTrip(trip.id)
   const { cancelBooking, loading: cancelLoading } = useCancelBooking()
+  const { isBlocked, loading: blockCheckLoading } = useCheckDriverBlock(trip.id)
   const [seatsRequested, setSeatsRequested] = useState(1)
   const [notes, setNotes] = useState('')
   const [showCancelModal, setShowCancelModal] = useState(false)
@@ -137,6 +139,8 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
     trip.isCompleted || 
     bookingLoading || 
     bookingQueryLoading ||
+    blockCheckLoading ||
+    isBlocked ||
     (booking && booking.status !== 'cancelled')
 
   return (
@@ -431,6 +435,17 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
                     <p className="mt-3 text-center text-sm text-gray-600">
                       Necesitas iniciar sesión para reservar
                     </p>
+                  )}
+
+                  {user && isBlocked && (
+                    <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-3">
+                      <p className="text-center text-sm text-red-800 font-medium">
+                        No puedes reservar este viaje
+                      </p>
+                      <p className="text-center text-xs text-red-700 mt-1">
+                        El conductor canceló una reserva anterior. Por favor, contacta al conductor para más información.
+                      </p>
+                    </div>
                   )}
                 </>
               )}

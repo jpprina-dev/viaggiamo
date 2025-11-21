@@ -7,7 +7,7 @@
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
-import { Calendar, User, MapPin } from 'lucide-react'
+import { Calendar, User, MapPin, AlertCircle } from 'lucide-react'
 import type { BookingWithTrip } from '../types'
 
 interface BookingCardProps {
@@ -74,6 +74,19 @@ export function BookingCard({ booking }: BookingCardProps) {
             {statusInfo.label}
           </span>
         </div>
+
+        {/* Cancellation Reason (if cancelled by driver) */}
+        {booking.status === 'cancelled' && booking.cancelledBy === 'driver' && booking.cancellationReason && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <div className="flex gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-red-900">Cancelada por el conductor</p>
+                <p className="text-sm text-red-700 mt-1">{booking.cancellationReason}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Divider */}
         <div className="border-t border-gray-100 pt-3">
