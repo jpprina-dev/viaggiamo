@@ -166,7 +166,7 @@ export default function NavBar() {
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
-                    Mis Reservas
+                    Mis Viajes
                   </Link>
                   <Link
                     href="/dashboard"
