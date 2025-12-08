@@ -12,20 +12,34 @@ import Link from 'next/link'
 
 interface BookingsListProps {
   bookings: BookingWithTrip[]
+  filter?: 'active' | 'completed' | 'all'
 }
 
-export function BookingsList({ bookings }: BookingsListProps) {
+export function BookingsList({ bookings, filter = 'all' }: BookingsListProps) {
+  // Filter bookings based on filter prop
+  const filteredBookings = useMemo(() => {
+    if (filter === 'active') {
+      // Only show confirmed and pending (active bookings)
+      return bookings.filter((b) => b.status === 'confirmed' || b.status === 'pending')
+    } else if (filter === 'completed') {
+      // Only show completed bookings
+      return bookings.filter((b) => b.status === 'completed')
+    }
+    // Show all by default
+    return bookings
+  }, [bookings, filter])
+
   // Organize bookings by status
   const bookingsByStatus = useMemo<BookingsByStatus>(() => {
     return {
-      confirmed: bookings.filter((b) => b.status === 'confirmed'),
-      pending: bookings.filter((b) => b.status === 'pending'),
-      completed: bookings.filter((b) => b.status === 'completed'),
-      cancelled: bookings.filter((b) => b.status === 'cancelled'),
+      confirmed: filteredBookings.filter((b) => b.status === 'confirmed'),
+      pending: filteredBookings.filter((b) => b.status === 'pending'),
+      completed: filteredBookings.filter((b) => b.status === 'completed'),
+      cancelled: filteredBookings.filter((b) => b.status === 'cancelled'),
     }
-  }, [bookings])
+  }, [filteredBookings])
 
-  const hasAnyBookings = bookings.length > 0
+  const hasAnyBookings = filteredBookings.length > 0
 
   if (!hasAnyBookings) {
     return (
@@ -45,10 +59,16 @@ export function BookingsList({ bookings }: BookingsListProps) {
     )
   }
 
+  // Determine which sections to show based on filter
+  const showConfirmed = filter === 'all' || filter === 'active'
+  const showPending = filter === 'all' || filter === 'active'
+  const showCompleted = filter === 'all' || filter === 'completed'
+  const showCancelled = filter === 'all'
+
   return (
     <div className="space-y-8">
       {/* Próximos viajes (Confirmed) */}
-      {bookingsByStatus.confirmed.length > 0 && (
+      {showConfirmed && bookingsByStatus.confirmed.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <CheckCircle className="h-6 w-6 text-green-600" />
@@ -68,7 +88,7 @@ export function BookingsList({ bookings }: BookingsListProps) {
       )}
 
       {/* Pendientes (Pending) */}
-      {bookingsByStatus.pending.length > 0 && (
+      {showPending && bookingsByStatus.pending.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Clock className="h-6 w-6 text-yellow-600" />
@@ -88,7 +108,7 @@ export function BookingsList({ bookings }: BookingsListProps) {
       )}
 
       {/* Viajes realizados (Completed) */}
-      {bookingsByStatus.completed.length > 0 && (
+      {showCompleted && bookingsByStatus.completed.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="h-6 w-6 text-gray-600" />
@@ -108,7 +128,7 @@ export function BookingsList({ bookings }: BookingsListProps) {
       )}
 
       {/* Canceladas (Cancelled) */}
-      {bookingsByStatus.cancelled.length > 0 && (
+      {showCancelled && bookingsByStatus.cancelled.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <XCircle className="h-6 w-6 text-red-600" />

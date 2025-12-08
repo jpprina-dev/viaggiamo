@@ -1,21 +1,26 @@
 /**
- * My Bookings page - displays all user bookings organized by status
+ * My Bookings page - displays all user bookings organized by status with tabs
  */
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useMyBookings } from '@/features/bookings/hooks'
 import { BookingsList } from '@/features/bookings/components'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { DriverTripsView } from '@/features/driver-trips'
+import { HistoryView } from '@/features/history'
+import { ArrowLeft, Loader2, Briefcase, Car, Clock } from 'lucide-react'
 import Link from 'next/link'
+
+type TabType = 'bookings' | 'driver-trips' | 'history'
 
 export default function BookingsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { bookings, loading: bookingsLoading, error, refetch } = useMyBookings()
+  const [activeTab, setActiveTab] = useState<TabType>('bookings')
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -46,7 +51,7 @@ export default function BookingsPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="mx-auto max-w-7xl px-4 py-6">
-          <div className="flex items-center gap-4 mb-2">
+          <div className="flex items-center gap-4 mb-4">
             <Link
               href="/"
               className="inline-flex items-center text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
@@ -55,30 +60,75 @@ export default function BookingsPage() {
               Volver al inicio
             </Link>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Mis Viajes</h1>
-          <p className="mt-1 text-gray-600">
-            Gestiona todas tus solicitudes de asientos en viajes
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Mis Viajes</h1>
+
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('bookings')}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'bookings'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+              }`}
+            >
+              <Briefcase className="h-4 w-4" />
+              Mis Reservas
+            </button>
+            <button
+              onClick={() => setActiveTab('driver-trips')}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'driver-trips'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+              }`}
+            >
+              <Car className="h-4 w-4" />
+              Mis Viajes Creados
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'history'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+              }`}
+            >
+              <Clock className="h-4 w-4" />
+              Historial
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="mx-auto max-w-7xl px-4 py-8">
-        {error ? (
-          <div className="rounded-lg bg-red-50 p-6 text-center">
-            <p className="text-red-800 mb-4">
-              Error al cargar tus Viajes: {error.message}
-            </p>
-            <button
-              onClick={() => refetch()}
-              className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Intentar de nuevo
-            </button>
-          </div>
-        ) : (
-          <BookingsList bookings={bookings} />
+        {/* Mis Reservas Tab */}
+        {activeTab === 'bookings' && (
+          <>
+            {error ? (
+              <div className="rounded-lg bg-red-50 p-6 text-center">
+                <p className="text-red-800 mb-4">
+                  Error al cargar tus reservas: {error.message}
+                </p>
+                <button
+                  onClick={() => refetch()}
+                  className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Intentar de nuevo
+                </button>
+              </div>
+            ) : (
+              <BookingsList bookings={bookings} filter="active" />
+            )}
+          </>
         )}
+
+        {/* Mis Viajes Creados Tab */}
+        {activeTab === 'driver-trips' && <DriverTripsView filter="active" />}
+
+        {/* Historial Tab */}
+        {activeTab === 'history' && <HistoryView />}
       </div>
     </div>
   )

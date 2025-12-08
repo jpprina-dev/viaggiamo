@@ -7,11 +7,12 @@
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
-import { Calendar, User, MapPin, AlertCircle } from 'lucide-react'
+import { Calendar, User, MapPin, AlertCircle, Briefcase } from 'lucide-react'
 import type { BookingWithTrip } from '../types'
 
 interface BookingCardProps {
   booking: BookingWithTrip
+  showRoleIcon?: boolean
 }
 
 const statusConfig = {
@@ -33,7 +34,7 @@ const statusConfig = {
   },
 }
 
-export function BookingCard({ booking }: BookingCardProps) {
+export function BookingCard({ booking, showRoleIcon = false }: BookingCardProps) {
   const { trip } = booking
   const departureDate = new Date(trip.departureTime)
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
@@ -69,10 +70,18 @@ export function BookingCard({ booking }: BookingCardProps) {
             </div>
           </div>
 
-          {/* Status Badge */}
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${statusInfo.color}`}>
-            {statusInfo.label}
-          </span>
+          {/* Status and Role Badges */}
+          <div className="flex flex-col gap-2 items-end">
+            {showRoleIcon && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <Briefcase className="w-3.5 h-3.5" />
+                Pasajero
+              </span>
+            )}
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${statusInfo.color}`}>
+              {statusInfo.label}
+            </span>
+          </div>
         </div>
 
         {/* Cancellation Reason (if cancelled by driver) */}
