@@ -50,59 +50,59 @@ export default function BookingsPage() {
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-4 py-6">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex items-center gap-4 mb-3 sm:mb-4">
             <Link
               href="/"
-              className="inline-flex items-center text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+              className="inline-flex items-center text-xs sm:text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               Volver al inicio
             </Link>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Mis Viajes</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">Mis Viajes</h1>
 
           {/* Tabs */}
-          <div className="flex border-b border-gray-200">
+          <div className="flex border-b border-gray-200 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
             <button
               onClick={() => setActiveTab('bookings')}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'bookings'
                   ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
               }`}
             >
-              <Briefcase className="h-4 w-4" />
-              Mis Reservas
+              <Briefcase className="h-4 w-4 flex-shrink-0" />
+              <span>Reservas</span>
             </button>
             <button
               onClick={() => setActiveTab('driver-trips')}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'driver-trips'
                   ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
               }`}
             >
-              <Car className="h-4 w-4" />
-              Mis Viajes Creados
+              <Car className="h-4 w-4 flex-shrink-0" />
+              <span>Viajes Creados</span>
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'history'
                   ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
               }`}
             >
-              <Clock className="h-4 w-4" />
-              Historial
+              <Clock className="h-4 w-4 flex-shrink-0" />
+              <span>Historial</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
         {/* Mis Reservas Tab */}
         {activeTab === 'bookings' && (
           <>
