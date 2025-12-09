@@ -13,13 +13,13 @@ import { ROUTES } from '@/config/routes'
 import type { DriverTripInfo } from '../types'
 
 interface DriverTripsViewProps {
-  filter?: 'active' | 'completed' | 'all'
+  filter?: 'active' | 'all'
 }
 
 export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
   const { trips, loading, error } = useMyTrips()
 
-  // Categorize and filter trips
+  // Categorize trips (exclude completed trips)
   const categorizedTrips = useMemo(() => {
     const now = new Date()
     
@@ -27,9 +27,12 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
       (acc, trip) => {
         const departureTime = new Date(trip.departureTime)
         
+        // Skip completed trips - they go to history
         if (trip.isCompleted || departureTime < now) {
-          acc.completed.push(trip)
-        } else if (trip.isActive) {
+          return acc
+        }
+        
+        if (trip.isActive) {
           acc.active.push(trip)
         } else {
           acc.inactive.push(trip)
@@ -37,14 +40,12 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
         
         return acc
       },
-      { active: [] as DriverTripInfo[], inactive: [] as DriverTripInfo[], completed: [] as DriverTripInfo[] }
+      { active: [] as DriverTripInfo[], inactive: [] as DriverTripInfo[] }
     )
 
     // Apply filter
     if (filter === 'active') {
-      return { active: categorized.active, inactive: categorized.inactive, completed: [] }
-    } else if (filter === 'completed') {
-      return { active: [], inactive: [], completed: categorized.completed }
+      return { active: categorized.active, inactive: categorized.inactive }
     }
     
     return categorized
@@ -77,23 +78,9 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
 
   const hasAnyFilteredTrips = 
     categorizedTrips.active.length > 0 || 
-    categorizedTrips.inactive.length > 0 || 
-    categorizedTrips.completed.length > 0
+    categorizedTrips.inactive.length > 0
 
   if (!hasAnyFilteredTrips) {
-    // Different empty states based on filter
-    if (filter === 'completed') {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 px-4">
-          <Car className="h-20 w-20 text-gray-400 mb-4" />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No tienes viajes completados</h3>
-          <p className="text-gray-600 text-center mb-6 max-w-md">
-            Los viajes que hayas creado y completado aparecerán aquí.
-          </p>
-        </div>
-      )
-    }
-    
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
         <Car className="h-20 w-20 text-gray-400 mb-4" />
@@ -142,32 +129,16 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
         </div>
       )}
 
-      {/* Completed Trips */}
-      {categorizedTrips.completed.length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Viajes Completados <span className="text-gray-500">({categorizedTrips.completed.length})</span>
-          </h2>
-          <div className="space-y-4">
-            {categorizedTrips.completed.map((trip) => (
-              <DriverTripCard key={trip.id} trip={trip} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Create New Trip Button - Only show for active trips view */}
-      {filter !== 'completed' && (
-        <div className="flex justify-center pt-4">
-          <Link
-            href={ROUTES.TRIPS_CREATE}
-            className="inline-flex items-center gap-2 px-6 py-3 border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-            Crear Nuevo Viaje
-          </Link>
-        </div>
-      )}
+      {/* Create New Trip Button */}
+      <div className="flex justify-center pt-4">
+        <Link
+          href={ROUTES.TRIPS_CREATE}
+          className="inline-flex items-center gap-2 px-6 py-3 border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-colors"
+        >
+          <Plus className="h-5 w-5" />
+          Crear Nuevo Viaje
+        </Link>
+      </div>
     </div>
   )
 }
