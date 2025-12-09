@@ -79,7 +79,7 @@ export function BookingsList({ bookings, filter = 'all' }: BookingsListProps) {
               </span>
             </h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-4">
             {bookingsByStatus.confirmed.map((booking) => (
               <BookingCard key={booking.id} booking={booking} />
             ))}
@@ -99,7 +99,7 @@ export function BookingsList({ bookings, filter = 'all' }: BookingsListProps) {
               </span>
             </h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-4">
             {bookingsByStatus.pending.map((booking) => (
               <BookingCard key={booking.id} booking={booking} />
             ))}
@@ -119,7 +119,7 @@ export function BookingsList({ bookings, filter = 'all' }: BookingsListProps) {
               </span>
             </h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-4">
             {bookingsByStatus.completed.map((booking) => (
               <BookingCard key={booking.id} booking={booking} />
             ))}
@@ -139,7 +139,7 @@ export function BookingsList({ bookings, filter = 'all' }: BookingsListProps) {
               </span>
             </h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-4">
             {bookingsByStatus.cancelled.map((booking) => (
               <BookingCard key={booking.id} booking={booking} />
             ))}

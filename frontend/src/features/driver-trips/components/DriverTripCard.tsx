@@ -123,7 +123,7 @@ export function DriverTripCard({ trip, showRoleIcon = false }: DriverTripCardPro
       </Link>
 
       {/* Pending Requests Dropdown - For active trips */}
-      {trip.isActive && pendingCount > 0 && (
+      {trip.isActive && (
         <div className="border-t border-gray-200">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
