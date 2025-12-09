@@ -3,5 +3,5 @@
  */
 
 export { BookingCard } from './BookingCard'
-export { BookingsList } from './BookingsList'
+export { BookingsView } from './BookingsView'
 

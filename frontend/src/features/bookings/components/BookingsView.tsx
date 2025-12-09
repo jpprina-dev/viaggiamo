@@ -1,5 +1,5 @@
 /**
- * Bookings list component - organizes bookings into sections by status
+ * Bookings view component - organizes bookings into sections by status
  */
 
 'use client'
@@ -10,12 +10,12 @@ import { BookingCard } from './BookingCard'
 import type { BookingWithTrip, BookingsByStatus } from '../types'
 import Link from 'next/link'
 
-interface BookingsListProps {
+interface BookingsViewProps {
   bookings: BookingWithTrip[]
   filter?: 'active' | 'completed' | 'all'
 }
 
-export function BookingsList({ bookings, filter = 'all' }: BookingsListProps) {
+export function BookingsView({ bookings, filter = 'all' }: BookingsViewProps) {
   // Filter bookings based on filter prop
   const filteredBookings = useMemo(() => {
     if (filter === 'active') {

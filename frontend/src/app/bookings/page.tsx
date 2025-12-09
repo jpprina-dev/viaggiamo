@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useMyBookings } from '@/features/bookings/hooks'
-import { BookingsList } from '@/features/bookings/components'
+import { BookingsView } from '@/features/bookings/components'
 import { DriverTripsView } from '@/features/driver-trips'
 import { HistoryView } from '@/features/history'
 import { ArrowLeft, Loader2, Briefcase, Car, Clock } from 'lucide-react'
@@ -119,7 +119,7 @@ export default function BookingsPage() {
                 </button>
               </div>
             ) : (
-              <BookingsList bookings={bookings} filter="active" />
+              <BookingsView bookings={bookings} filter="active" />
             )}
           </>
         )}
