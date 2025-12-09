@@ -19,36 +19,42 @@ interface DriverTripsViewProps {
 export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
   const { trips, loading, error } = useMyTrips()
 
-  // Categorize trips (exclude completed trips)
-  const categorizedTrips = useMemo(() => {
+  // Categorize and sort trips (exclude completed trips)
+  const sortedTrips = useMemo(() => {
     const now = new Date()
     
-    const categorized = trips.reduce(
-      (acc, trip) => {
-        const departureTime = new Date(trip.departureTime)
-        
-        // Skip completed trips - they go to history
-        if (trip.isCompleted || departureTime < now) {
-          return acc
-        }
-        
-        if (trip.isActive) {
-          acc.active.push(trip)
-        } else {
-          acc.inactive.push(trip)
-        }
-        
-        return acc
-      },
-      { active: [] as DriverTripInfo[], inactive: [] as DriverTripInfo[] }
-    )
-
+    const active: DriverTripInfo[] = []
+    const inactive: DriverTripInfo[] = []
+    
+    trips.forEach((trip) => {
+      const departureTime = new Date(trip.departureTime)
+      
+      // Skip completed trips - they go to history
+      if (trip.isCompleted || departureTime < now) {
+        return
+      }
+      
+      if (trip.isActive) {
+        active.push(trip)
+      } else {
+        inactive.push(trip)
+      }
+    })
+    
+    // Sort active trips by departure date (earliest first)
+    active.sort((a, b) => {
+      const dateA = new Date(a.departureTime).getTime()
+      const dateB = new Date(b.departureTime).getTime()
+      return dateA - dateB
+    })
+    
     // Apply filter
     if (filter === 'active') {
-      return { active: categorized.active, inactive: categorized.inactive }
+      return [...active, ...inactive]
     }
     
-    return categorized
+    // Return active trips first (sorted by date), then inactive trips
+    return [...active, ...inactive]
   }, [trips, filter])
 
   if (loading) {
@@ -76,11 +82,7 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
     )
   }
 
-  const hasAnyFilteredTrips = 
-    categorizedTrips.active.length > 0 || 
-    categorizedTrips.inactive.length > 0
-
-  if (!hasAnyFilteredTrips) {
+  if (sortedTrips.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
         <Car className="h-20 w-20 text-gray-400 mb-4" />
@@ -101,33 +103,12 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
 
   return (
     <div className="space-y-8">
-      {/* Active Trips */}
-      {categorizedTrips.active.length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Viajes Activos <span className="text-gray-500">({categorizedTrips.active.length})</span>
-          </h2>
-          <div className="space-y-4">
-            {categorizedTrips.active.map((trip) => (
-              <DriverTripCard key={trip.id} trip={trip} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Inactive Trips */}
-      {categorizedTrips.inactive.length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Viajes Inactivos <span className="text-gray-500">({categorizedTrips.inactive.length})</span>
-          </h2>
-          <div className="space-y-4">
-            {categorizedTrips.inactive.map((trip) => (
-              <DriverTripCard key={trip.id} trip={trip} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Unified Trips List */}
+      <div className="space-y-4">
+        {sortedTrips.map((trip) => (
+          <DriverTripCard key={trip.id} trip={trip} />
+        ))}
+      </div>
 
       {/* Create New Trip Button */}
       <div className="flex justify-center pt-4">

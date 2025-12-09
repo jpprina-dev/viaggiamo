@@ -12,7 +12,6 @@ import { BookingsView } from '@/features/bookings/components'
 import { DriverTripsView } from '@/features/driver-trips'
 import { HistoryView } from '@/features/history'
 import { ArrowLeft, Loader2, Briefcase, Car, Clock } from 'lucide-react'
-import Link from 'next/link'
 
 type TabType = 'bookings' | 'driver-trips' | 'history'
 
@@ -48,17 +47,17 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      {/* Header - Sticky */}
+      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex items-center gap-4 mb-3 sm:mb-4">
-            <Link
-              href="/"
+            <button
+              onClick={() => router.back()}
               className="inline-flex items-center text-xs sm:text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
             >
               <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-              Volver al inicio
-            </Link>
+              Volver
+            </button>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">Mis Viajes</h1>
 
