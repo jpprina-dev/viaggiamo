@@ -17,7 +17,8 @@ import {
   ChevronUp,
   User,
   Clock,
-  CheckCircle
+  CheckCircle,
+  XCircle
 } from 'lucide-react'
 import type { DriverTripInfo } from '../types'
 import { useTripBookings } from '../hooks/useTripBookings'
@@ -45,6 +46,7 @@ const statusConfig = {
 export function DriverTripCard({ trip, showRoleIcon = false }: DriverTripCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isPassengersExpanded, setIsPassengersExpanded] = useState(false)
+  const [isCancelledExpanded, setIsCancelledExpanded] = useState(false)
   const departureDate = new Date(trip.departureTime)
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
   const formattedTime = format(departureDate, 'HH:mm')
@@ -56,9 +58,10 @@ export function DriverTripCard({ trip, showRoleIcon = false }: DriverTripCardPro
   // Always fetch bookings to show counts in dropdown buttons
   const { bookings, loading } = useTripBookings(trip.id, true)
   
-  // Calculate counts for both dropdown types
+  // Calculate counts for all dropdown types
   const pendingCount = bookings.filter((b) => b.status === 'pending').length
   const acceptedCount = bookings.filter((b) => b.status === 'confirmed' || b.status === 'completed').length
+  const cancelledByDriverCount = bookings.filter((b) => b.status === 'cancelled' && b.cancelledBy === 'driver').length
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -122,8 +125,8 @@ export function DriverTripCard({ trip, showRoleIcon = false }: DriverTripCardPro
         </div>
       </Link>
 
-      {/* Pending Requests Dropdown - For active trips */}
-      {trip.isActive && (
+      {/* Pending Requests Dropdown - For active trips (not in history view) */}
+      {trip.isActive && !showRoleIcon && (
         <div className="border-t border-gray-200">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -257,6 +260,88 @@ export function DriverTripCard({ trip, showRoleIcon = false }: DriverTripCardPro
                           <p className="text-xs text-gray-500">Asientos</p>
                           <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
                         </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Cancelled by Driver - Only in DriverTripsView (not history) */}
+      {!showRoleIcon && cancelledByDriverCount > 0 && (
+        <div className="border-t border-gray-200">
+          <button
+            onClick={() => setIsCancelledExpanded(!isCancelledExpanded)}
+            className="w-full px-4 sm:px-5 py-3 flex items-center justify-between text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <XCircle className="w-4 h-4 text-red-600" />
+              Solicitudes Canceladas ({cancelledByDriverCount})
+            </span>
+            {isCancelledExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+          
+          {isCancelledExpanded && (
+            <div className="px-4 sm:px-5 pb-4 bg-gray-50">
+              {loading ? (
+                <div className="text-center py-4">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+                  <p className="mt-2 text-sm text-gray-600">Cargando solicitudes canceladas...</p>
+                </div>
+              ) : bookings.filter((b) => b.status === 'cancelled' && b.cancelledBy === 'driver').length === 0 ? (
+                <p className="text-sm text-gray-600 py-3">No hay solicitudes canceladas</p>
+              ) : (
+                <div className="space-y-3 mt-3">
+                  {bookings
+                    .filter((b) => b.status === 'cancelled' && b.cancelledBy === 'driver')
+                    .map((booking) => (
+                      <div
+                        key={booking.id}
+                        className="flex flex-col gap-3 p-3 bg-white rounded-lg border border-gray-200"
+                      >
+                        {/* Passenger Info */}
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                            {booking.passenger.profilePicture ? (
+                              <img
+                                src={booking.passenger.profilePicture}
+                                alt={`${booking.passenger.name} ${booking.passenger.lastName}`}
+                                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                                <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                              </div>
+                            )}
+                            
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                                {booking.passenger.name} {booking.passenger.lastName}
+                              </p>
+                              <p className="text-[10px] sm:text-xs text-gray-500 truncate">@{booking.passenger.username}</p>
+                            </div>
+                          </div>
+
+                          {/* Booking Details */}
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-xs text-gray-500">Asientos</p>
+                            <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
+                          </div>
+                        </div>
+
+                        {/* Cancellation Reason */}
+                        {booking.cancellationReason && (
+                          <div className="pt-2 border-t border-gray-100">
+                            <p className="text-xs text-gray-500 mb-1">Motivo de cancelación:</p>
+                            <p className="text-xs text-gray-700">{booking.cancellationReason}</p>
+                          </div>
+                        )}
                       </div>
                     ))}
                 </div>
