@@ -8,7 +8,8 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Star, CarFront, Users } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { Star, CarFront, Users, Car } from 'lucide-react'
 import type { TripSearchResult } from '../types'
 
 interface TripCardProps {
@@ -18,6 +19,7 @@ interface TripCardProps {
 export function TripCard({ result }: TripCardProps) {
   const { trip, driver, vehicle } = result
   const searchParams = useSearchParams()
+  const { user } = useAuth()
 
   const departureDate = new Date(trip.departureTime)
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
@@ -26,6 +28,8 @@ export function TripCard({ result }: TripCardProps) {
   const seatRatio = trip.availableSeats / trip.totalSeats
   const seatColor =
     seatRatio > 0.5 ? 'text-green-600' : seatRatio > 0 ? 'text-orange-600' : 'text-red-600'
+
+  const isOwnTrip = user && driver.id === user.id
 
   return (
     <Link
@@ -42,6 +46,12 @@ export function TripCard({ result }: TripCardProps) {
               <h3 className="text-lg font-semibold text-gray-900">{trip.origin}</h3>
               <span className="text-gray-400">→</span>
               <h3 className="text-lg font-semibold text-gray-900">{trip.destination}</h3>
+              {isOwnTrip && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  <Car className="w-3 h-3" />
+                  Mi Viaje
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>{formattedDate}</span>

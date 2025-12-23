@@ -4,19 +4,25 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCreateBooking } from '../hooks/useCreateBooking'
 import { useMyBookingForTrip } from '../hooks/useMyBookingForTrip'
 import { useCancelBooking } from '../hooks/useCancelBooking'
 import { useCheckDriverBlock } from '@/features/bookings'
+import { useTripBookings } from '@/features/driver-trips/hooks/useTripBookings'
 import type { TripDetailsData } from '../types'
 import toast from 'react-hot-toast'
-import { ArrowLeft, Calendar, MapPin, User, Car, Users, DollarSign, Minus, Plus, X, CheckCircle } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { TripHeader } from './TripHeader'
+import { DriverInfo } from './DriverInfo'
+import { VehicleInfo } from './VehicleInfo'
+import { TripRequestsList } from './TripRequestsList'
+import { BookingCard } from './BookingCard'
+import { BookingForm } from './BookingForm'
+import { CancelBookingModal } from './CancelBookingModal'
 
 interface TripDetailsViewProps {
   tripData: TripDetailsData
@@ -32,39 +38,39 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
   const { booking, loading: bookingQueryLoading, refetch: refetchBooking } = useMyBookingForTrip(trip.id)
   const { cancelBooking, loading: cancelLoading } = useCancelBooking()
   const { isBlocked, loading: blockCheckLoading } = useCheckDriverBlock(trip.id)
-  const [seatsRequested, setSeatsRequested] = useState(1)
-  const [notes, setNotes] = useState('')
   const [showCancelModal, setShowCancelModal] = useState(false)
 
-  const departureDate = new Date(trip.departureTime)
-  const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
-  const formattedTime = format(departureDate, 'HH:mm')
+  // Check if this is the user's own trip
+  const isOwnTrip = Boolean(user && driver.id === user.id)
+  
+  // Fetch trip bookings if this is the user's own trip
+  const { bookings: tripBookings, loading: tripBookingsLoading } = useTripBookings(trip.id, isOwnTrip)
 
-  const totalPrice = Number(trip.pricePerSeat) * seatsRequested
+  const seatRatio = trip.availableSeats / trip.totalSeats
+  const seatColor =
+    seatRatio > 0.5 ? 'text-green-600' : seatRatio > 0 ? 'text-orange-600' : 'text-red-600'
 
-  // Ensure seats requested never exceeds available seats
-  useEffect(() => {
-    if (seatsRequested > trip.availableSeats) {
-      setSeatsRequested(Math.min(1, trip.availableSeats))
-    }
-  }, [trip.availableSeats, seatsRequested])
+  const isBookingDisabled = 
+    isOwnTrip ||
+    trip.availableSeats === 0 || 
+    !trip.isActive || 
+    trip.isCompleted || 
+    bookingLoading || 
+    bookingQueryLoading ||
+    blockCheckLoading ||
+    isBlocked ||
+    (booking && booking.status !== 'cancelled')
 
-  const handleIncreaseSeats = () => {
-    if (seatsRequested < trip.availableSeats) {
-      setSeatsRequested((prev: number) => prev + 1)
-    }
-  }
-
-  const handleDecreaseSeats = () => {
-    if (seatsRequested > 1) {
-      setSeatsRequested((prev: number) => prev - 1)
-    }
-  }
-
-  const handleBooking = async () => {
+  const handleBooking = async (seatsRequested: number, notes: string) => {
     if (!user) {
       // Redirect to login with return URL
       router.push(`/login?returnUrl=/trips/${trip.id}`)
+      return
+    }
+
+    // Block booking for own trips
+    if (isOwnTrip) {
+      toast.error('No puedes reservar tu propio viaje')
       return
     }
 
@@ -129,20 +135,6 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
     }
   }
 
-  const seatRatio = trip.availableSeats / trip.totalSeats
-  const seatColor =
-    seatRatio > 0.5 ? 'text-green-600' : seatRatio > 0 ? 'text-orange-600' : 'text-red-600'
-
-  const isBookingDisabled = 
-    trip.availableSeats === 0 || 
-    !trip.isActive || 
-    trip.isCompleted || 
-    bookingLoading || 
-    bookingQueryLoading ||
-    blockCheckLoading ||
-    isBlocked ||
-    (booking && booking.status !== 'cancelled')
-
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Back Button */}
@@ -160,106 +152,22 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
 
       <div className="mx-auto max-w-4xl px-4 py-8">
         {/* Trip Header */}
-        <div className="mb-6 rounded-lg bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <MapPin className="h-6 w-6 text-primary-600" />
-              <div className="flex items-center space-x-3">
-                <h1 className="text-2xl font-bold text-gray-900">{trip.origin}</h1>
-                <span className="text-2xl text-gray-400">→</span>
-                <h1 className="text-2xl font-bold text-gray-900">{trip.destination}</h1>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4 text-gray-600">
-            <div className="flex items-center">
-              <Calendar className="mr-2 h-4 w-4" />
-              <span>{formattedDate}</span>
-            </div>
-            <span>•</span>
-            <span>{formattedTime}</span>
-          </div>
-
-          {!trip.isActive && (
-            <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
-              Este viaje ya no está activo
-            </div>
-          )}
-
-          {trip.isCompleted && (
-            <div className="mt-4 rounded-md bg-gray-50 p-3 text-sm text-gray-800">
-              Este viaje ya fue completado
-            </div>
-          )}
-        </div>
+        <TripHeader
+          origin={trip.origin}
+          destination={trip.destination}
+          departureTime={trip.departureTime}
+          isActive={trip.isActive}
+          isCompleted={trip.isCompleted}
+        />
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Left Column */}
           <div className="space-y-6">
             {/* Driver Information */}
-            <div className="rounded-lg bg-white p-6 shadow-sm">
-              <div className="mb-4 flex items-center">
-                <User className="mr-2 h-5 w-5 text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Conductor</h2>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                {driver.profilePicture ? (
-                  <img
-                    src={driver.profilePicture}
-                    alt={`${driver.name} ${driver.lastName}`}
-                    className="h-16 w-16 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
-                    <User className="h-8 w-8 text-primary-600" />
-                  </div>
-                )}
-
-                <div className="flex-1">
-                  <p className="text-lg font-semibold text-gray-900">
-                    {driver.name} {driver.lastName}
-                  </p>
-                  <p className="text-sm text-gray-600">@{driver.username}</p>
-
-                  {driver.profileShortBio && (
-                    <p className="mt-2 text-sm text-gray-700">{driver.profileShortBio}</p>
-                  )}
-                </div>
-              </div>
-            </div>
+            <DriverInfo driver={driver} />
 
             {/* Vehicle Information */}
-            <div className="rounded-lg bg-white p-6 shadow-sm">
-              <div className="mb-4 flex items-center">
-                <Car className="mr-2 h-5 w-5 text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Vehículo</h2>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {vehicle.make} {vehicle.model}
-                  </p>
-                  <p className="text-sm text-gray-600">Año {vehicle.year}</p>
-                </div>
-
-                {vehicle.color && (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-700">Color:</span>
-                    <span className="text-sm text-gray-600">{vehicle.color}</span>
-                  </div>
-                )}
-
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">
-                    {vehicle.seats} asientos totales
-                  </span>
-                </div>
-              </div>
-            </div>
+            <VehicleInfo vehicle={vehicle} />
 
             {/* Description */}
             {trip.description && (
@@ -270,11 +178,11 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
             )}
           </div>
 
-          {/* Right Column - Booking Section */}
+          {/* Right Column - Booking Section or Requests List */}
           <div>
             <div className="sticky top-4 rounded-lg bg-white p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                {booking ? 'Tu Reserva' : 'Reserva tu viaje'}
+                {isOwnTrip ? 'Solicitudes de Viaje' : booking ? 'Tu Reserva' : 'Reserva tu viaje'}
               </h2>
 
               {/* Available Seats */}
@@ -289,163 +197,40 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
                 </div>
               </div>
 
-              {/* Loading State */}
-              {bookingQueryLoading && (
-                <div className="mb-6 text-center">
-                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-                  <p className="mt-2 text-sm text-gray-600">Cargando...</p>
+              {/* Show Requests List if this is the user's own trip */}
+              {isOwnTrip ? (
+                <div className="space-y-4">
+                  <TripRequestsList bookings={tripBookings} loading={tripBookingsLoading} />
                 </div>
-              )}
-
-              {/* Show Booking Card if user has a booking */}
-              {!bookingQueryLoading && booking && (
-                <div className="mb-6 space-y-4">
-                  {/* Status Badge */}
-                  <div className="flex items-center justify-center">
-                    <div className="inline-flex items-center rounded-full bg-yellow-100 px-4 py-2">
-                      <CheckCircle className="mr-2 h-5 w-5 text-yellow-600" />
-                      <span className="text-sm font-semibold text-yellow-800">
-                        Estado: {booking.status === 'pending' ? 'Pendiente' : booking.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Booking Details */}
-                  <div className="rounded-md bg-gray-50 p-4 space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-gray-700">Asientos reservados</span>
-                      <span className="font-semibold text-gray-900">{booking.seatsRequested}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-gray-700">Precio total</span>
-                      <span className="font-semibold text-gray-900">${Number(booking.totalPrice).toLocaleString()}</span>
-                    </div>
-                    {booking.notes && (
-                      <div className="pt-2 border-t border-gray-200">
-                        <p className="text-sm font-medium text-gray-700 mb-1">Notas:</p>
-                        <p className="text-sm text-gray-600">{booking.notes}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Cancel Button */}
-                  <button
-                    onClick={handleCancelClick}
-                    disabled={cancelLoading}
-                    className="w-full rounded-lg bg-red-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400 flex items-center justify-center"
-                  >
-                    <X className="mr-2 h-5 w-5" />
-                    {cancelLoading ? 'Cancelando...' : 'Cancelar Reserva'}
-                  </button>
-
-                  <p className="text-xs text-center text-gray-500">
-                    Al cancelar, los asientos volverán a estar disponibles
-                  </p>
-                </div>
-              )}
-
-              {/* Show Booking Form if no booking exists */}
-              {!bookingQueryLoading && !booking && (
+              ) : (
                 <>
-                  {/* Seat Selection */}
-                  {trip.availableSeats > 0 && trip.isActive && !trip.isCompleted && (
-                    <>
-                      <div className="mb-4">
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Cantidad de asientos
-                        </label>
-                        <div className="flex items-center justify-center space-x-4">
-                          <button
-                            type="button"
-                            onClick={handleDecreaseSeats}
-                            disabled={seatsRequested <= 1}
-                            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label="Disminuir asientos"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </button>
-                          <span className="w-16 text-center text-2xl font-bold text-gray-900">
-                            {seatsRequested}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={handleIncreaseSeats}
-                            disabled={seatsRequested >= trip.availableSeats}
-                            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label="Aumentar asientos"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Notes */}
-                      <div className="mb-6">
-                        <label
-                          htmlFor="notes"
-                          className="mb-2 block text-sm font-medium text-gray-700"
-                        >
-                          Notas (opcional)
-                        </label>
-                        <textarea
-                          id="notes"
-                          rows={3}
-                          value={notes}
-                          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
-                          placeholder="¿Algo que el conductor deba saber?"
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                          maxLength={500}
-                        />
-                        <p className="mt-1 text-xs text-gray-500">{notes.length}/500</p>
-                      </div>
-                    </>
+                  {/* Loading State */}
+                  {bookingQueryLoading && (
+                    <div className="mb-6 text-center">
+                      <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+                      <p className="mt-2 text-sm text-gray-600">Cargando...</p>
+                    </div>
                   )}
 
-                  {/* Price Display */}
-                  <div className="mb-6 border-t border-gray-200 pt-4">
-                    <div className="mb-2 flex items-center justify-between text-sm text-gray-600">
-                      <span>Precio por asiento</span>
-                      <span>${Number(trip.pricePerSeat).toLocaleString()}</span>
-                    </div>
-                    <div className="mb-2 flex items-center justify-between text-sm text-gray-600">
-                      <span>Cantidad de asientos</span>
-                      <span>× {seatsRequested}</span>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-gray-200 pt-2">
-                      <span className="text-lg font-semibold text-gray-900">Total</span>
-                      <div className="flex items-center">
-                        <DollarSign className="h-5 w-5 text-primary-600" />
-                        <span className="text-2xl font-bold text-primary-600">
-                          {totalPrice.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Booking Button */}
-                  <button
-                    onClick={handleBooking}
-                    disabled={isBookingDisabled}
-                    className="w-full rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                  >
-                    {bookingLoading ? 'Procesando...' : '¿Viajamos?'}
-                  </button>
-
-                  {!user && (
-                    <p className="mt-3 text-center text-sm text-gray-600">
-                      Necesitas iniciar sesión para reservar
-                    </p>
+                  {/* Show Booking Card if user has a booking */}
+                  {!bookingQueryLoading && booking && (
+                    <BookingCard
+                      booking={booking}
+                      onCancel={handleCancelClick}
+                      cancelLoading={cancelLoading}
+                    />
                   )}
 
-                  {user && isBlocked && (
-                    <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-3">
-                      <p className="text-center text-sm text-red-800 font-medium">
-                        No puedes reservar este viaje
-                      </p>
-                      <p className="text-center text-xs text-red-700 mt-1">
-                        El conductor canceló una reserva anterior. Por favor, contacta al conductor para más información.
-                      </p>
-                    </div>
+                  {/* Show Booking Form if no booking exists */}
+                  {!bookingQueryLoading && !booking && (
+                    <BookingForm
+                      trip={trip}
+                      user={user}
+                      isBlocked={isBlocked ?? false}
+                      isBookingDisabled={isBookingDisabled}
+                      bookingLoading={bookingLoading}
+                      onBooking={handleBooking}
+                    />
                   )}
                 </>
               )}
@@ -455,66 +240,13 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
       </div>
 
       {/* Confirmation Modal */}
-      {showCancelModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-            onClick={() => setShowCancelModal(false)}
-          />
-          
-          {/* Modal */}
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 shadow-xl transition-all">
-              {/* Icon */}
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                <X className="h-6 w-6 text-red-600" />
-              </div>
-
-              {/* Content */}
-              <div className="mt-4 text-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  ¿Deseas cancelar tu reserva?
-                </h3>
-                <div className="mt-2">
-                  {booking && (
-                    <div className="mt-3 rounded-md bg-gray-50 p-3 text-left">
-                      <p className="text-sm text-gray-700">
-                        <span className="font-medium">Asientos:</span> {booking.seatsRequested}
-                      </p>
-                      <p className="text-sm text-gray-700">
-                        <span className="font-medium">Total:</span> ${Number(booking.totalPrice).toLocaleString()}
-                      </p>
-                    </div>
-                  )}
-                  <p className="mt-3 text-xs text-gray-500">
-                    Esta acción liberará los asientos para otros pasajeros.
-                  </p>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="mt-6 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowCancelModal(false)}
-                  className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
-                >
-                  No, quiero viajar
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmCancelBooking}
-                  disabled={cancelLoading}
-                  className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                >
-                  {cancelLoading ? 'Cancelando...' : 'Sí, quiero cancelar'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <CancelBookingModal
+        show={showCancelModal}
+        booking={booking || null}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={confirmCancelBooking}
+        loading={cancelLoading}
+      />
     </div>
   )
 }
