@@ -6,7 +6,7 @@
 
 import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { NavBar, Footer } from '@/components/layout'
+import { Footer } from '@/components/layout'
 import { SearchBar, SearchBarData } from '@/components/search'
 import { SearchResults } from '@/features/search/components/SearchResults'
 import { useSearchTrips } from '@/features/search/hooks/useSearchTrips'
@@ -69,8 +69,6 @@ function SearchPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavBar />
-
       {/* Header with integrated search bar */}
       <div className="border-b border-gray-200 bg-white shadow-sm">
         <div className="container mx-auto px-4 py-6">

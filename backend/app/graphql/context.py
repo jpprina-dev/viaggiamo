@@ -1,5 +1,7 @@
 """GraphQL context for dependency injection."""
 
+from collections.abc import AsyncGenerator
+
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.fastapi import BaseContext
@@ -22,28 +24,31 @@ class Context(BaseContext):
         self.user = user
 
 
-async def get_context(request: Request) -> Context:
+async def get_context(request: Request) -> AsyncGenerator[Context, None]:
     """
     Dependency injection function to create GraphQL context.
 
     This function is called by Strawberry on each request to provide
     the context with database session and authenticated user.
 
-    The session is created from the session factory and will be managed
-    by the request lifecycle.
+    The session is properly managed using an async context manager
+    to ensure it's closed after the request completes.
     """
-    # Create database session from factory
-    db: AsyncSession = async_session_factory()
-
-    # Extract token from Authorization header
-    user: User | None = None
-    auth_header = request.headers.get("Authorization")
-    if auth_header and auth_header.startswith("Bearer "):
-        token = auth_header.split(" ")[1]
+    # Create database session from factory with proper lifecycle management
+    async with async_session_factory() as db:
         try:
-            user = await get_current_user_from_token(token, db)
-        except ValueError:
-            # Invalid token, continue without user
-            pass
+            # Extract token from Authorization header
+            user: User | None = None
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+                try:
+                    user = await get_current_user_from_token(token, db)
+                except ValueError:
+                    # Invalid token, continue without user
+                    pass
 
-    return Context(db=db, user=user)
+            yield Context(db=db, user=user)
+        finally:
+            # Ensure session is properly closed
+            await db.close()

@@ -3,7 +3,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { NavBar } from '@/components/layout'
 import {
   WelcomeCard,
   QuickActions,
@@ -42,8 +41,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-emerald-50">
-      <NavBar />
-
       <main className="container py-8">
         <div className="space-y-8">
           {/* Page Header */}

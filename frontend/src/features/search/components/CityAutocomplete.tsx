@@ -35,15 +35,6 @@ export function CityAutocomplete({
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (value) {
-      fetchSuggestions(value)
-      setIsOpen(true)
-    } else {
-      setIsOpen(false)
-    }
-  }, [value, fetchSuggestions])
-
-  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -59,8 +50,24 @@ export function CityAutocomplete({
   }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value)
+    const newValue = e.target.value
+    onChange(newValue)
     setSelectedIndex(-1)
+    
+    // Only fetch and show suggestions when user is actively typing
+    if (newValue && newValue.length >= 2) {
+      fetchSuggestions(newValue)
+      setIsOpen(true)
+    } else {
+      setIsOpen(false)
+    }
+  }
+  
+  const handleInputFocus = () => {
+    // Only open dropdown if there's a value and we have suggestions
+    if (value && value.length >= 2 && suggestions.length > 0) {
+      setIsOpen(true)
+    }
   }
 
   const handleSelectSuggestion = (city: string) => {
@@ -106,6 +113,7 @@ export function CityAutocomplete({
         type="text"
         value={value}
         onChange={handleInputChange}
+        onFocus={handleInputFocus}
         onBlur={onBlur}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}

@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Annotated
 
 import strawberry
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from app.graphql.types.user import UserType
@@ -30,6 +31,38 @@ class TripType:
     trip_legal_compliance_ack: bool
     created_at: datetime
     updated_at: datetime
+
+    @strawberry.field
+    async def driver(
+        self, info: strawberry.Info
+    ) -> Annotated["UserType", strawberry.lazy("app.graphql.types.user")]:
+        """Get the driver (user) associated with this trip."""
+        from app.graphql.types.user import UserType
+        from app.models.user import User
+
+        db = info.context.db
+        result = await db.execute(select(User).where(User.id == self.driver_id))
+        user = result.scalar_one()
+
+        return UserType(
+            id=user.id,
+            email=user.email,
+            username=user.username,
+            name=user.name,
+            last_name=user.last_name,
+            status=user.status,
+            email_verified=user.email_verified,
+            phone=user.phone,
+            phone_verified=user.phone_verified,
+            profile_picture=user.profile_picture,
+            profile_short_bio=user.profile_short_bio,
+            identification=user.identification,
+            identification_type=user.identification_type,
+            auth_provider=user.auth_provider,
+            trip_preferences=user.trip_preferences,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+        )
 
 
 @strawberry.input

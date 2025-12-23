@@ -3,6 +3,7 @@ import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { sharedMetadata } from '@/config/metadata'
+import { NavBar } from '@/components/layout'
 
 export const metadata: Metadata = {
   ...sharedMetadata,
@@ -42,6 +43,7 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
+          <NavBar />
           {children}
         </AuthProvider>
         <Toaster

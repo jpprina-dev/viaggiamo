@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -19,6 +19,18 @@ class Booking(Base):
 
     __tablename__ = "bookings"
 
+    # Add a partial unique index to prevent duplicate active bookings
+    # Only non-cancelled bookings are considered for uniqueness
+    __table_args__ = (
+        Index(
+            "idx_unique_active_booking",
+            "trip_id",
+            "passenger_id",
+            unique=True,
+            postgresql_where="status != 'cancelled'",
+        ),
+    )
+
     trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id"), nullable=False)
     passenger_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     seats_requested: Mapped[int] = mapped_column(Integer, default=1)
@@ -29,6 +41,15 @@ class Booking(Base):
     notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
     booking_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
+    )
+
+    # Cancellation tracking fields
+    cancelled_by: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )  # passenger, driver, system
+    cancellation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    cancellation_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
 
     # Relationships

@@ -29,6 +29,7 @@ export interface Driver {
   lastName: string
   username: string
   profilePicture?: string
+  averageRating?: number
 }
 
 export interface Vehicle {

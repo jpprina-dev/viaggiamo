@@ -37,11 +37,11 @@ export function SearchBar({
 
   // Update when initial values change
   useEffect(() => {
-    if (initialValues?.origin) setOrigin(initialValues.origin)
-    if (initialValues?.destination) setDestination(initialValues.destination)
-    if (initialValues?.date) setDate(initialValues.date)
-    if (initialValues?.passengers) setPassengers(initialValues.passengers)
-  }, [initialValues])
+    setOrigin(initialValues?.origin || '')
+    setDestination(initialValues?.destination || '')
+    setDate(initialValues?.date || '')
+    setPassengers(initialValues?.passengers || 1)
+  }, [initialValues?.origin, initialValues?.destination, initialValues?.date, initialValues?.passengers])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

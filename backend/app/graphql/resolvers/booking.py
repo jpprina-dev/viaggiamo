@@ -3,7 +3,8 @@
 from datetime import datetime
 
 import strawberry
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
+from sqlalchemy.exc import IntegrityError
 from strawberry.types import Info
 
 from app.graphql.context import Context
@@ -31,8 +32,18 @@ class BookingQueries:
         if not context.user:
             raise ValueError("Authentication required")
 
+        # Only show bookings that are not cancelled, or were cancelled by driver
+        # Passenger-cancelled bookings are hidden
         result = await context.db.execute(
-            select(Booking).where(Booking.passenger_id == context.user.id)
+            select(Booking).where(
+                Booking.passenger_id == context.user.id,
+                or_(
+                    Booking.status != "cancelled",
+                    and_(
+                        Booking.status == "cancelled", Booking.cancelled_by == "driver"
+                    ),
+                ),
+            )
         )
         bookings = result.scalars().all()
 
@@ -48,6 +59,9 @@ class BookingQueries:
                 booking_time=booking.booking_time,
                 created_at=booking.created_at,
                 updated_at=booking.updated_at,
+                cancelled_by=booking.cancelled_by,
+                cancellation_reason=booking.cancellation_reason,
+                cancellation_time=booking.cancellation_time,
             )
             for booking in bookings
         ]
@@ -101,6 +115,9 @@ class BookingQueries:
             booking_time=booking.booking_time,
             created_at=booking.created_at,
             updated_at=booking.updated_at,
+            cancelled_by=booking.cancelled_by,
+            cancellation_reason=booking.cancellation_reason,
+            cancellation_time=booking.cancellation_time,
         )
 
     @strawberry.field
@@ -150,9 +167,45 @@ class BookingQueries:
                 booking_time=booking.booking_time,
                 created_at=booking.created_at,
                 updated_at=booking.updated_at,
+                cancelled_by=booking.cancelled_by,
+                cancellation_reason=booking.cancellation_reason,
+                cancellation_time=booking.cancellation_time,
             )
             for booking in bookings
         ]
+
+    @strawberry.field
+    async def has_driver_cancelled_booking(
+        self, info: Info[Context, None], trip_id: int
+    ) -> bool:
+        """
+        Check if the current user has a driver-cancelled booking for a specific trip.
+        This is used to prevent re-booking after driver cancellation.
+
+        Args:
+            trip_id: The trip ID to check
+
+        Returns:
+            bool: True if user has a driver-cancelled booking for this trip
+
+        Raises:
+            ValueError: If user is not authenticated
+        """
+        context = info.context
+        if not context.user:
+            raise ValueError("Authentication required")
+
+        result = await context.db.execute(
+            select(Booking).where(
+                Booking.trip_id == trip_id,
+                Booking.passenger_id == context.user.id,
+                Booking.status == "cancelled",
+                Booking.cancelled_by == "driver",
+            )
+        )
+        booking = result.scalar_one_or_none()
+
+        return booking is not None
 
 
 @strawberry.type
@@ -173,11 +226,41 @@ class BookingMutations:
             BookingType: The newly created booking
 
         Raises:
-            ValueError: If user is not authenticated, trip not found, or not enough seats
+            ValueError: If user is not authenticated, trip not found, not enough seats,
+                       or user already has an active booking for this trip
         """
         context = info.context
         if not context.user:
             raise ValueError("Authentication required")
+
+        # Check if user already has an active booking for this trip
+        existing_booking_result = await context.db.execute(
+            select(Booking).where(
+                Booking.trip_id == booking_input.trip_id,
+                Booking.passenger_id == context.user.id,
+                Booking.status != "cancelled",
+            )
+        )
+        existing_booking = existing_booking_result.scalar_one_or_none()
+
+        if existing_booking:
+            raise ValueError("You already have an active booking for this trip")
+
+        # Check if driver has previously cancelled this passenger's booking
+        driver_cancelled_booking_result = await context.db.execute(
+            select(Booking).where(
+                Booking.trip_id == booking_input.trip_id,
+                Booking.passenger_id == context.user.id,
+                Booking.status == "cancelled",
+                Booking.cancelled_by == "driver",
+            )
+        )
+        driver_cancelled_booking = driver_cancelled_booking_result.scalar_one_or_none()
+
+        if driver_cancelled_booking:
+            raise ValueError(
+                "You cannot book this trip. The driver has previously cancelled your booking. Please contact the driver for more information."
+            )
 
         # Get trip and verify availability
         result = await context.db.execute(
@@ -214,8 +297,13 @@ class BookingMutations:
         # Update available seats
         trip.available_seats -= booking_input.seats_requested
 
-        await context.db.commit()
-        await context.db.refresh(db_booking)
+        try:
+            await context.db.commit()
+            await context.db.refresh(db_booking)
+        except IntegrityError as e:
+            # Handle database constraint violations (e.g., duplicate booking)
+            await context.db.rollback()
+            raise ValueError("You already have an active booking for this trip") from e
 
         return BookingType(
             id=db_booking.id,
@@ -228,6 +316,9 @@ class BookingMutations:
             booking_time=db_booking.booking_time,
             created_at=db_booking.created_at,
             updated_at=db_booking.updated_at,
+            cancelled_by=db_booking.cancelled_by,
+            cancellation_reason=db_booking.cancellation_reason,
+            cancellation_time=db_booking.cancellation_time,
         )
 
     @strawberry.mutation
@@ -304,12 +395,15 @@ class BookingMutations:
             booking_time=booking.booking_time,
             created_at=booking.created_at,
             updated_at=booking.updated_at,
+            cancelled_by=booking.cancelled_by,
+            cancellation_reason=booking.cancellation_reason,
+            cancellation_time=booking.cancellation_time,
         )
 
     @strawberry.mutation
     async def cancel_booking(self, info: Info[Context, None], booking_id: int) -> bool:
         """
-        Cancel a booking and restore available seats.
+        Cancel a booking (passenger-initiated) and restore available seats.
 
         Args:
             booking_id: The booking ID to cancel
@@ -347,7 +441,71 @@ class BookingMutations:
         if trip:
             trip.available_seats += booking.seats_requested
 
+        # Mark as cancelled by passenger
         booking.status = "cancelled"
+        booking.cancelled_by = "passenger"
+        booking.cancellation_time = datetime.now()
+
         await context.db.commit()
+
+        return True
+
+    @strawberry.mutation
+    async def cancel_passenger_booking(
+        self, info: Info[Context, None], booking_id: int, reason: str
+    ) -> bool:
+        """
+        Cancel a passenger's booking (driver-initiated) with a reason.
+        This prevents the passenger from booking this trip again.
+
+        Args:
+            booking_id: The booking ID to cancel
+            reason: The reason for cancellation
+
+        Returns:
+            bool: True if cancelled successfully
+
+        Raises:
+            ValueError: If user is not authenticated, not the trip driver, or booking not found
+        """
+        context = info.context
+        if not context.user:
+            raise ValueError("Authentication required")
+
+        result = await context.db.execute(
+            select(Booking).where(Booking.id == booking_id)
+        )
+        booking = result.scalar_one_or_none()
+
+        if not booking:
+            raise ValueError("Booking not found")
+
+        # Verify user is the trip driver
+        trip_result = await context.db.execute(
+            select(Trip).where(Trip.id == booking.trip_id)
+        )
+        trip = trip_result.scalar_one_or_none()
+
+        if not trip:
+            raise ValueError("Trip not found")
+
+        if trip.driver_id != context.user.id:
+            raise ValueError("Only the trip driver can cancel passenger bookings")
+
+        if booking.status == "cancelled":
+            raise ValueError("Booking is already cancelled")
+
+        # Restore available seats
+        trip.available_seats += booking.seats_requested
+
+        # Mark as cancelled by driver with reason
+        booking.status = "cancelled"
+        booking.cancelled_by = "driver"
+        booking.cancellation_reason = reason
+        booking.cancellation_time = datetime.now()
+
+        await context.db.commit()
+
+        # TODO: Send notification to passenger
 
         return True
