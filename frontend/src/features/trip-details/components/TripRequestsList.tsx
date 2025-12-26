@@ -104,14 +104,6 @@ export function TripRequestsList({ bookings, loading }: TripRequestsListProps) {
             </div>
           </div>
 
-          {/* Notes */}
-          {booking.notes && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <p className="text-xs text-gray-500 mb-1">Notas:</p>
-              <p className="text-sm text-gray-700">{booking.notes}</p>
-            </div>
-          )}
-
           {/* Cancellation Reason */}
           {booking.cancellationReason && (
             <div className="mt-3 pt-3 border-t border-gray-200">

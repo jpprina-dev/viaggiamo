@@ -39,12 +39,6 @@ export function BookingCard({ booking, onCancel, cancelLoading }: BookingCardPro
           <span className="font-medium text-gray-700">Precio total</span>
           <span className="font-semibold text-gray-900">${booking.totalPrice.toLocaleString()}</span>
         </div>
-        {booking.notes && (
-          <div className="pt-2 border-t border-gray-200">
-            <p className="text-sm font-medium text-gray-700 mb-1">Notas:</p>
-            <p className="text-sm text-gray-600">{booking.notes}</p>
-          </div>
-        )}
       </div>
 
       {/* Cancel Button */}
