@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, LogOut } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { GradientIcon } from '@/components/GradientIcon'
 import { NavLink } from './NavLink'
@@ -11,7 +11,7 @@ import { UserMenu } from './UserMenu'
 import { GuestLinks } from './GuestLinks'
 
 export default function NavBar() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -182,6 +182,17 @@ export default function NavBar() {
                   >
                     Configuración
                   </Link>
+                  <div className="border-t border-gray-200 mt-2 pt-2"></div>
+                  <button
+                    onClick={() => {
+                      closeMobileMenu()
+                      logout()
+                    }}
+                    className="w-full flex items-center space-x-2 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-left"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span>Cerrar Sesión</span>
+                  </button>
                 </>
               ) : (
                 <>
