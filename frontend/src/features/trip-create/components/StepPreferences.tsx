@@ -6,27 +6,17 @@
 
 import React from 'react'
 import { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from 'react-hook-form'
-import { 
-  CigaretteOff, 
-  PawPrint, 
-  Baby,
-  FileText
-} from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import type { CreateTripFormData, TripPreference } from '../types'
 import { TRIP_PREFERENCES, TRIP_PREFERENCE_LABELS } from '../types'
+import { PREFERENCE_ICONS } from '../constants'
 
 interface StepPreferencesProps {
   register: UseFormRegister<CreateTripFormData>
   errors: FieldErrors<CreateTripFormData>
   watch: UseFormWatch<CreateTripFormData>
   setValue: UseFormSetValue<CreateTripFormData>
-}
-
-const PREFERENCE_ICONS: Record<TripPreference, React.ReactNode> = {
-  no_smoking: <CigaretteOff className="h-5 w-5" />,
-  no_pets: <PawPrint className="h-5 w-5" />,
-  no_children: <Baby className="h-5 w-5" />,
 }
 
 export function StepPreferences({

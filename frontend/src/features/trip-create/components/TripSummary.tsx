@@ -16,10 +16,7 @@ import {
   Check,
   FileText,
   Shield,
-  HelpCircle,
-  CigaretteOff,
-  PawPrint,
-  Baby
+  HelpCircle
 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -27,12 +24,7 @@ import Link from 'next/link'
 import { ROUTES } from '@/config/routes'
 import type { CreateTripFormData, Vehicle, TripPreference } from '../types'
 import { TRIP_PREFERENCE_LABELS } from '../types'
-
-const PREFERENCE_ICONS: Record<TripPreference, React.ReactNode> = {
-  no_smoking: <CigaretteOff className="h-3 w-3" />,
-  no_pets: <PawPrint className="h-3 w-3" />,
-  no_children: <Baby className="h-3 w-3" />,
-}
+import { getPreferenceIcon } from '../constants'
 
 interface TripSummaryProps {
   register: UseFormRegister<CreateTripFormData>
@@ -148,7 +140,7 @@ export function TripSummary({
                     key={pref}
                     className="inline-flex items-center gap-1.5 px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-xs font-medium"
                   >
-                    {PREFERENCE_ICONS[pref as TripPreference]}
+                    {getPreferenceIcon(pref as TripPreference, 'h-3 w-3')}
                     {TRIP_PREFERENCE_LABELS[pref as TripPreference]}
                   </span>
                 ))}
