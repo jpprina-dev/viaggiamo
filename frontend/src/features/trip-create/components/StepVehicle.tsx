@@ -272,7 +272,7 @@ export function StepVehicle({
 
       <div className="mt-6 p-4 bg-green-50 rounded-lg">
         <p className="text-sm text-green-700">
-          <strong>Consejo:</strong> Establece un precio justo que cubra los gastos 
+          <strong>Recordá:</strong> Establece un precio justo que cubra los gastos 
           del viaje como combustible y peajes.
         </p>
       </div>
