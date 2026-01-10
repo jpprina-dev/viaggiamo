@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Home, Search } from 'lucide-react'
 import { Button } from '@/components/ui'
+import { ROUTES } from '@/config/routes'
 
 export default function ProtectedNotFound() {
   return (
@@ -16,14 +17,14 @@ export default function ProtectedNotFound() {
           </p>
 
           <div className="space-y-3">
-            <Link href="/dashboard">
+            <Link href={ROUTES.PROFILE}>
               <Button
                 fullWidth
                 variant="primary"
                 className="inline-flex items-center justify-center space-x-2"
               >
                 <Home className="h-5 w-5" />
-                <span>Ir al Dashboard</span>
+                <span>Ir al Perfil</span>
               </Button>
             </Link>
 

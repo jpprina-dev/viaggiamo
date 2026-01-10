@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('accessToken')?.value
 
   // Protected routes that require authentication
-  const protectedPaths = ['/dashboard', '/profile', '/settings', '/bookings']
+  const protectedPaths = ['/profile', '/settings', '/bookings']
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
 
   // Redirect to login if accessing protected route without token
@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // NOTE: Removed automatic redirect from auth routes to dashboard
+  // NOTE: Removed automatic redirect from auth routes to profile
   // This was causing issues when users had invalid/expired tokens
   // Now, the auth pages will handle redirects after successful authentication
   // and the AuthContext will handle token validation

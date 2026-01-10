@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { User as UserIcon, LogOut, Settings } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { ROUTES } from '@/config/routes'
 import type { User } from '@/types'
 
 interface UserMenuProps {
@@ -62,7 +63,7 @@ export function UserMenu({ user }: UserMenuProps) {
           </div>
 
           <Link
-            href="/dashboard"
+            href={ROUTES.PROFILE}
             className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
             onClick={() => setShowDropdown(false)}
           >

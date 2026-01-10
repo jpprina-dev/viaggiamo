@@ -19,7 +19,6 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
 
   // Protected routes (route group: (protected))
-  DASHBOARD: '/dashboard',
   PROFILE: '/profile', // User profile page
   ADD_VEHICLE: '/add-vehicle', // Add vehicle page
   SETTINGS: '/settings',
@@ -50,7 +49,6 @@ export const ROUTE_GROUPS = {
  */
 export function isProtectedRoute(pathname: string): boolean {
   const protectedPaths = [
-    ROUTES.DASHBOARD,
     ROUTES.PROFILE,
     ROUTES.ADD_VEHICLE,
     ROUTES.SETTINGS,

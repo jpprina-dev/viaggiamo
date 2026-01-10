@@ -9,6 +9,7 @@ import { GradientIcon } from '@/components/GradientIcon'
 import { NavLink } from './NavLink'
 import { UserMenu } from './UserMenu'
 import { GuestLinks } from './GuestLinks'
+import { ROUTES } from '@/config/routes'
 
 export default function NavBar() {
   const { user, logout } = useAuth()
@@ -169,7 +170,7 @@ export default function NavBar() {
                     Mis Viajes
                   </Link>
                   <Link
-                    href="/dashboard"
+                    href={ROUTES.PROFILE}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
