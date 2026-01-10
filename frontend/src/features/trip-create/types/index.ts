@@ -47,9 +47,27 @@ export const stepDateTimeSchema = z.object({
 })
 
 export const stepVehicleSchema = z.object({
-  vehicleId: z.number().positive('Debes seleccionar un vehículo'),
-  totalSeats: z.number().min(1, 'Debes ofrecer al menos 1 asiento').max(8, 'Máximo 8 asientos'),
-  pricePerSeat: z.number().positive('El precio debe ser mayor a 0'),
+  vehicleId: z
+    .number({ 
+      required_error: 'Debes seleccionar un vehículo', 
+      invalid_type_error: 'Debes seleccionar un vehículo' 
+    })
+    .positive('Debes seleccionar un vehículo')
+    .int('Debes seleccionar un vehículo'),
+  totalSeats: z
+    .number({ 
+      required_error: 'Los asientos disponibles son obligatorios', 
+      invalid_type_error: 'Debes ingresar un número válido de asientos' 
+    })
+    .int('Debes ingresar un número entero de asientos')
+    .min(1, 'Debes ofrecer al menos 1 asiento')
+    .max(8, 'Máximo 8 asientos'),
+  pricePerSeat: z
+    .number({ 
+      required_error: 'El precio por asiento es obligatorio', 
+      invalid_type_error: 'Debes ingresar un precio válido' 
+    })
+    .min(0.01, 'El precio debe ser mayor a $0.01'),
 })
 
 export const stepPreferencesSchema = z.object({
@@ -58,7 +76,7 @@ export const stepPreferencesSchema = z.object({
 })
 
 export const tripLegalComplianceSchema = z.object({
-  tripLegalComplianceAck: z.boolean().refine(val => val === true, {
+  tripLegalComplianceAck: z.boolean().refine((val: boolean) => val === true, {
     message: 'Debes aceptar los términos y condiciones',
   }),
 })
