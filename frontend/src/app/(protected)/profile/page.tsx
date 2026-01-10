@@ -3,6 +3,8 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import Link from 'next/link'
+import { Car, Route } from 'lucide-react'
 import {
   WelcomeCard,
   QuickActions,
@@ -54,6 +56,40 @@ export default function ProfilePage() {
             <StatsCards />
           </div>
           <QuickActions />
+          
+          {/* Mis Viajes y Vehículos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Link
+              href={ROUTES.BOOKINGS}
+              className="bg-white border-2 border-gray-200 rounded-2xl shadow-sm p-8 hover:shadow-lg hover:border-primary-300 transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Mis Viajes</h3>
+                  <p className="text-gray-600">Gestioná tus reservas y viajes publicados</p>
+                </div>
+                <div className="bg-primary-100 p-4 rounded-full group-hover:bg-primary-200 transition-colors">
+                  <Route className="h-8 w-8 text-primary-600" />
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href={ROUTES.MY_VEHICLES}
+              className="bg-white border-2 border-gray-200 rounded-2xl shadow-sm p-8 hover:shadow-lg hover:border-primary-300 transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Mis Vehículos</h3>
+                  <p className="text-gray-600">Administrá tus vehículos registrados</p>
+                </div>
+                <div className="bg-primary-100 p-4 rounded-full group-hover:bg-primary-200 transition-colors">
+                  <Car className="h-8 w-8 text-primary-600" />
+                </div>
+              </div>
+            </Link>
+          </div>
+          
           <UserInfoCard user={user} />
         </div>
       </main>

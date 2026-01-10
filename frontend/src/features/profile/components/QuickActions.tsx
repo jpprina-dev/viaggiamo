@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { Plus, MapPin } from 'lucide-react'
+import { ROUTES } from '@/config/routes'
 
 export function QuickActions() {
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <Link
-        href="/trips/create"
+        href={ROUTES.TRIPS_CREATE}
         className="bg-gradient-to-br from-primary-600 to-emerald-600 text-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow group"
       >
         <div className="flex items-center justify-between">
@@ -20,7 +21,7 @@ export function QuickActions() {
       </Link>
 
       <Link
-        href="/search"
+        href={ROUTES.SEARCH}
         className="bg-white border-2 border-primary-200 rounded-2xl shadow-sm p-8 hover:shadow-lg hover:border-primary-300 transition-all group"
       >
         <div className="flex items-center justify-between">
