@@ -20,7 +20,7 @@ export function QuickActions() {
       </Link>
 
       <Link
-        href="/trips"
+        href="/search"
         className="bg-white border-2 border-primary-200 rounded-2xl shadow-sm p-8 hover:shadow-lg hover:border-primary-300 transition-all group"
       >
         <div className="flex items-center justify-between">
