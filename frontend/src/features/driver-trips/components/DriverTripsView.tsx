@@ -95,7 +95,7 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
           className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
         >
           <Plus className="h-5 w-5" />
-          Crear Viaje
+          Publicar Viaje
         </Link>
       </div>
     )
@@ -117,7 +117,7 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
           className="inline-flex items-center gap-2 px-6 py-3 border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-colors"
         >
           <Plus className="h-5 w-5" />
-          Crear Nuevo Viaje
+          Publicar Viaje
         </Link>
       </div>
     </div>

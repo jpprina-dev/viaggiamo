@@ -58,6 +58,7 @@ class BookingType:
             is_active=trip.is_active,
             is_completed=trip.is_completed,
             trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
+            trip_preferences=trip.trip_preferences,
             created_at=trip.created_at,
             updated_at=trip.updated_at,
         )

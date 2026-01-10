@@ -83,7 +83,7 @@ export default function BookingsPage() {
               }`}
             >
               <Car className="h-4 w-4 flex-shrink-0" />
-              <span>Viajes Creados</span>
+              <span>Viajes Publicados</span>
             </button>
             <button
               onClick={() => setActiveTab('history')}
@@ -123,7 +123,7 @@ export default function BookingsPage() {
           </>
         )}
 
-        {/* Mis Viajes Creados Tab */}
+        {/* Mis Viajes Publicados Tab */}
         {activeTab === 'driver-trips' && <DriverTripsView filter="active" />}
 
         {/* Historial Tab */}

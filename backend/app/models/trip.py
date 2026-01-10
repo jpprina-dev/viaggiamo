@@ -4,7 +4,16 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -37,6 +46,11 @@ class Trip(Base):
     trip_legal_compliance_ack: Mapped[bool] = mapped_column(
         Boolean, default=False
     )  # User acknowledges legal compliance for this specific trip
+
+    # Trip preferences (stored as JSON array)
+    trip_preferences: Mapped[dict | None] = mapped_column(
+        JSON, nullable=True
+    )  # e.g., {"preferences": ["no_smoking", "pets_allowed", "music_allowed"]}
 
     # Relationships
     driver: Mapped["User"] = relationship("User", back_populates="trips")

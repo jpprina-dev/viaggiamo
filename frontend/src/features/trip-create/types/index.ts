@@ -1,0 +1,110 @@
+/**
+ * Types for trip creation feature
+ */
+
+import { z } from 'zod'
+
+// Trip preference options
+export const TRIP_PREFERENCES = {
+  NO_SMOKING: 'no_smoking',
+  PETS_ALLOWED: 'pets_allowed',
+  MUSIC_ALLOWED: 'music_allowed',
+  CONVERSATION_FRIENDLY: 'conversation_friendly',
+  AIR_CONDITIONING: 'air_conditioning',
+} as const
+
+export type TripPreference = typeof TRIP_PREFERENCES[keyof typeof TRIP_PREFERENCES]
+
+export const TRIP_PREFERENCE_LABELS: Record<TripPreference, string> = {
+  no_smoking: 'No fumar',
+  pets_allowed: 'Se permiten mascotas',
+  music_allowed: 'Se permite música',
+  conversation_friendly: 'Conversación bienvenida',
+  air_conditioning: 'Aire acondicionado',
+}
+
+// Vehicle type for selection
+export interface Vehicle {
+  id: number
+  make: string
+  model: string
+  year: number
+  color?: string
+  licensePlate: string
+  seats: number
+  isActive: boolean
+}
+
+// Form step schemas
+export const stepRouteSchema = z.object({
+  origin: z.string().min(2, 'El origen debe tener al menos 2 caracteres'),
+  destination: z.string().min(2, 'El destino debe tener al menos 2 caracteres'),
+})
+
+export const stepDateTimeSchema = z.object({
+  departureDate: z.string().min(1, 'La fecha es obligatoria'),
+  departureTime: z.string().min(1, 'La hora es obligatoria'),
+})
+
+export const stepVehicleSchema = z.object({
+  vehicleId: z.number().positive('Debes seleccionar un vehículo'),
+  totalSeats: z.number().min(1, 'Debes ofrecer al menos 1 asiento').max(8, 'Máximo 8 asientos'),
+  pricePerSeat: z.number().positive('El precio debe ser mayor a 0'),
+})
+
+export const stepPreferencesSchema = z.object({
+  tripPreferences: z.array(z.string()).optional(),
+  description: z.string().max(500, 'La descripción no puede exceder 500 caracteres').optional(),
+})
+
+export const tripLegalComplianceSchema = z.object({
+  tripLegalComplianceAck: z.boolean().refine(val => val === true, {
+    message: 'Debes aceptar los términos y condiciones',
+  }),
+})
+
+// Complete form schema
+export const createTripFormSchema = stepRouteSchema
+  .merge(stepDateTimeSchema)
+  .merge(stepVehicleSchema)
+  .merge(stepPreferencesSchema)
+  .merge(tripLegalComplianceSchema)
+
+export type CreateTripFormData = z.infer<typeof createTripFormSchema>
+
+// Step validation schemas for partial validation
+export const stepSchemas = [
+  stepRouteSchema,
+  stepDateTimeSchema,
+  stepVehicleSchema,
+  stepPreferencesSchema,
+  tripLegalComplianceSchema,
+] as const
+
+// GraphQL mutation input type
+export interface TripCreateInput {
+  origin: string
+  destination: string
+  departureTime: string
+  vehicleId: number
+  totalSeats: number
+  pricePerSeat: number
+  description?: string
+  tripPreferences?: { preferences: string[] }
+  tripLegalComplianceAck: boolean
+}
+
+// Created trip response
+export interface CreatedTrip {
+  id: number
+  origin: string
+  destination: string
+  departureTime: string
+  availableSeats: number
+  totalSeats: number
+  pricePerSeat: number
+  description?: string
+  tripPreferences?: { preferences: string[] }
+  isActive: boolean
+}
+

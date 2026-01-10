@@ -74,6 +74,7 @@ class TripQueries:
                 is_active=trip.is_active,
                 is_completed=trip.is_completed,
                 trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
+                trip_preferences=trip.trip_preferences,
                 created_at=trip.created_at,
                 updated_at=trip.updated_at,
             )
@@ -112,6 +113,7 @@ class TripQueries:
             is_active=trip.is_active,
             is_completed=trip.is_completed,
             trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
+            trip_preferences=trip.trip_preferences,
             created_at=trip.created_at,
             updated_at=trip.updated_at,
         )
@@ -151,6 +153,7 @@ class TripQueries:
                 is_active=trip.is_active,
                 is_completed=trip.is_completed,
                 trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
+                trip_preferences=trip.trip_preferences,
                 created_at=trip.created_at,
                 updated_at=trip.updated_at,
             )
@@ -283,6 +286,7 @@ class TripQueries:
                     is_active=item["trip"].is_active,
                     is_completed=item["trip"].is_completed,
                     trip_legal_compliance_ack=item["trip"].trip_legal_compliance_ack,
+                    trip_preferences=item["trip"].trip_preferences,
                     created_at=item["trip"].created_at,
                     updated_at=item["trip"].updated_at,
                 ),
@@ -442,6 +446,7 @@ class TripMutations:
         db_trip.price_per_seat = trip_input.price_per_seat
         db_trip.description = trip_input.description
         db_trip.trip_legal_compliance_ack = trip_input.trip_legal_compliance_ack
+        db_trip.trip_preferences = trip_input.trip_preferences
 
         context.db.add(db_trip)
         await context.db.commit()
@@ -461,6 +466,7 @@ class TripMutations:
             is_active=db_trip.is_active,
             is_completed=db_trip.is_completed,
             trip_legal_compliance_ack=db_trip.trip_legal_compliance_ack,
+            trip_preferences=db_trip.trip_preferences,
             created_at=db_trip.created_at,
             updated_at=db_trip.updated_at,
         )
@@ -533,6 +539,8 @@ class TripMutations:
             trip.is_completed = trip_input.is_completed
         if trip_input.trip_legal_compliance_ack is not None:
             trip.trip_legal_compliance_ack = trip_input.trip_legal_compliance_ack
+        if trip_input.trip_preferences is not None:
+            trip.trip_preferences = trip_input.trip_preferences
 
         await context.db.commit()
         await context.db.refresh(trip)
@@ -551,6 +559,7 @@ class TripMutations:
             is_active=trip.is_active,
             is_completed=trip.is_completed,
             trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
+            trip_preferences=trip.trip_preferences,
             created_at=trip.created_at,
             updated_at=trip.updated_at,
         )
