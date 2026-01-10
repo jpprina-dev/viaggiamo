@@ -4,6 +4,7 @@
 
 'use client'
 
+import React from 'react'
 import { UseFormRegister, FieldErrors, UseFormWatch } from 'react-hook-form'
 import { 
   MapPin, 
@@ -14,12 +15,24 @@ import {
   DollarSign,
   Check,
   FileText,
-  Shield
+  Shield,
+  HelpCircle,
+  CigaretteOff,
+  PawPrint,
+  Baby
 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
+import Link from 'next/link'
+import { ROUTES } from '@/config/routes'
 import type { CreateTripFormData, Vehicle, TripPreference } from '../types'
 import { TRIP_PREFERENCE_LABELS } from '../types'
+
+const PREFERENCE_ICONS: Record<TripPreference, React.ReactNode> = {
+  no_smoking: <CigaretteOff className="h-3 w-3" />,
+  no_pets: <PawPrint className="h-3 w-3" />,
+  no_children: <Baby className="h-3 w-3" />,
+}
 
 interface TripSummaryProps {
   register: UseFormRegister<CreateTripFormData>
@@ -133,9 +146,9 @@ export function TripSummary({
                 {formData.tripPreferences.map((pref: string) => (
                   <span
                     key={pref}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-xs font-medium"
+                    className="inline-flex items-center gap-1.5 px-2 py-1 bg-primary-50 text-primary-700 rounded-full text-xs font-medium"
                   >
-                    <Check className="h-3 w-3" />
+                    {PREFERENCE_ICONS[pref as TripPreference]}
                     {TRIP_PREFERENCE_LABELS[pref as TripPreference]}
                   </span>
                 ))}
@@ -174,18 +187,35 @@ export function TripSummary({
           <input
             type="checkbox"
             {...register('tripLegalComplianceAck')}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 accent-green-600 checked:bg-green-600 checked:border-green-600"
           />
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-primary-600" />
               <span className="font-medium text-gray-900">Términos y condiciones</span>
+              <div className="relative group">
+                <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors cursor-help" />
+                <div className="absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-100 text-gray-700 text-xs rounded-lg border border-gray-300 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <p className="mb-2">
+                    Acepto que este viaje cumple con las normativas de transporte compartido, 
+                    que el vehículo está en condiciones adecuadas y cuento con la documentación 
+                    necesaria (licencia de conducir vigente, seguro vehicular, etc.).
+                  </p>
+                  <Link 
+                    href={ROUTES.TERMS}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-600 hover:text-primary-700 underline font-medium"
+                    onClick={(e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation()}
+                  >
+                    Ver términos y condiciones completos
+                  </Link>
+                  {/* Tooltip arrow */}
+                  <div className="absolute top-full left-4 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-gray-100"></div>
+                  <div className="absolute top-full left-[14px] w-0 h-0 border-l-[5px] border-r-[5px] border-t-[5px] border-transparent border-t-gray-300"></div>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-gray-600">
-              Acepto que este viaje cumple con las normativas de transporte compartido, 
-              que el vehículo está en condiciones adecuadas y cuento con la documentación 
-              necesaria (licencia de conducir vigente, seguro vehicular, etc.).
-            </p>
           </div>
         </label>
         {errors.tripLegalComplianceAck && (
