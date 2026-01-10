@@ -23,7 +23,7 @@ export default function NavBar() {
     <header className="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
       <div className="container">
         <div className="flex justify-between items-center py-4">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href={ROUTES.HOME} className="flex items-center space-x-2">
             <GradientIcon width={32} height={32} className="h-8 w-8" />
             <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-600 bg-clip-text text-transparent">
               Viajamos
@@ -34,26 +34,26 @@ export default function NavBar() {
           <nav className="hidden md:flex items-center space-x-8">
             {user ? (
               <>
-                <NavLink href="/search" pathname={pathname}>
+                <NavLink href={ROUTES.SEARCH} pathname={pathname}>
                   Buscar Viajes
                 </NavLink>
-                <NavLink href="/about" pathname={pathname}>
+                <NavLink href={ROUTES.ABOUT} pathname={pathname}>
                   Acerca de
                 </NavLink>
-                <NavLink href="/help" pathname={pathname}>
+                <NavLink href={ROUTES.HELP} pathname={pathname}>
                   Centro de Ayuda
                 </NavLink>
-                <NavLink href="/trips/create" pathname={pathname}>
+                <NavLink href={ROUTES.TRIPS_CREATE} pathname={pathname}>
                   Publicar Viaje
                 </NavLink>
-                <NavLink href="/bookings" pathname={pathname}>
+                <NavLink href={ROUTES.BOOKINGS} pathname={pathname}>
                   Mis viajes
                 </NavLink>
                 <UserMenu user={user} />
               </>
             ) : (
               <>
-                <NavLink href="/search" pathname={pathname}>
+                <NavLink href={ROUTES.SEARCH} pathname={pathname}>
                   Buscar Viajes
                 </NavLink>
                 <GuestLinks pathname={pathname} />
@@ -135,35 +135,35 @@ export default function NavBar() {
                   </div>
 
                   <Link
-                    href="/search"
+                    href={ROUTES.SEARCH}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
                     Buscar Viajes
                   </Link>
                   <Link
-                    href="/about"
+                    href={ROUTES.ABOUT}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
                     Acerca de
                   </Link>
                   <Link
-                    href="/help"
+                    href={ROUTES.HELP}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
                     Centro de Ayuda
                   </Link>
                   <Link
-                    href="/trips/create"
+                    href={ROUTES.TRIPS_CREATE}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
                     Publicar Viaje
                   </Link>
                   <Link
-                    href="/bookings"
+                    href={ROUTES.BOOKINGS}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
@@ -177,7 +177,7 @@ export default function NavBar() {
                     Mi Perfil
                   </Link>
                   <Link
-                    href="/settings"
+                    href={ROUTES.SETTINGS}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
@@ -198,28 +198,28 @@ export default function NavBar() {
               ) : (
                 <>
                   <Link
-                    href="/search"
+                    href={ROUTES.SEARCH}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
                     Buscar Viajes
                   </Link>
                   <Link
-                    href="/about"
+                    href={ROUTES.ABOUT}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
                     Acerca de
                   </Link>
                   <Link
-                    href="/help"
+                    href={ROUTES.HELP}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
                     Centro de Ayuda
                   </Link>
                   <Link
-                    href="/trips/create"
+                    href={ROUTES.TRIPS_CREATE}
                     className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={closeMobileMenu}
                   >
@@ -227,14 +227,14 @@ export default function NavBar() {
                   </Link>
                   <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
                     <Link
-                      href="/login"
+                      href={ROUTES.LOGIN}
                       className="block px-4 py-3 text-center text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
                       onClick={closeMobileMenu}
                     >
                       Iniciar Sesión
                     </Link>
                     <Link
-                      href="/register"
+                      href={ROUTES.REGISTER}
                       className="block px-4 py-3 text-center bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors font-semibold"
                       onClick={closeMobileMenu}
                     >

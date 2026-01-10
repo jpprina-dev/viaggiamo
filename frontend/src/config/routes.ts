@@ -6,6 +6,7 @@
 export const ROUTES = {
   // Public routes
   HOME: '/',
+  SEARCH: '/search', // Search trips page
   ABOUT: '/about',
   HELP: '/help',
   SAFETY: '/safety',
