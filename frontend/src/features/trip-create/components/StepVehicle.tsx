@@ -55,7 +55,7 @@ export function StepVehicle({
 
   const handleAddVehicle = () => {
     setIsDropdownOpen(false)
-    router.push(ROUTES.PROFILE)
+    router.push(ROUTES.ADD_VEHICLE)
   }
 
   const handleSelectVehicle = (vehicleId: number) => {

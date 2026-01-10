@@ -20,7 +20,8 @@ export const ROUTES = {
 
   // Protected routes (route group: (protected))
   DASHBOARD: '/dashboard',
-  PROFILE: '/profile',
+  PROFILE: '/profile', // User profile page
+  ADD_VEHICLE: '/add-vehicle', // Add vehicle page
   SETTINGS: '/settings',
 
   // Trip routes
@@ -51,6 +52,7 @@ export function isProtectedRoute(pathname: string): boolean {
   const protectedPaths = [
     ROUTES.DASHBOARD,
     ROUTES.PROFILE,
+    ROUTES.ADD_VEHICLE,
     ROUTES.SETTINGS,
     ROUTES.MY_BOOKINGS,
     ROUTES.TRIPS_CREATE,
