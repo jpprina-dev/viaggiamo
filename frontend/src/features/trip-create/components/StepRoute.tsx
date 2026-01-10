@@ -4,17 +4,21 @@
 
 'use client'
 
-import { UseFormRegister, FieldErrors } from 'react-hook-form'
-import { MapPin, Navigation } from 'lucide-react'
-import { Input } from '@/components/ui'
+import { FieldErrors, UseFormWatch, UseFormSetValue } from 'react-hook-form'
+import { MapPin, CircleDot, Navigation } from 'lucide-react'
+import { CityAutocomplete } from '@/features/search/components/CityAutocomplete'
 import type { CreateTripFormData } from '../types'
 
 interface StepRouteProps {
-  register: UseFormRegister<CreateTripFormData>
   errors: FieldErrors<CreateTripFormData>
+  watch: UseFormWatch<CreateTripFormData>
+  setValue: UseFormSetValue<CreateTripFormData>
 }
 
-export function StepRoute({ register, errors }: StepRouteProps) {
+export function StepRoute({ errors, watch, setValue }: StepRouteProps) {
+  const origin = watch('origin')
+  const destination = watch('destination')
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -27,36 +31,35 @@ export function StepRoute({ register, errors }: StepRouteProps) {
       </div>
 
       <div className="space-y-4">
-        <Input
-          {...register('origin')}
-          label="Origen"
-          placeholder="Ciudad o lugar de salida"
-          error={errors.origin?.message}
-          leftIcon={<MapPin className="h-5 w-5" />}
-        />
-
-        <div className="flex justify-center py-2">
-          <div className="flex flex-col items-center text-gray-400">
-            <div className="h-8 border-l-2 border-dashed border-gray-300" />
-            <Navigation className="h-5 w-5 rotate-180" />
-            <div className="h-8 border-l-2 border-dashed border-gray-300" />
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Origen
+          </label>
+          <CityAutocomplete
+            type="origin"
+            value={origin}
+            onChange={(value) => setValue('origin', value)}
+            placeholder="Ciudad o lugar de salida"
+            error={errors.origin?.message}
+            leftIcon={<MapPin className="h-5 w-5" />}
+            rightIcon={<CircleDot className="h-5 w-5" />}
+          />
         </div>
 
-        <Input
-          {...register('destination')}
-          label="Destino"
-          placeholder="Ciudad o lugar de llegada"
-          error={errors.destination?.message}
-          leftIcon={<MapPin className="h-5 w-5" />}
-        />
-      </div>
-
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-700">
-          <strong>Tip:</strong> Sé lo más específico posible con los lugares 
-          para que los pasajeros puedan encontrar tu viaje fácilmente.
-        </p>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Destino
+          </label>
+          <CityAutocomplete
+            type="destination"
+            value={destination}
+            onChange={(value) => setValue('destination', value)}
+            placeholder="Ciudad o lugar de llegada"
+            error={errors.destination?.message}
+            leftIcon={<MapPin className="h-5 w-5" />}
+            rightIcon={<Navigation className="h-5 w-5" />}
+          />
+        </div>
       </div>
     </div>
   )

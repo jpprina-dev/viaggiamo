@@ -44,7 +44,6 @@ export default function CreateTripPage() {
             Publicar viaje
           </h1>
           <p className="text-gray-600 max-w-xl mx-auto">
-            Comparte tu próximo viaje y conecta con pasajeros que van en la misma dirección.
             Completa los siguientes pasos para publicar tu viaje.
           </p>
         </div>

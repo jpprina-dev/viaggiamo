@@ -118,7 +118,7 @@ export function CreateTripWizard() {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <StepRoute register={register} errors={errors} />
+        return <StepRoute errors={errors} watch={watch} setValue={setValue} />
       case 2:
         return <StepDateTime register={register} errors={errors} />
       case 3:
