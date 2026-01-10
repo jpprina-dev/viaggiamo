@@ -7,8 +7,8 @@
 import React from 'react'
 import { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from 'react-hook-form'
 import { 
-  Cigarette, 
-  Dog, 
+  CigaretteOff, 
+  PawPrint, 
   Baby,
   FileText
 } from 'lucide-react'
@@ -24,8 +24,8 @@ interface StepPreferencesProps {
 }
 
 const PREFERENCE_ICONS: Record<TripPreference, React.ReactNode> = {
-  no_smoking: <Cigarette className="h-5 w-5" />,
-  no_pets: <Dog className="h-5 w-5" />,
+  no_smoking: <CigaretteOff className="h-5 w-5" />,
+  no_pets: <PawPrint className="h-5 w-5" />,
   no_children: <Baby className="h-5 w-5" />,
 }
 
