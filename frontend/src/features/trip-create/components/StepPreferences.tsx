@@ -4,6 +4,7 @@
 
 'use client'
 
+import React from 'react'
 import { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from 'react-hook-form'
 import { 
   Cigarette, 
@@ -43,7 +44,7 @@ export function StepPreferences({
   const togglePreference = (preference: TripPreference) => {
     const current = selectedPreferences
     const newPreferences = current.includes(preference)
-      ? current.filter(p => p !== preference)
+      ? current.filter((p: TripPreference) => p !== preference)
       : [...current, preference]
     setValue('tripPreferences', newPreferences, { shouldValidate: true })
   }
@@ -59,13 +60,13 @@ export function StepPreferences({
         </p>
       </div>
 
-      {/* Preferences Grid */}
+      {/* Preferences List */}
       <div className="space-y-3">
         <label className="block text-sm font-medium text-gray-700">
           Selecciona las preferencias para tu viaje
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {Object.entries(TRIP_PREFERENCES).map(([key, value]) => {
+        <div className="space-y-2">
+          {(Object.entries(TRIP_PREFERENCES) as [string, TripPreference][]).map(([key, value]) => {
             const isSelected = selectedPreferences.includes(value)
             return (
               <button
@@ -73,21 +74,26 @@ export function StepPreferences({
                 type="button"
                 onClick={() => togglePreference(value)}
                 className={cn(
-                  'flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all',
+                  'w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left',
                   isSelected
-                    ? 'border-primary-600 bg-primary-50 text-primary-700'
-                    : 'border-gray-200 hover:border-gray-300 bg-white text-gray-600'
+                    ? 'border-primary-600 bg-primary-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
                 )}
               >
                 <div className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+                  'flex items-center justify-center transition-colors',
                   isSelected
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100'
+                    ? 'text-primary-600'
+                    : 'text-gray-400'
                 )}>
                   {PREFERENCE_ICONS[value]}
                 </div>
-                <span className="text-xs font-medium text-center">
+                <span className={cn(
+                  'text-sm font-medium flex-1',
+                  isSelected
+                    ? 'text-primary-700'
+                    : 'text-gray-600'
+                )}>
                   {TRIP_PREFERENCE_LABELS[value]}
                 </span>
               </button>
