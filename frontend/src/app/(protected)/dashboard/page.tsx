@@ -49,10 +49,12 @@ export default function DashboardPage() {
             <p className="text-gray-600">Gestioná tu cuenta y actividades</p>
           </div>
           
-          <WelcomeCard user={user} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <WelcomeCard user={user} />
+            <StatsCards />
+          </div>
           <QuickActions />
           <UserInfoCard user={user} />
-          <StatsCards />
         </div>
       </main>
     </div>
