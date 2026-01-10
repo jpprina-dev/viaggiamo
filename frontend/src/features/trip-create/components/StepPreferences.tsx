@@ -10,7 +10,7 @@ import { FileText } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import type { CreateTripFormData, TripPreference } from '../types'
 import { TRIP_PREFERENCES, TRIP_PREFERENCE_LABELS } from '../types'
-import { PREFERENCE_ICONS } from '../constants'
+import { getPreferenceIcon } from '../constants'
 
 interface StepPreferencesProps {
   register: UseFormRegister<CreateTripFormData>
@@ -72,7 +72,7 @@ export function StepPreferences({
                     ? 'text-primary-600'
                     : 'text-gray-400'
                 )}>
-                  {PREFERENCE_ICONS[value]}
+                  {getPreferenceIcon(value, 'h-5 w-5')}
                 </div>
                 <span className={cn(
                   'text-sm font-medium flex-1',

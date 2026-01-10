@@ -2,18 +2,17 @@
  * Constants for trip creation feature
  */
 
-import React from 'react'
 import { CigaretteOff, PawPrint, Baby } from 'lucide-react'
 import type { TripPreference } from './types'
+import React from 'react'
 
 /**
- * Icon components for trip preferences
- * Can be customized with different sizes by passing className
+ * Icon component types for trip preferences
  */
-export const PREFERENCE_ICONS: Record<TripPreference, React.ReactNode> = {
-  no_smoking: <CigaretteOff className="h-5 w-5" />,
-  no_pets: <PawPrint className="h-5 w-5" />,
-  no_children: <Baby className="h-5 w-5" />,
+export const PREFERENCE_ICON_COMPONENTS: Record<TripPreference, React.ComponentType<{ className?: string }>> = {
+  no_smoking: CigaretteOff,
+  no_pets: PawPrint,
+  no_children: Baby,
 }
 
 /**
@@ -23,12 +22,6 @@ export const PREFERENCE_ICONS: Record<TripPreference, React.ReactNode> = {
  * @returns React node with the icon
  */
 export function getPreferenceIcon(preference: TripPreference, size: string = 'h-5 w-5'): React.ReactNode {
-  const iconMap: Record<TripPreference, React.ComponentType<{ className?: string }>> = {
-    no_smoking: CigaretteOff,
-    no_pets: PawPrint,
-    no_children: Baby,
-  }
-
-  const IconComponent = iconMap[preference]
-  return <IconComponent className={size} />
+  const IconComponent = PREFERENCE_ICON_COMPONENTS[preference]
+  return React.createElement(IconComponent, { className: size })
 }

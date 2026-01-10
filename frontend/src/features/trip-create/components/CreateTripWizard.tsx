@@ -59,6 +59,7 @@ export function CreateTripWizard() {
   })
 
   const { register, handleSubmit, formState: { errors }, watch, setValue, trigger } = form
+  const tripLegalComplianceAck = watch('tripLegalComplianceAck')
 
   const validateCurrentStep = async (): Promise<boolean> => {
     const stepIndex = currentStep - 1
@@ -192,8 +193,12 @@ export function CreateTripWizard() {
           ) : (
             <Button
               type="submit"
-              disabled={isSubmitting}
-              className="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-emerald-600 hover:from-primary-700 hover:to-emerald-700"
+              disabled={isSubmitting || !tripLegalComplianceAck}
+              className={`flex items-center gap-2 ${
+                tripLegalComplianceAck && !isSubmitting
+                  ? 'bg-gradient-to-r from-primary-600 to-emerald-600 hover:from-primary-700 hover:to-emerald-700'
+                  : 'bg-gray-400 cursor-not-allowed opacity-60 hover:bg-gray-400'
+              }`}
             >
               {isSubmitting ? (
                 <>
