@@ -9,9 +9,7 @@ import { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from 'rea
 import { 
   Cigarette, 
   Dog, 
-  Music, 
-  MessageCircle, 
-  Wind,
+  Baby,
   FileText
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -27,10 +25,8 @@ interface StepPreferencesProps {
 
 const PREFERENCE_ICONS: Record<TripPreference, React.ReactNode> = {
   no_smoking: <Cigarette className="h-5 w-5" />,
-  pets_allowed: <Dog className="h-5 w-5" />,
-  music_allowed: <Music className="h-5 w-5" />,
-  conversation_friendly: <MessageCircle className="h-5 w-5" />,
-  air_conditioning: <Wind className="h-5 w-5" />,
+  no_pets: <Dog className="h-5 w-5" />,
+  no_children: <Baby className="h-5 w-5" />,
 }
 
 export function StepPreferences({

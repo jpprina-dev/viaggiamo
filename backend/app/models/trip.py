@@ -50,7 +50,7 @@ class Trip(Base):
     # Trip preferences (stored as JSON array)
     trip_preferences: Mapped[dict | None] = mapped_column(
         JSON, nullable=True
-    )  # e.g., {"preferences": ["no_smoking", "pets_allowed", "music_allowed"]}
+    )  # e.g., {"preferences": ["no_smoking", "no_pets", "no_children"]}
 
     # Relationships
     driver: Mapped["User"] = relationship("User", back_populates="trips")

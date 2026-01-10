@@ -7,20 +7,16 @@ import { z } from 'zod'
 // Trip preference options
 export const TRIP_PREFERENCES = {
   NO_SMOKING: 'no_smoking',
-  PETS_ALLOWED: 'pets_allowed',
-  MUSIC_ALLOWED: 'music_allowed',
-  CONVERSATION_FRIENDLY: 'conversation_friendly',
-  AIR_CONDITIONING: 'air_conditioning',
+  NO_PETS: 'no_pets',
+  NO_CHILDREN: 'no_children',
 } as const
 
 export type TripPreference = typeof TRIP_PREFERENCES[keyof typeof TRIP_PREFERENCES]
 
 export const TRIP_PREFERENCE_LABELS: Record<TripPreference, string> = {
   no_smoking: 'No fumar',
-  pets_allowed: 'Se permiten mascotas',
-  music_allowed: 'Se permite música',
-  conversation_friendly: 'Conversación bienvenida',
-  air_conditioning: 'Aire acondicionado',
+  no_pets: 'No se permiten mascotas',
+  no_children: 'No se permiten niños',
 }
 
 // Vehicle type for selection
