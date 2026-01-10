@@ -4,12 +4,13 @@
 
 'use client'
 
+import React, { useState, useRef, useEffect } from 'react'
 import { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from 'react-hook-form'
-import { Car, Users, DollarSign, Plus, AlertCircle } from 'lucide-react'
-import { Input } from '@/components/ui'
+import { Car, Users, DollarSign, Plus, ChevronDown } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import type { CreateTripFormData, Vehicle } from '../types'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { ROUTES } from '@/config/routes'
 
 interface StepVehicleProps {
   register: UseFormRegister<CreateTripFormData>
@@ -28,8 +29,39 @@ export function StepVehicle({
   vehicles,
   vehiclesLoading,
 }: StepVehicleProps) {
+  const router = useRouter()
   const selectedVehicleId = watch('vehicleId')
   const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleAddVehicle = () => {
+    setIsDropdownOpen(false)
+    router.push(ROUTES.PROFILE)
+  }
+
+  const handleSelectVehicle = (vehicleId: number) => {
+    setValue('vehicleId', vehicleId, { shouldValidate: true })
+    setIsDropdownOpen(false)
+  }
 
   return (
     <div className="space-y-6">
@@ -54,52 +86,137 @@ export function StepVehicle({
           </div>
         ) : vehicles.length === 0 ? (
           <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 text-center">
-            <AlertCircle className="mx-auto h-10 w-10 text-gray-400 mb-3" />
+            <Car className="mx-auto h-10 w-10 text-gray-400 mb-3" />
             <p className="text-gray-600 mb-4">
               No tienes vehículos registrados
             </p>
-            <Link
-              href="/profile"
+            <button
+              type="button"
+              onClick={handleAddVehicle}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Agregar vehículo
-            </Link>
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {vehicles.map((vehicle) => (
-              <button
-                key={vehicle.id}
-                type="button"
-                onClick={() => setValue('vehicleId', vehicle.id, { shouldValidate: true })}
-                className={cn(
-                  'flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left',
-                  selectedVehicleId === vehicle.id
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+          <div className="relative">
+            {/* Trigger Card */}
+            <button
+              ref={triggerRef}
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className={cn(
+                'w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left',
+                selectedVehicle
+                  ? 'border-primary-600 bg-primary-50'
+                  : 'border-gray-200 hover:border-gray-300 bg-white'
+              )}
+            >
+              <div className={cn(
+                'flex h-12 w-12 items-center justify-center rounded-full',
+                selectedVehicle
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 text-gray-500'
+              )}>
+                <Car className="h-6 w-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                {selectedVehicle ? (
+                  <>
+                    <p className="font-semibold text-gray-900 truncate">
+                      {selectedVehicle.make} {selectedVehicle.model}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedVehicle.year} • {selectedVehicle.color || 'Sin color'} • {selectedVehicle.seats} asientos
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-semibold text-gray-900">
+                      Selecciona un vehículo
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Haz clic para elegir un vehículo
+                    </p>
+                  </>
                 )}
+              </div>
+              <ChevronDown className={cn(
+                'h-5 w-5 text-gray-400 transition-transform',
+                isDropdownOpen && 'transform rotate-180'
+              )} />
+            </button>
+
+            {/* Dropdown with Vehicle Cards */}
+            {isDropdownOpen && (
+              <div
+                ref={dropdownRef}
+                className="absolute z-50 w-full mt-2 bg-white rounded-lg border border-gray-200 shadow-lg max-h-96 overflow-y-auto"
               >
-                <div className={cn(
-                  'flex h-12 w-12 items-center justify-center rounded-full',
-                  selectedVehicleId === vehicle.id
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-500'
-                )}>
-                  <Car className="h-6 w-6" />
+                <div className="p-2 space-y-2">
+                  {vehicles.map((vehicle) => (
+                    <button
+                      key={vehicle.id}
+                      type="button"
+                      onClick={() => handleSelectVehicle(vehicle.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left',
+                        selectedVehicleId === vehicle.id
+                          ? 'border-primary-600 bg-primary-50'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                      )}
+                    >
+                      <div className={cn(
+                        'flex h-12 w-12 items-center justify-center rounded-full',
+                        selectedVehicleId === vehicle.id
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-gray-100 text-gray-500'
+                      )}>
+                        <Car className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">
+                          {vehicle.make} {vehicle.model}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {vehicle.year} • {vehicle.color || 'Sin color'} • {vehicle.seats} asientos
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                  
+                  {/* Add Vehicle Card */}
+                  <button
+                    type="button"
+                    onClick={handleAddVehicle}
+                    className={cn(
+                      'w-full flex items-center gap-3 p-4 rounded-lg border-2 border-dashed transition-all text-left',
+                      'border-gray-300 hover:border-primary-500 hover:bg-primary-50 bg-white'
+                    )}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+                      <Plus className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900">
+                        Agregar vehículo
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Registra un nuevo vehículo
+                      </p>
+                    </div>
+                  </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">
-                    {vehicle.make} {vehicle.model}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {vehicle.year} • {vehicle.color || 'Sin color'} • {vehicle.seats} asientos
-                  </p>
-                </div>
-              </button>
-            ))}
+              </div>
+            )}
           </div>
         )}
+        {/* Hidden input for react-hook-form validation */}
+        <input
+          type="hidden"
+          {...register('vehicleId', { valueAsNumber: true })}
+        />
         {errors.vehicleId && (
           <p className="text-sm text-red-600">{errors.vehicleId.message}</p>
         )}
