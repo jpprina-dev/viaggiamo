@@ -43,8 +43,7 @@ services:
       dockerfile: Dockerfile
     container_name: viaggiamo-backend
     env_file:
-      - backend/.env
-      - .env
+      - ./backend/.env
     ports:
       - "8000:8000"
     volumes:
@@ -69,7 +68,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: viaggiamo-frontend
     env_file:
-      - .env
+      - ./frontend/.env
     ports:
       - "3000:3000"
     volumes:
