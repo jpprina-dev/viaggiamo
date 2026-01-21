@@ -44,6 +44,7 @@ services:
     container_name: viaggiamo-backend
     env_file:
       - ./backend/.env
+      - .env
     ports:
       - "8000:8000"
     volumes:
