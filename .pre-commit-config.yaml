@@ -17,19 +17,21 @@ repos:
     hooks:
       - id: black
         name: black
-        entry: uv run black
+        entry: bash -c 'uv run black "$@"' --
         language: system
         types: [python]
         files: ^backend/
+        pass_filenames: true
       - id: isort
         name: isort
-        entry: uv run isort
+        entry: bash -c 'uv run isort "$@"' --
         language: system
         types: [python]
         files: ^backend/
+        pass_filenames: true
       - id: mypy
         name: mypy
-        entry: uv run mypy backend/
+        entry: bash -c 'uv run mypy backend/'
         language: system
         types: [python]
         files: ^backend/
@@ -37,16 +39,18 @@ repos:
         stages: [manual]
       - id: ruff
         name: ruff
-        entry: uv run ruff check --fix
+        entry: bash -c 'uv run ruff check --fix "$@"' --
         language: system
         types: [python]
         files: ^backend/
+        pass_filenames: true
       - id: ruff-format
         name: ruff format
-        entry: uv run ruff format
+        entry: bash -c 'uv run ruff format "$@"' --
         language: system
         types: [python]
         files: ^backend/
+        pass_filenames: true
 
 # Global configuration
 default_stages: [pre-commit]
