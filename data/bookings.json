@@ -7,9 +7,9 @@
     "total_price": "8500.00",
     "status": "confirmed",
     "notes": "Viajero frecuente, puntual",
-    "booking_time": "2024-11-20T15:30:00Z",
+    "booking_time": "2025-12-31T07:00:00Z",
     "created_at": "2024-11-20T15:30:00Z",
-    "updated_at": "2024-11-20T15:30:00Z"
+    "updated_at": "2025-12-31T07:00:00Z"
   },
   {
     "id": 2,
@@ -19,9 +19,9 @@
     "total_price": "8500.00",
     "status": "confirmed",
     "notes": "Estudiante, primera vez viajando",
-    "booking_time": "2024-11-20T16:45:00Z",
+    "booking_time": "2025-12-31T06:00:00Z",
     "created_at": "2024-11-20T16:45:00Z",
-    "updated_at": "2024-11-20T16:45:00Z"
+    "updated_at": "2025-12-31T06:00:00Z"
   },
   {
     "id": 3,
@@ -31,9 +31,9 @@
     "total_price": "12000.00",
     "status": "confirmed",
     "notes": "Viajera experimentada",
-    "booking_time": "2024-11-19T12:15:00Z",
+    "booking_time": "2026-01-01T06:30:00Z",
     "created_at": "2024-11-19T12:15:00Z",
-    "updated_at": "2024-11-19T12:15:00Z"
+    "updated_at": "2026-01-01T06:30:00Z"
   },
   {
     "id": 4,
@@ -41,11 +41,11 @@
     "passenger_id": 8,
     "seats_requested": 1,
     "total_price": "12000.00",
-    "status": "pending",
+    "status": "confirmed",
     "notes": "Esperando confirmación",
-    "booking_time": "2024-11-19T14:20:00Z",
+    "booking_time": "2026-01-01T05:30:00Z",
     "created_at": "2024-11-19T14:20:00Z",
-    "updated_at": "2024-11-19T14:20:00Z"
+    "updated_at": "2026-01-01T05:30:00Z"
   },
   {
     "id": 5,
@@ -55,9 +55,9 @@
     "total_price": "13000.00",
     "status": "confirmed",
     "notes": "Viaje en pareja a la costa",
-    "booking_time": "2024-11-16T17:30:00Z",
+    "booking_time": "2026-01-02T02:00:00Z",
     "created_at": "2024-11-16T17:30:00Z",
-    "updated_at": "2024-11-16T17:30:00Z"
+    "updated_at": "2026-01-02T02:00:00Z"
   },
   {
     "id": 6,
@@ -67,9 +67,9 @@
     "total_price": "6500.00",
     "status": "confirmed",
     "notes": "Profesional viajando por trabajo",
-    "booking_time": "2024-11-16T18:45:00Z",
+    "booking_time": "2026-01-02T01:00:00Z",
     "created_at": "2024-11-16T18:45:00Z",
-    "updated_at": "2024-11-16T18:45:00Z"
+    "updated_at": "2026-01-02T01:00:00Z"
   },
   {
     "id": 7,
@@ -79,9 +79,9 @@
     "total_price": "9500.00",
     "status": "confirmed",
     "notes": "Estudiante de arquitectura",
-    "booking_time": "2024-11-14T11:20:00Z",
+    "booking_time": "2026-01-03T03:00:00Z",
     "created_at": "2024-11-14T11:20:00Z",
-    "updated_at": "2024-11-14T11:20:00Z"
+    "updated_at": "2026-01-03T03:00:00Z"
   },
   {
     "id": 8,
@@ -91,9 +91,9 @@
     "total_price": "9500.00",
     "status": "cancelled",
     "notes": "Cancelado por cambio de planes",
-    "booking_time": "2024-11-14T13:15:00Z",
+    "booking_time": "2026-01-03T02:00:00Z",
     "created_at": "2024-11-14T13:15:00Z",
-    "updated_at": "2024-11-14T13:15:00Z"
+    "updated_at": "2026-01-03T02:00:00Z"
   },
   {
     "id": 9,
@@ -103,9 +103,9 @@
     "total_price": "3500.00",
     "status": "confirmed",
     "notes": "Viaje corto a La Plata",
-    "booking_time": "2024-11-12T15:40:00Z",
+    "booking_time": "2026-01-04T05:30:00Z",
     "created_at": "2024-11-12T15:40:00Z",
-    "updated_at": "2024-11-12T15:40:00Z"
+    "updated_at": "2026-01-04T05:30:00Z"
   },
   {
     "id": 10,
@@ -113,11 +113,11 @@
     "passenger_id": 20,
     "seats_requested": 1,
     "total_price": "3500.00",
-    "status": "pending",
+    "status": "confirmed",
     "notes": "Esperando confirmación del conductor",
-    "booking_time": "2024-11-12T16:55:00Z",
+    "booking_time": "2026-01-04T04:30:00Z",
     "created_at": "2024-11-12T16:55:00Z",
-    "updated_at": "2024-11-12T16:55:00Z"
+    "updated_at": "2026-01-04T04:30:00Z"
   },
   {
     "id": 11,
@@ -127,9 +127,9 @@
     "total_price": "8000.00",
     "status": "confirmed",
     "notes": "Viajero frecuente",
-    "booking_time": "2024-11-10T12:30:00Z",
+    "booking_time": "2026-01-04T21:15:00Z",
     "created_at": "2024-11-10T12:30:00Z",
-    "updated_at": "2024-11-10T12:30:00Z"
+    "updated_at": "2026-01-04T21:15:00Z"
   },
   {
     "id": 12,
@@ -139,9 +139,9 @@
     "total_price": "8000.00",
     "status": "confirmed",
     "notes": "Viajera experimentada",
-    "booking_time": "2024-11-10T14:15:00Z",
+    "booking_time": "2026-01-04T20:15:00Z",
     "created_at": "2024-11-10T14:15:00Z",
-    "updated_at": "2024-11-10T14:15:00Z"
+    "updated_at": "2026-01-04T20:15:00Z"
   },
   {
     "id": 13,
@@ -151,9 +151,9 @@
     "total_price": "8000.00",
     "status": "confirmed",
     "notes": "Estudiante de medicina",
-    "booking_time": "2024-11-10T15:20:00Z",
+    "booking_time": "2026-01-04T19:15:00Z",
     "created_at": "2024-11-10T15:20:00Z",
-    "updated_at": "2024-11-10T15:20:00Z"
+    "updated_at": "2026-01-04T19:15:00Z"
   },
   {
     "id": 14,
@@ -163,9 +163,9 @@
     "total_price": "8000.00",
     "status": "confirmed",
     "notes": "Turista frecuente",
-    "booking_time": "2024-11-10T16:35:00Z",
+    "booking_time": "2026-01-04T18:15:00Z",
     "created_at": "2024-11-10T16:35:00Z",
-    "updated_at": "2024-11-10T16:35:00Z"
+    "updated_at": "2026-01-04T18:15:00Z"
   },
   {
     "id": 15,
@@ -175,9 +175,9 @@
     "total_price": "2500.00",
     "status": "confirmed",
     "notes": "Viaje al delta",
-    "booking_time": "2024-11-08T14:10:00Z",
+    "booking_time": "2026-01-05T18:00:00Z",
     "created_at": "2024-11-08T14:10:00Z",
-    "updated_at": "2024-11-08T14:10:00Z"
+    "updated_at": "2026-01-05T18:00:00Z"
   },
   {
     "id": 16,
@@ -187,9 +187,9 @@
     "total_price": "2500.00",
     "status": "confirmed",
     "notes": "Profesional de marketing",
-    "booking_time": "2024-11-08T15:25:00Z",
+    "booking_time": "2026-01-05T17:00:00Z",
     "created_at": "2024-11-08T15:25:00Z",
-    "updated_at": "2024-11-08T15:25:00Z"
+    "updated_at": "2026-01-05T17:00:00Z"
   },
   {
     "id": 17,
@@ -199,9 +199,9 @@
     "total_price": "2500.00",
     "status": "confirmed",
     "notes": "Estudiante de arquitectura",
-    "booking_time": "2024-11-08T16:40:00Z",
+    "booking_time": "2026-01-05T16:00:00Z",
     "created_at": "2024-11-08T16:40:00Z",
-    "updated_at": "2024-11-08T16:40:00Z"
+    "updated_at": "2026-01-05T16:00:00Z"
   },
   {
     "id": 18,
@@ -211,9 +211,9 @@
     "total_price": "9000.00",
     "status": "confirmed",
     "notes": "Turista aventurera",
-    "booking_time": "2024-11-06T11:15:00Z",
+    "booking_time": "2026-01-06T22:00:00Z",
     "created_at": "2024-11-06T11:15:00Z",
-    "updated_at": "2024-11-06T11:15:00Z"
+    "updated_at": "2026-01-06T22:00:00Z"
   },
   {
     "id": 19,
@@ -221,11 +221,11 @@
     "passenger_id": 18,
     "seats_requested": 1,
     "total_price": "9000.00",
-    "status": "pending",
+    "status": "confirmed",
     "notes": "Esperando confirmación",
-    "booking_time": "2024-11-06T12:30:00Z",
+    "booking_time": "2026-01-06T21:00:00Z",
     "created_at": "2024-11-06T12:30:00Z",
-    "updated_at": "2024-11-06T12:30:00Z"
+    "updated_at": "2026-01-06T21:00:00Z"
   },
   {
     "id": 20,

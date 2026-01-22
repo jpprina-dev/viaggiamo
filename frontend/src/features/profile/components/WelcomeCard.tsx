@@ -1,5 +1,5 @@
 import { User } from 'lucide-react'
-import { Card, Badge } from '@/components/ui'
+import { Card } from '@/components/ui'
 import type { User as UserType } from '@/types'
 
 interface WelcomeCardProps {
@@ -11,23 +11,8 @@ export function WelcomeCard({ user }: WelcomeCardProps) {
 
   return (
     <Card variant="bordered" padding="lg">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            ¡Bienvenido, {fullName}! 👋
-          </h1>
-          <div className="flex items-center space-x-2">
-            {user.auth_provider === 'google' ? (
-              <>
-                <span className="text-gray-600">Conectado con Google</span>
-                <Badge variant="primary">OAuth</Badge>
-              </>
-            ) : (
-              <span className="text-gray-600">Conectado con email/contraseña</span>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-4">
+        <div className="flex-shrink-0">
           {user.profile_picture ? (
             <img
               src={user.profile_picture}
@@ -39,6 +24,11 @@ export function WelcomeCard({ user }: WelcomeCardProps) {
               <User className="h-8 w-8 text-primary-600" />
             </div>
           )}
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            ¡Bienvenido, {fullName}! 👋
+          </h1>
         </div>
       </div>
     </Card>

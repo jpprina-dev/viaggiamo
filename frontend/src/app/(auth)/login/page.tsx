@@ -19,10 +19,10 @@ function LoginFormWrapper() {
   const searchParams = useSearchParams()
   const { user, loading, refreshUser } = useAuth()
   
-  // Get return URL from query params, default to dashboard
-  const returnUrl = searchParams.get('returnUrl') || ROUTES.DASHBOARD
+  // Get return URL from query params, default to profile
+  const returnUrl = searchParams.get('returnUrl') || ROUTES.PROFILE
 
-  // Redirect to dashboard if already authenticated
+  // Redirect to profile if already authenticated
   useEffect(() => {
     if (!loading && user) {
       router.push(returnUrl)

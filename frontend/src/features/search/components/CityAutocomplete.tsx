@@ -16,6 +16,8 @@ interface CityAutocompleteProps {
   error?: string
   disabled?: boolean
   className?: string
+  leftIcon?: React.ReactNode
+  rightIcon?: React.ReactNode
 }
 
 export function CityAutocomplete({
@@ -27,6 +29,8 @@ export function CityAutocomplete({
   error,
   disabled = false,
   className = '',
+  leftIcon,
+  rightIcon,
 }: CityAutocompleteProps) {
   const { suggestions, loading, fetchSuggestions } = useCityAutocomplete(type)
   const [isOpen, setIsOpen] = useState(false)
@@ -108,6 +112,12 @@ export function CityAutocomplete({
 
   return (
     <div className="relative">
+      {leftIcon && (
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10">
+          {leftIcon}
+        </div>
+      )}
+
       <input
         ref={inputRef}
         type="text"
@@ -120,7 +130,11 @@ export function CityAutocomplete({
         disabled={disabled}
         className={
           className ||
-          `w-full rounded-lg border px-4 py-3 text-base outline-none transition-colors ${
+          `w-full rounded-lg border py-3 text-base outline-none transition-colors ${
+            leftIcon ? 'pl-10' : 'pl-4'
+          } ${
+            rightIcon || loading ? 'pr-10' : 'pr-4'
+          } ${
             error
               ? 'border-red-500 focus:border-red-600'
               : 'border-gray-300 focus:border-primary-600'
@@ -133,7 +147,19 @@ export function CityAutocomplete({
         role="combobox"
       />
 
-      {loading && (
+      {loading && !rightIcon && (
+        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-primary-600" />
+        </div>
+      )}
+
+      {rightIcon && !loading && (
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          {rightIcon}
+        </div>
+      )}
+
+      {loading && rightIcon && (
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-primary-600" />
         </div>

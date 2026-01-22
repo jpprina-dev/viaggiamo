@@ -24,10 +24,10 @@ function RegisterFormWrapper() {
   const router = useRouter()
   const { user, loading, refreshUser } = useAuth()
 
-  // Redirect to dashboard if already authenticated
+  // Redirect to profile if already authenticated
   useEffect(() => {
     if (!loading && user) {
-      router.push(ROUTES.DASHBOARD)
+      router.push(ROUTES.PROFILE)
     }
   }, [loading, user, router])
 
@@ -68,7 +68,7 @@ function RegisterFormWrapper() {
       await loginWithGoogle(credentialResponse.credential)
       await refreshUser()
       toast.success('¡Registro con Google exitoso!')
-      router.push(ROUTES.DASHBOARD)
+      router.push(ROUTES.PROFILE)
     } catch (error: any) {
       console.error('Google registration error:', error)
       toast.error(error.message || 'Error al registrarse con Google')

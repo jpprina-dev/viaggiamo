@@ -3,6 +3,7 @@
 
 import json
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -60,7 +61,8 @@ def validate_data_consistency(data_dir: Path) -> bool:
         return False
 
     print(
-        f"✅ Loaded {len(users)} users, {len(vehicles)} vehicles, {len(trips)} trips, {len(bookings)} bookings, {len(ratings)} ratings"
+        f"✅ Loaded {len(users)} users, {len(vehicles)} vehicles, "
+        f"{len(trips)} trips, {len(bookings)} bookings, {len(ratings)} ratings"
     )
 
     # Extract IDs
@@ -69,7 +71,9 @@ def validate_data_consistency(data_dir: Path) -> bool:
     trip_ids = {trip["id"] for trip in trips}
 
     print(
-        f"📊 ID ranges: Users {min(user_ids)}-{max(user_ids)}, Vehicles {min(vehicle_ids)}-{max(vehicle_ids)}, Trips {min(trip_ids)}-{max(trip_ids)}"
+        f"📊 ID ranges: Users {min(user_ids)}-{max(user_ids)}, "
+        f"Vehicles {min(vehicle_ids)}-{max(vehicle_ids)}, "
+        f"Trips {min(trip_ids)}-{max(trip_ids)}"
     )
 
     # Validate relationships
@@ -143,6 +147,98 @@ def validate_data_consistency(data_dir: Path) -> bool:
 
     if price_errors > 3:
         errors.append(f"... and {price_errors - 3} more price calculation errors")
+
+    # Validate trip dates and completion status
+    print("📅 Validating trip dates and completion status...")
+    today = datetime.now(UTC)
+    # Calculate next Monday
+    days_until_monday = (7 - today.weekday()) % 7
+    if days_until_monday == 0:
+        days_until_monday = 7  # If today is Monday, get next Monday
+    next_monday = today + timedelta(days=days_until_monday)
+    next_monday = next_monday.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    date_errors = 0
+    for trip in trips:
+        trip_id = trip["id"]
+        departure_time_str = trip.get("departure_time", "")
+        is_completed = trip.get("is_completed", False)
+        is_active = trip.get("is_active", True)
+
+        try:
+            departure_time = datetime.fromisoformat(
+                departure_time_str.replace("Z", "+00:00")
+            )
+
+            if is_completed:
+                # Completed trips should have dates in the past
+                if departure_time > today:
+                    date_errors += 1
+                    if date_errors <= 3:
+                        errors.append(
+                            f"Trip {trip_id}: completed but departure_time is in the future: {departure_time_str}"
+                        )
+                # Completed trips should not be active
+                if is_active:
+                    date_errors += 1
+                    if date_errors <= 3:
+                        errors.append(
+                            f"Trip {trip_id}: is_completed=true but is_active=true"
+                        )
+            else:
+                # Active trips should have dates from next week onwards
+                if departure_time < next_monday:
+                    date_errors += 1
+                    if date_errors <= 3:
+                        next_monday_str = next_monday.strftime("%Y-%m-%d")
+                        errors.append(
+                            f"Trip {trip_id}: active trip departure_time should be "
+                            f"from {next_monday_str} onwards, got {departure_time_str}"
+                        )
+        except (ValueError, AttributeError):
+            date_errors += 1
+            if date_errors <= 3:
+                errors.append(
+                    f"Trip {trip_id}: invalid departure_time format: {departure_time_str}"
+                )
+
+    if date_errors > 3:
+        errors.append(f"... and {date_errors - 3} more date validation errors")
+
+    # Validate bookings for completed trips
+    print("📋 Validating bookings for completed trips...")
+    completed_trip_ids = {
+        trip["id"] for trip in trips if trip.get("is_completed", False)
+    }
+    booking_errors = 0
+    for booking in bookings:
+        if booking["trip_id"] in completed_trip_ids:
+            # Completed trips should only have confirmed or cancelled bookings
+            if booking["status"] not in ["confirmed", "cancelled"]:
+                booking_errors += 1
+                if booking_errors <= 3:
+                    errors.append(
+                        f"Booking {booking['id']}: trip {booking['trip_id']} is "
+                        f"completed but booking status is '{booking['status']}' "
+                        "(should be 'confirmed' or 'cancelled')"
+                    )
+
+    if booking_errors > 3:
+        errors.append(f"... and {booking_errors - 3} more booking validation errors")
+
+    # Validate ratings only exist for completed trips
+    print("⭐ Validating ratings for completed trips...")
+    rating_errors = 0
+    for rating in ratings:
+        if rating["trip_id"] not in completed_trip_ids:
+            rating_errors += 1
+            if rating_errors <= 3:
+                errors.append(
+                    f"Rating {rating['id']}: trip {rating['trip_id']} is not completed but has ratings"
+                )
+
+    if rating_errors > 3:
+        errors.append(f"... and {rating_errors - 3} more rating validation errors")
 
     # Report results
     if errors:

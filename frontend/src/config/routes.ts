@@ -6,6 +6,7 @@
 export const ROUTES = {
   // Public routes
   HOME: '/',
+  SEARCH: '/search', // Search trips page
   ABOUT: '/about',
   HELP: '/help',
   SAFETY: '/safety',
@@ -19,8 +20,9 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
 
   // Protected routes (route group: (protected))
-  DASHBOARD: '/dashboard',
-  PROFILE: '/profile',
+  PROFILE: '/profile', // User profile page
+  ADD_VEHICLE: '/add-vehicle', // Add vehicle page
+  MY_VEHICLES: '/vehicles', // My vehicles list page
   SETTINGS: '/settings',
 
   // Trip routes
@@ -30,7 +32,6 @@ export const ROUTES = {
 
   // Booking routes (user's seat requests)
   BOOKINGS: '/bookings',
-  MY_BOOKINGS: '/bookings',
   BOOKING_DETAIL: (id: string | number) => `/bookings/${id}`,
 } as const
 
@@ -49,10 +50,11 @@ export const ROUTE_GROUPS = {
  */
 export function isProtectedRoute(pathname: string): boolean {
   const protectedPaths = [
-    ROUTES.DASHBOARD,
     ROUTES.PROFILE,
+    ROUTES.ADD_VEHICLE,
+    ROUTES.MY_VEHICLES,
     ROUTES.SETTINGS,
-    ROUTES.MY_BOOKINGS,
+    ROUTES.BOOKINGS,
     ROUTES.TRIPS_CREATE,
   ]
 

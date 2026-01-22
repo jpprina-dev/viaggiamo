@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Annotated
 
 import strawberry
 from sqlalchemy import select
+from strawberry.scalars import JSON
 
 if TYPE_CHECKING:
     from app.graphql.types.user import UserType
@@ -29,6 +30,7 @@ class TripType:
     is_active: bool
     is_completed: bool
     trip_legal_compliance_ack: bool
+    trip_preferences: JSON | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -76,6 +78,7 @@ class TripCreateInput:
     total_seats: int
     price_per_seat: Decimal
     description: str | None = None
+    trip_preferences: JSON | None = None
     trip_legal_compliance_ack: bool
 
 
@@ -94,6 +97,7 @@ class TripUpdateInput:
     is_active: bool | None = None
     is_completed: bool | None = None
     trip_legal_compliance_ack: bool | None = None
+    trip_preferences: JSON | None = None
 
 
 @strawberry.input

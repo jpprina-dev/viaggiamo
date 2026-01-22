@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { sharedMetadata } from '@/config/metadata'
 import { NavBar } from '@/components/layout'
+import { ScrollToTop } from '@/components/ScrollToTop'
 
 export const metadata: Metadata = {
   ...sharedMetadata,
@@ -43,6 +44,7 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
+          <ScrollToTop />
           <NavBar />
           {children}
         </AuthProvider>

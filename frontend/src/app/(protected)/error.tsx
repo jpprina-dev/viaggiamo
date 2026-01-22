@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui'
+import { ROUTES } from '@/config/routes'
 
 export default function ProtectedError({
   error,
@@ -44,11 +45,11 @@ export default function ProtectedError({
             </Button>
 
             <Button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push(ROUTES.PROFILE)}
               fullWidth
               variant="outline"
             >
-              Ir al Dashboard
+              Ir al Perfil
             </Button>
           </div>
         </div>
