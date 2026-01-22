@@ -8,12 +8,22 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('accessToken')?.value
 
   // Protected routes that require authentication
-  const protectedPaths = ['/profile', '/settings', '/bookings']
+  const protectedPaths = [
+    '/profile',
+    '/settings',
+    '/bookings',
+    '/dashboard',
+    '/trips/create',
+    '/vehicles',
+    '/add-vehicle'
+  ]
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
 
   // Redirect to login if accessing protected route without token
   if (isProtectedPath && !token) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('returnUrl', pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
   // NOTE: Removed automatic redirect from auth routes to profile
