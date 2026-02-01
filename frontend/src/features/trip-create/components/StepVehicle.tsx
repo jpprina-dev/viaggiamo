@@ -260,7 +260,7 @@ export function StepVehicle({
               {...register('pricePerSeat', { valueAsNumber: true })}
               min={0}
               step="0.01"
-              placeholder="Ej: 50.00"
+              placeholder="Ej: 5000"
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             />
           </div>
