@@ -13,13 +13,13 @@ const CREATE_TRIP_MUTATION = gql`
       id
       origin
       destination
-      departureTime
-      availableSeats
-      totalSeats
-      pricePerSeat
+      departure_time
+      available_seats
+      total_seats
+      price_per_seat
       description
-      tripPreferences
-      isActive
+      trip_preferences
+      is_active
     }
   }
 `

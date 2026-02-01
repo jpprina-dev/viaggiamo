@@ -95,30 +95,30 @@ export const stepSchemas = [
   tripLegalComplianceSchema,
 ] as const
 
-// GraphQL mutation input type
+// GraphQL mutation input type (snake_case to match backend)
 export interface TripCreateInput {
   origin: string
   destination: string
-  departureTime: string
-  vehicleId: number
-  totalSeats: number
-  pricePerSeat: number
+  departure_time: string
+  vehicle_id: number
+  total_seats: number
+  price_per_seat: number
   description?: string
-  tripPreferences?: { preferences: string[] }
-  tripLegalComplianceAck: boolean
+  trip_preferences?: { preferences: string[] }
+  trip_legal_compliance_ack: boolean
 }
 
-// Created trip response
+// Created trip response (snake_case to match backend)
 export interface CreatedTrip {
   id: number
   origin: string
   destination: string
-  departureTime: string
-  availableSeats: number
-  totalSeats: number
-  pricePerSeat: number
+  departure_time: string
+  available_seats: number
+  total_seats: number
+  price_per_seat: number
   description?: string
-  tripPreferences?: { preferences: string[] }
-  isActive: boolean
+  trip_preferences?: { preferences: string[] }
+  is_active: boolean
 }
 

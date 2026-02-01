@@ -96,15 +96,15 @@ export function CreateTripWizard() {
       const tripInput: TripCreateInput = {
         origin: data.origin,
         destination: data.destination,
-        departureTime: departureDateTime.toISOString(),
-        vehicleId: data.vehicleId,
-        totalSeats: data.totalSeats,
-        pricePerSeat: data.pricePerSeat,
+        departure_time: departureDateTime.toISOString(),
+        vehicle_id: data.vehicleId,
+        total_seats: data.totalSeats,
+        price_per_seat: data.pricePerSeat,
         description: data.description || undefined,
-        tripPreferences: data.tripPreferences && data.tripPreferences.length > 0 
+        trip_preferences: data.tripPreferences && data.tripPreferences.length > 0 
           ? { preferences: data.tripPreferences }
           : undefined,
-        tripLegalComplianceAck: data.tripLegalComplianceAck,
+        trip_legal_compliance_ack: data.tripLegalComplianceAck,
       }
 
       const createdTrip = await createTrip(tripInput)
