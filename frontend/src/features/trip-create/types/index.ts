@@ -95,7 +95,7 @@ export const stepSchemas = [
   tripLegalComplianceSchema,
 ] as const
 
-// GraphQL mutation input type
+// GraphQL mutation input type (camelCase - Strawberry auto-converts from Python snake_case)
 export interface TripCreateInput {
   origin: string
   destination: string
@@ -108,7 +108,7 @@ export interface TripCreateInput {
   tripLegalComplianceAck: boolean
 }
 
-// Created trip response
+// Created trip response (camelCase - Strawberry auto-converts from Python snake_case)
 export interface CreatedTrip {
   id: number
   origin: string

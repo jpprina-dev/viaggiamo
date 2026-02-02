@@ -21,6 +21,10 @@ export interface Trip {
   totalSeats: number
   pricePerSeat: number
   description?: string
+  isActive: boolean
+  tripPreferences?: {
+    preferences: string[]
+  }
 }
 
 export interface Driver {
@@ -29,6 +33,8 @@ export interface Driver {
   lastName: string
   username: string
   profilePicture?: string
+  profileShortBio?: string
+  status: string
   averageRating?: number
 }
 
@@ -38,6 +44,8 @@ export interface Vehicle {
   model: string
   year: number
   color?: string
+  licensePlate: string
+  seats: number
 }
 
 export interface TripSearchResult {

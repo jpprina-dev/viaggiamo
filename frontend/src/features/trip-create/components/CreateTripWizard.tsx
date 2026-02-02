@@ -111,8 +111,21 @@ export function CreateTripWizard() {
       
       toast.success('¡Viaje publicado exitosamente!')
       router.push(ROUTES.TRIP_DETAIL(createdTrip.id))
-    } catch (error) {
-      toast.error('Error al publicar el viaje. Por favor, intenta de nuevo.')
+    } catch (error: unknown) {
+      console.error('Error creating trip:', error)
+      // Extract error message from GraphQL error
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Error desconocido'
+      toast.error(`Error al publicar el viaje: ${errorMessage}`)
+    }
+  }
+
+  const onFormError = (errors: typeof form.formState.errors) => {
+    console.error('Form validation errors:', errors)
+    const firstError = Object.values(errors)[0]
+    if (firstError?.message) {
+      toast.error(`Error de validación: ${firstError.message}`)
     }
   }
 
@@ -163,7 +176,7 @@ export function CreateTripWizard() {
       <StepIndicator steps={STEPS} currentStep={currentStep} />
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit, onFormError)}>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
           {renderStep()}
         </div>

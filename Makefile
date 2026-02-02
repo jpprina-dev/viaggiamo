@@ -87,6 +87,10 @@ migrate-create: ## Crear nueva migración (uso: make migrate-create MESSAGE="des
 	@echo "$(GREEN)Creando migración: $(MESSAGE)$(NC)"
 	@cd $(BACKEND_DIR) && uv run alembic revision --autogenerate -m "$(MESSAGE)"
 
+reset-sequences: ## Resetear secuencias de IDs en PostgreSQL
+	@echo "$(GREEN)Reseteando secuencias de IDs...$(NC)"
+	@uv run python backend/scripts/reset_sequences.py
+
 test: ## Ejecutar tests
 	@echo "$(GREEN)Ejecutando tests del backend...$(NC)"
 	@cd $(BACKEND_DIR) && uv run pytest
