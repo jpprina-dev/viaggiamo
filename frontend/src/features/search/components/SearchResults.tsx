@@ -253,7 +253,6 @@ export function SearchResults({
           <TripCard
             key={result.trip.id}
             result={result}
-            showRelevanceScore={sortBy === 'relevance'}
           />
         ))}
       </div>

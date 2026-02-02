@@ -95,30 +95,30 @@ export const stepSchemas = [
   tripLegalComplianceSchema,
 ] as const
 
-// GraphQL mutation input type (snake_case to match backend)
+// GraphQL mutation input type (camelCase - Strawberry auto-converts from Python snake_case)
 export interface TripCreateInput {
   origin: string
   destination: string
-  departure_time: string
-  vehicle_id: number
-  total_seats: number
-  price_per_seat: number
+  departureTime: string
+  vehicleId: number
+  totalSeats: number
+  pricePerSeat: number
   description?: string
-  trip_preferences?: { preferences: string[] }
-  trip_legal_compliance_ack: boolean
+  tripPreferences?: { preferences: string[] }
+  tripLegalComplianceAck: boolean
 }
 
-// Created trip response (snake_case to match backend)
+// Created trip response (camelCase - Strawberry auto-converts from Python snake_case)
 export interface CreatedTrip {
   id: number
   origin: string
   destination: string
-  departure_time: string
-  available_seats: number
-  total_seats: number
-  price_per_seat: number
+  departureTime: string
+  availableSeats: number
+  totalSeats: number
+  pricePerSeat: number
   description?: string
-  trip_preferences?: { preferences: string[] }
-  is_active: boolean
+  tripPreferences?: { preferences: string[] }
+  isActive: boolean
 }
 

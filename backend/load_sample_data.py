@@ -3,21 +3,32 @@
 
 import asyncio
 import json
+import sys
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+# Add backend directory to Python path if running from root
+script_dir = Path(__file__).parent
+if script_dir.name == "backend":
+    backend_dir = script_dir
+else:
+    backend_dir = script_dir / "backend"
 
-from app.core.config import settings
-from app.core.security import get_password_hash
-from app.models.booking import Booking
-from app.models.rating import Rating
-from app.models.trip import Trip
-from app.models.user import User
-from app.models.vehicle import Vehicle
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
+from sqlalchemy import select, text  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
+
+from app.core.config import settings  # noqa: E402
+from app.core.security import get_password_hash  # noqa: E402
+from app.models.booking import Booking  # noqa: E402
+from app.models.rating import Rating  # noqa: E402
+from app.models.trip import Trip  # noqa: E402
+from app.models.user import User  # noqa: E402
+from app.models.vehicle import Vehicle  # noqa: E402
 
 
 def parse_datetime(dt_string: str | None) -> datetime | None:
@@ -228,6 +239,24 @@ async def load_data():
 
         await session.commit()
         print(f"   ✓ Inserted {len(ratings_data)} ratings")
+
+        # Reset sequences to avoid duplicate key errors
+        print("\n🔄 Resetting ID sequences...")
+        tables = ["users", "vehicles", "trips", "bookings", "ratings"]
+        for table in tables:
+            result = await session.execute(
+                text(f"SELECT COALESCE(MAX(id), 0) FROM {table}")
+            )
+            max_id = result.scalar()
+            next_id = max_id + 1
+            await session.execute(
+                text(
+                    f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), {max_id}, true);"
+                )
+            )
+            print(f"   ✓ {table}: sequence set (next ID will be {next_id})")
+        await session.commit()
+        print("   ✓ All ID sequences reset successfully")
 
         # Print summary
         print("\n" + "=" * 60)

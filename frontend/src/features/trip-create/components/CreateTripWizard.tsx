@@ -96,23 +96,36 @@ export function CreateTripWizard() {
       const tripInput: TripCreateInput = {
         origin: data.origin,
         destination: data.destination,
-        departure_time: departureDateTime.toISOString(),
-        vehicle_id: data.vehicleId,
-        total_seats: data.totalSeats,
-        price_per_seat: data.pricePerSeat,
+        departureTime: departureDateTime.toISOString(),
+        vehicleId: data.vehicleId,
+        totalSeats: data.totalSeats,
+        pricePerSeat: data.pricePerSeat,
         description: data.description || undefined,
-        trip_preferences: data.tripPreferences && data.tripPreferences.length > 0 
+        tripPreferences: data.tripPreferences && data.tripPreferences.length > 0 
           ? { preferences: data.tripPreferences }
           : undefined,
-        trip_legal_compliance_ack: data.tripLegalComplianceAck,
+        tripLegalComplianceAck: data.tripLegalComplianceAck,
       }
 
       const createdTrip = await createTrip(tripInput)
       
       toast.success('¡Viaje publicado exitosamente!')
       router.push(ROUTES.TRIP_DETAIL(createdTrip.id))
-    } catch (error) {
-      toast.error('Error al publicar el viaje. Por favor, intenta de nuevo.')
+    } catch (error: unknown) {
+      console.error('Error creating trip:', error)
+      // Extract error message from GraphQL error
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Error desconocido'
+      toast.error(`Error al publicar el viaje: ${errorMessage}`)
+    }
+  }
+
+  const onFormError = (errors: typeof form.formState.errors) => {
+    console.error('Form validation errors:', errors)
+    const firstError = Object.values(errors)[0]
+    if (firstError?.message) {
+      toast.error(`Error de validación: ${firstError.message}`)
     }
   }
 
@@ -163,7 +176,7 @@ export function CreateTripWizard() {
       <StepIndicator steps={STEPS} currentStep={currentStep} />
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit, onFormError)}>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
           {renderStep()}
         </div>
