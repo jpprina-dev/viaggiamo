@@ -1,4 +1,4 @@
-import { User, Car, Calendar, MapPin } from 'lucide-react'
+import { User } from 'lucide-react'
 import { Card } from '@/components/ui'
 import type { User as UserType } from '@/types'
 
@@ -6,11 +6,12 @@ interface WelcomeCardProps {
   user: UserType
 }
 
-const stats = [
-  { label: 'Viajes Publicados', value: '0', icon: Car, color: 'bg-primary-100 text-primary-600' },
-  { label: 'Reservas Realizadas', value: '0', icon: Calendar, color: 'bg-emerald-100 text-emerald-600' },
-  { label: 'Kilómetros Recorridos', value: '0', icon: MapPin, color: 'bg-blue-100 text-blue-600' },
-] as const
+// TODO: Stats to be included later
+// const stats = [
+//   { label: 'Viajes Publicados', value: '0', icon: Car, color: 'bg-primary-100 text-primary-600' },
+//   { label: 'Reservas Realizadas', value: '0', icon: Calendar, color: 'bg-emerald-100 text-emerald-600' },
+//   { label: 'Kilómetros Recorridos', value: '0', icon: MapPin, color: 'bg-blue-100 text-blue-600' },
+// ] as const
 
 export function WelcomeCard({ user }: WelcomeCardProps) {
   const fullName = `${user.name} ${user.last_name}`
@@ -40,6 +41,7 @@ export function WelcomeCard({ user }: WelcomeCardProps) {
           </p>
         </div>
       </div>
+      {/* TODO: Stats to be included later
       <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-3 gap-4">
         {stats.map((stat, idx) => (
           <div
@@ -56,6 +58,7 @@ export function WelcomeCard({ user }: WelcomeCardProps) {
           </div>
         ))}
       </div>
+      */}
     </Card>
   )
 }

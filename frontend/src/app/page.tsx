@@ -6,7 +6,7 @@ import {
   PopularTrips,
   BenefitsSection,
   CTASection,
-  StatsSection,
+  // StatsSection, // TODO: feature to be included later
   HowItWorksSection,
 } from '@/features/home/components'
 
@@ -17,7 +17,7 @@ export default function HomePage() {
       <PopularTrips />
       <CTASection />
       <BenefitsSection />
-      <StatsSection />
+      {/* <StatsSection /> TODO: feature to be included later */}
       <HowItWorksSection />
       <Footer />
     </div>

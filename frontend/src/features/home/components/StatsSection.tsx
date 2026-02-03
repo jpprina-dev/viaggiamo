@@ -1,3 +1,5 @@
+// TODO: Feature to be included later — usage commented out in app/page.tsx
+
 const stats = [
   { number: '165.000', label: 'Usuarios' },
   { number: '52.500', label: 'Viajes publicados' },
