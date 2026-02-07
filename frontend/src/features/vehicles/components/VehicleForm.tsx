@@ -33,9 +33,11 @@ interface VehicleFormProps {
   onSubmit: (data: VehicleCreateInput) => Promise<void>
   onCancel?: () => void
   isLoading: boolean
+  /** When true, renders without the outer Card (e.g. inside a modal) */
+  embedded?: boolean
 }
 
-export function VehicleForm({ vehicle, onSubmit, onCancel, isLoading }: VehicleFormProps) {
+export function VehicleForm({ vehicle, onSubmit, onCancel, isLoading, embedded }: VehicleFormProps) {
   const isEditing = Boolean(vehicle?.id)
 
   const {
@@ -77,8 +79,8 @@ export function VehicleForm({ vehicle, onSubmit, onCancel, isLoading }: VehicleF
     })
   }
 
-  return (
-    <Card variant="bordered" padding="lg">
+  const formContent = (
+    <>
       <h2 className="text-xl font-bold text-gray-900 mb-4">
         {isEditing ? 'Editar vehículo' : 'Agregar vehículo'}
       </h2>
@@ -156,6 +158,16 @@ export function VehicleForm({ vehicle, onSubmit, onCancel, isLoading }: VehicleF
           )}
         </div>
       </form>
+    </>
+  )
+
+  if (embedded) {
+    return formContent
+  }
+
+  return (
+    <Card variant="bordered" padding="lg">
+      {formContent}
     </Card>
   )
 }

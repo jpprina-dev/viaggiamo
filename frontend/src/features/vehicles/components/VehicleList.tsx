@@ -1,6 +1,7 @@
 'use client'
 
-import { Car, Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Plus } from 'lucide-react'
+import { cn } from '@/utils/cn'
 import { Card, Button, Badge } from '@/components/ui'
 import type { Vehicle } from '../types'
 import { DeleteVehicleModal } from './DeleteVehicleModal'
@@ -8,6 +9,7 @@ import { DeleteVehicleModal } from './DeleteVehicleModal'
 interface VehicleListProps {
   vehicles: Vehicle[]
   loading: boolean
+  onAddClick: () => void
   onEdit: (vehicle: Vehicle) => void
   onDelete: (vehicle: Vehicle) => void
   deleteTarget: Vehicle | null
@@ -19,6 +21,7 @@ interface VehicleListProps {
 export function VehicleList({
   vehicles,
   loading,
+  onAddClick,
   onEdit,
   onDelete,
   deleteTarget,
@@ -36,15 +39,36 @@ export function VehicleList({
 
   if (vehicles.length === 0) {
     return (
-      <Card variant="bordered" padding="lg">
-        <div className="text-center py-12">
-          <Car className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No tenés vehículos</h3>
-          <p className="text-gray-600">
-            Agregá tu primer vehículo con el formulario de arriba para poder publicar viajes.
-          </p>
+      <>
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900">Mis vehículos</h2>
+          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+            <button
+              type="button"
+              onClick={onAddClick}
+              className={cn(
+                'w-full flex flex-col sm:flex-row items-center gap-4 p-6 rounded-xl border-2 border-dashed transition-all text-left',
+                'border-gray-300 hover:border-primary-500 hover:bg-primary-50 bg-white'
+              )}
+            >
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+                <Plus className="h-6 w-6" />
+              </div>
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                <p className="font-semibold text-gray-900">Agregar vehículo</p>
+                <p className="text-sm text-gray-500">Registra un nuevo vehículo</p>
+              </div>
+            </button>
+          </div>
         </div>
-      </Card>
+        <DeleteVehicleModal
+          show={Boolean(deleteTarget)}
+          vehicleLabel={deleteTarget ? `${deleteTarget.make} ${deleteTarget.model}` : ''}
+          onClose={onCloseDelete}
+          onConfirm={onConfirmDelete}
+          loading={deleteLoading}
+        />
+      </>
     )
   }
 
@@ -100,6 +124,23 @@ export function VehicleList({
               </div>
             </Card>
           ))}
+          {/* Add vehicle mock card - like StepVehicle */}
+          <button
+            type="button"
+            onClick={onAddClick}
+            className={cn(
+              'w-full flex flex-col sm:flex-row items-center gap-4 p-6 rounded-xl border-2 border-dashed transition-all text-left',
+              'border-gray-300 hover:border-primary-500 hover:bg-primary-50 bg-white'
+            )}
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+              <Plus className="h-6 w-6" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-gray-900">Agregar vehículo</p>
+              <p className="text-sm text-gray-500">Registra un nuevo vehículo</p>
+            </div>
+          </button>
         </div>
       </div>
 

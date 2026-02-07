@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import {
-  VehicleForm,
   VehicleList,
+  AddVehicleModal,
   useMyVehiclesAll,
   useCreateVehicle,
   useUpdateVehicle,
@@ -17,6 +17,7 @@ export default function AddVehiclePage() {
   const { updateVehicle, loading: updateLoading } = useUpdateVehicle()
   const { deleteVehicle, loading: deleteLoading } = useDeleteVehicle()
 
+  const [formModalOpen, setFormModalOpen] = useState(false)
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null)
 
@@ -26,17 +27,29 @@ export default function AddVehiclePage() {
     async (data: VehicleCreateInput) => {
       if (editingVehicle) {
         await updateVehicle(editingVehicle.id, data)
-        setEditingVehicle(null)
       } else {
         await createVehicle(data)
       }
+      setFormModalOpen(false)
+      setEditingVehicle(null)
       refetch()
     },
     [editingVehicle, createVehicle, updateVehicle, refetch]
   )
 
-  const handleCancelEdit = useCallback(() => {
+  const handleCloseFormModal = useCallback(() => {
+    setFormModalOpen(false)
     setEditingVehicle(null)
+  }, [])
+
+  const handleAddClick = useCallback(() => {
+    setEditingVehicle(null)
+    setFormModalOpen(true)
+  }, [])
+
+  const handleEdit = useCallback((vehicle: Vehicle) => {
+    setEditingVehicle(vehicle)
+    setFormModalOpen(true)
   }, [])
 
   const handleConfirmDelete = useCallback(async () => {
@@ -57,18 +70,11 @@ export default function AddVehiclePage() {
             </p>
           </div>
 
-          <VehicleForm
-            key={editingVehicle?.id ?? 'new'}
-            vehicle={editingVehicle}
-            onSubmit={handleSubmit}
-            onCancel={handleCancelEdit}
-            isLoading={formLoading}
-          />
-
           <VehicleList
             vehicles={vehicles}
             loading={listLoading}
-            onEdit={setEditingVehicle}
+            onAddClick={handleAddClick}
+            onEdit={handleEdit}
             onDelete={setDeleteTarget}
             deleteTarget={deleteTarget}
             deleteLoading={deleteLoading}
@@ -77,6 +83,14 @@ export default function AddVehiclePage() {
           />
         </div>
       </main>
+
+      <AddVehicleModal
+        show={formModalOpen}
+        vehicle={editingVehicle}
+        onSubmit={handleSubmit}
+        onClose={handleCloseFormModal}
+        isLoading={formLoading}
+      />
     </div>
   )
 }
