@@ -19,6 +19,7 @@ const MY_VEHICLES_QUERY = gql`
       licensePlate
       seats
       isActive
+      createdAt
     }
   }
 `
@@ -51,8 +52,10 @@ export function useMyVehicles(): UseMyVehiclesResult {
         myVehicles: Vehicle[]
       }>(MY_VEHICLES_QUERY)
 
-      // Filter only active vehicles
-      const activeVehicles = response.myVehicles.filter(v => v.isActive)
+      // Filter only active vehicles and sort by creation time ascending (oldest first)
+      const activeVehicles = response.myVehicles
+        .filter(v => v.isActive)
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
       setVehicles(activeVehicles)
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to fetch vehicles')

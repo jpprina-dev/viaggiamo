@@ -224,7 +224,7 @@ class VehicleMutations:
     @strawberry.mutation
     async def delete_vehicle(self, info: Info[Context, None], vehicle_id: int) -> bool:
         """
-        Soft delete a vehicle (mark as inactive).
+        Delete a vehicle. Hard deletes if no trips exist, otherwise soft deletes (marks as inactive).
 
         Args:
             vehicle_id: The vehicle ID to delete
@@ -235,6 +235,8 @@ class VehicleMutations:
         Raises:
             ValueError: If user is not authenticated, not the vehicle owner, or vehicle not found
         """
+        from app.models.trip import Trip
+
         context = info.context
         if not context.user:
             raise ValueError("Authentication required")
@@ -250,7 +252,19 @@ class VehicleMutations:
         if vehicle.user_id != context.user.id:
             raise ValueError("Not authorized to delete this vehicle")
 
-        vehicle.is_active = False
-        await context.db.commit()
+        # Check if vehicle has any trips
+        trip_result = await context.db.execute(
+            select(Trip).where(Trip.vehicle_id == vehicle_id).limit(1)
+        )
+        has_trips = trip_result.scalar_one_or_none() is not None
+
+        if has_trips:
+            # Soft delete: vehicle is used in trips
+            vehicle.is_active = False
+            await context.db.commit()
+        else:
+            # Hard delete: no trips associated
+            await context.db.delete(vehicle)
+            await context.db.commit()
 
         return True

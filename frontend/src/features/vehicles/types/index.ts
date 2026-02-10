@@ -12,6 +12,7 @@ export interface Vehicle {
   seats: number
   isActive: boolean
   vehicleLegalComplianceAck?: boolean
+  createdAt: string
 }
 
 export interface VehicleCreateInput {

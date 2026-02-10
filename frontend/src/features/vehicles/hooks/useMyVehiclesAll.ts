@@ -20,6 +20,7 @@ const MY_VEHICLES_QUERY = gql`
       seats
       isActive
       vehicleLegalComplianceAck
+      createdAt
     }
   }
 `
@@ -51,7 +52,11 @@ export function useMyVehiclesAll(): UseMyVehiclesAllResult {
       const response = await graphqlClient.request<{
         myVehicles: Vehicle[]
       }>(MY_VEHICLES_QUERY)
-      setVehicles(response.myVehicles)
+      // Sort by creation time ascending (oldest first)
+      const sortedVehicles = [...response.myVehicles].sort((a, b) => 
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      setVehicles(sortedVehicles)
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Error al cargar vehículos')
       setError(error)

@@ -20,6 +20,7 @@ export default function AddVehiclePage() {
   const [formModalOpen, setFormModalOpen] = useState(false)
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null)
+  const [togglingVehicleId, setTogglingVehicleId] = useState<number | null>(null)
 
   const formLoading = createLoading || updateLoading
 
@@ -52,6 +53,24 @@ export default function AddVehiclePage() {
     setFormModalOpen(true)
   }, [])
 
+  const handleToggleActive = useCallback(
+    async (vehicle: Vehicle) => {
+      if (togglingVehicleId) return // Prevent multiple toggles at once
+      
+      setTogglingVehicleId(vehicle.id)
+      try {
+        await updateVehicle(vehicle.id, { isActive: !vehicle.isActive })
+        await refetch()
+      } catch (error) {
+        console.error('Error toggling vehicle:', error)
+        await refetch() // Refetch to restore correct state
+      } finally {
+        setTogglingVehicleId(null)
+      }
+    },
+    [togglingVehicleId, updateVehicle, refetch]
+  )
+
   const handleConfirmDelete = useCallback(async () => {
     if (!deleteTarget) return
     await deleteVehicle(deleteTarget.id)
@@ -74,6 +93,8 @@ export default function AddVehiclePage() {
             vehicles={vehicles}
             loading={listLoading}
             onAddClick={handleAddClick}
+            onToggleActive={handleToggleActive}
+            togglingVehicleId={togglingVehicleId}
             onEdit={handleEdit}
             onDelete={setDeleteTarget}
             deleteTarget={deleteTarget}

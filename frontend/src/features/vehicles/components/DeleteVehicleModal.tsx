@@ -37,7 +37,8 @@ export function DeleteVehicleModal({
               ¿Eliminar este vehículo?
             </h3>
             <p className="mt-2 text-sm text-gray-600">
-              {vehicleLabel} se marcará como inactivo y no podrás usarlo en nuevos viajes.
+              Si el vehículo tiene viajes asociados, se marcará como inactivo. 
+              De lo contrario, se eliminará permanentemente.
             </p>
           </div>
           <div className="mt-6 flex gap-3">

@@ -2,7 +2,7 @@
 
 import { Pencil, Trash2, Plus } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { Card, Button, Badge } from '@/components/ui'
+import { Card, Button, Switch } from '@/components/ui'
 import type { Vehicle } from '../types'
 import { DeleteVehicleModal } from './DeleteVehicleModal'
 
@@ -10,6 +10,8 @@ interface VehicleListProps {
   vehicles: Vehicle[]
   loading: boolean
   onAddClick: () => void
+  onToggleActive: (vehicle: Vehicle) => void
+  togglingVehicleId?: number | null
   onEdit: (vehicle: Vehicle) => void
   onDelete: (vehicle: Vehicle) => void
   deleteTarget: Vehicle | null
@@ -22,6 +24,8 @@ export function VehicleList({
   vehicles,
   loading,
   onAddClick,
+  onToggleActive,
+  togglingVehicleId,
   onEdit,
   onDelete,
   deleteTarget,
@@ -42,7 +46,7 @@ export function VehicleList({
       <>
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-gray-900">Mis vehículos</h2>
-          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+          <div className="flex flex-col gap-4">
             <button
               type="button"
               onClick={onAddClick}
@@ -76,37 +80,41 @@ export function VehicleList({
     <>
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-gray-900">Mis vehículos</h2>
-        <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+        <div className="flex flex-col gap-4">
           {vehicles.map((vehicle) => (
             <Card
               key={vehicle.id}
               variant="bordered"
               padding="md"
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              className={cn(
+                'flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all',
+                !vehicle.isActive && 'opacity-50 grayscale'
+              )}
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-gray-900">
                     {vehicle.make} {vehicle.model}
                   </span>
-                  {!vehicle.isActive && (
-                    <Badge variant="neutral" size="sm">
-                      Inactivo
-                    </Badge>
-                  )}
                 </div>
                 <p className="text-sm text-gray-600 mt-0.5">
                   {vehicle.year} {vehicle.color ? `• ${vehicle.color}` : ''} • {vehicle.seats} asientos
                 </p>
                 <p className="text-sm text-gray-500">Patente: {vehicle.licensePlate}</p>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 items-center gap-3">
+                <Switch
+                  id={`vehicle-switch-${vehicle.id}`}
+                  checked={vehicle.isActive}
+                  onCheckedChange={() => onToggleActive(vehicle)}
+                  disabled={togglingVehicleId !== null}
+                  title={vehicle.isActive ? "Desactivar" : "Activar"}
+                />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => onEdit(vehicle)}
-                  disabled={!vehicle.isActive}
                   title="Editar"
                 >
                   <Pencil className="h-4 w-4" />
@@ -116,7 +124,6 @@ export function VehicleList({
                   variant="danger"
                   size="sm"
                   onClick={() => onDelete(vehicle)}
-                  disabled={!vehicle.isActive}
                   title="Eliminar"
                 >
                   <Trash2 className="h-4 w-4" />
