@@ -1,5 +1,5 @@
 /**
- * Hook for fetching all current user's vehicles (including inactive) for CRUD list
+ * Hook for fetching the current user's active vehicles for CRUD management
  */
 
 import { useCallback, useState, useEffect } from 'react'

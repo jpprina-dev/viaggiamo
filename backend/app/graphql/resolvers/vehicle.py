@@ -29,7 +29,10 @@ class VehicleQueries:
             raise ValueError("Authentication required")
 
         result = await context.db.execute(
-            select(Vehicle).where(Vehicle.user_id == context.user.id)
+            select(Vehicle).where(
+                Vehicle.user_id == context.user.id,
+                Vehicle.is_active == True,  # noqa: E712
+            )
         )
         vehicles = result.scalars().all()
 
@@ -259,11 +262,11 @@ class VehicleMutations:
         has_trips = trip_result.scalar_one_or_none() is not None
 
         if has_trips:
-            # Soft delete: vehicle is used in trips
+            # Soft delete: vehicle is used in trips — preserve record for trip history
             vehicle.is_active = False
             await context.db.commit()
         else:
-            # Hard delete: no trips associated
+            # Hard delete: no trips associated — permanently remove the record
             await context.db.delete(vehicle)
             await context.db.commit()
 

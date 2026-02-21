@@ -93,6 +93,62 @@ class TestVehicleQueries:
         assert result[0].license_plate == "ABC-123"
 
     @pytest.mark.asyncio
+    async def test_my_vehicles_returns_only_active_vehicles(self) -> None:
+        """Test that myVehicles query includes is_active filter to exclude soft-deleted vehicles."""
+        # Mock user
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        # Mock database result (single active vehicle)
+        mock_vehicle = MagicMock(spec=Vehicle)
+        mock_vehicle.id = 1
+        mock_vehicle.user_id = 1
+        mock_vehicle.make = "Toyota"
+        mock_vehicle.model = "Corolla"
+        mock_vehicle.year = 2020
+        mock_vehicle.color = "Blue"
+        mock_vehicle.license_plate = "ABC-123"
+        mock_vehicle.seats = 5
+        mock_vehicle.is_active = True
+        mock_vehicle.vehicle_legal_compliance_ack = True
+        mock_vehicle.created_at = "2024-01-01T00:00:00Z"
+        mock_vehicle.updated_at = "2024-01-01T00:00:00Z"
+
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = [mock_vehicle]
+
+        # Mock context
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(return_value=mock_result)
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        queries = VehicleQueries()
+        result = await queries.my_vehicles(mock_info)
+
+        # Verify the SQL query sent to the DB includes an is_active WHERE filter.
+        # Compile with literal binds so boolean True renders as "true" or "1".
+        from sqlalchemy.dialects import sqlite
+
+        executed_query = mock_context.db.execute.call_args[0][0]
+        compiled = executed_query.compile(
+            dialect=sqlite.dialect(), compile_kwargs={"literal_binds": True}
+        )
+        where_clause = (
+            str(compiled).split("WHERE")[-1] if "WHERE" in str(compiled) else ""
+        )
+        assert "is_active" in where_clause, (
+            "myVehicles WHERE clause must filter by is_active to exclude soft-deleted vehicles. "
+            f"WHERE clause was: '{where_clause}'"
+        )
+
+        assert len(result) == 1
+        assert result[0].id == 1
+
+    @pytest.mark.asyncio
     async def test_vehicle_returns_vehicle_by_id(self):
         """Test that vehicle returns a vehicle by ID."""
         # Mock vehicle
@@ -310,6 +366,54 @@ class TestVehicleMutations:
             assert result.license_plate == "ABC-123"
 
     @pytest.mark.asyncio
+    async def test_create_vehicle_produces_active_vehicle(self) -> None:
+        """Test that createVehicle sets is_active=True on new vehicles (US3 validation)."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.add = MagicMock()
+        mock_context.db.commit = AsyncMock()
+        mock_context.db.refresh = AsyncMock()
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        vehicle_input = VehicleCreateInput(
+            make="Honda",
+            model="Civic",
+            year=2021,
+            license_plate="NEW-001",
+            seats=4,
+            vehicle_legal_compliance_ack=True,
+        )
+
+        mutations = VehicleMutations()
+
+        with patch("app.graphql.resolvers.vehicle.Vehicle") as mock_vehicle_class:
+            mock_instance = MagicMock()
+            mock_vehicle_class.return_value = mock_instance
+            mock_instance.id = 10
+            mock_instance.user_id = 1
+            mock_instance.make = "Honda"
+            mock_instance.model = "Civic"
+            mock_instance.year = 2021
+            mock_instance.color = None
+            mock_instance.license_plate = "NEW-001"
+            mock_instance.seats = 4
+            mock_instance.is_active = True
+            mock_instance.vehicle_legal_compliance_ack = True
+            mock_instance.created_at = "2024-01-01T00:00:00Z"
+            mock_instance.updated_at = "2024-01-01T00:00:00Z"
+
+            result = await mutations.create_vehicle(mock_info, vehicle_input)
+
+        # New vehicle must be active so it appears in myVehicles filtered query
+        assert result.is_active is True
+
+    @pytest.mark.asyncio
     async def test_update_vehicle_requires_authentication(self):
         """Test that updateVehicle requires authentication."""
         # Mock context without user
@@ -361,6 +465,61 @@ class TestVehicleMutations:
             )
 
     @pytest.mark.asyncio
+    async def test_update_vehicle_partial_update_preserves_unchanged_fields(
+        self,
+    ) -> None:
+        """Test that updateVehicle only modifies supplied fields (US4 validation)."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        # Vehicle with known values for all fields
+        mock_vehicle = MagicMock(spec=Vehicle)
+        mock_vehicle.user_id = 1
+        mock_vehicle.make = "Toyota"
+        mock_vehicle.model = "Corolla"
+        mock_vehicle.year = 2020
+        mock_vehicle.color = "Blue"
+        mock_vehicle.license_plate = "ABC-123"
+        mock_vehicle.seats = 5
+        mock_vehicle.is_active = True
+        mock_vehicle.vehicle_legal_compliance_ack = True
+        mock_vehicle.created_at = "2024-01-01T00:00:00Z"
+        mock_vehicle.updated_at = "2024-01-01T00:00:00Z"
+
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = mock_vehicle
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(return_value=mock_result)
+        mock_context.db.commit = AsyncMock()
+        mock_context.db.refresh = AsyncMock()
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        # Partial update: only color changes
+        vehicle_input = VehicleUpdateInput(color="Red")
+
+        mutations = VehicleMutations()
+        result = await mutations.update_vehicle(
+            mock_info, vehicle_id=1, vehicle_input=vehicle_input
+        )
+
+        # Changed field
+        assert mock_vehicle.color == "Red"
+
+        # Unchanged fields must retain their original values
+        assert mock_vehicle.make == "Toyota"
+        assert mock_vehicle.model == "Corolla"
+        assert mock_vehicle.year == 2020
+        assert mock_vehicle.seats == 5
+        assert mock_vehicle.license_plate == "ABC-123"
+
+        assert result is not None
+
+    @pytest.mark.asyncio
     async def test_delete_vehicle_requires_authentication(self):
         """Test that deleteVehicle requires authentication."""
         # Mock context without user
@@ -404,8 +563,8 @@ class TestVehicleMutations:
             await mutations.delete_vehicle(mock_info, vehicle_id=1)
 
     @pytest.mark.asyncio
-    async def test_delete_vehicle_soft_deletes_vehicle(self):
-        """Test that deleteVehicle soft deletes a vehicle."""
+    async def test_delete_vehicle_soft_deletes_vehicle(self) -> None:
+        """Test that deleteVehicle soft deletes a vehicle that has associated trips."""
         # Mock user
         mock_user = MagicMock(spec=User)
         mock_user.id = 1
@@ -415,15 +574,23 @@ class TestVehicleMutations:
         mock_vehicle.user_id = 1
         mock_vehicle.is_active = True
 
-        # Mock database result
-        mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = mock_vehicle
+        # First DB call returns the vehicle; second (Trip check) returns a Trip → soft delete
+        mock_vehicle_result = MagicMock()
+        mock_vehicle_result.scalar_one_or_none.return_value = mock_vehicle
+
+        from app.models.trip import Trip
+
+        mock_trip = MagicMock(spec=Trip)
+        mock_trip_result = MagicMock()
+        mock_trip_result.scalar_one_or_none.return_value = mock_trip
 
         # Mock context
         mock_context = MagicMock(spec=Context)
         mock_context.user = mock_user
         mock_context.db = MagicMock()
-        mock_context.db.execute = AsyncMock(return_value=mock_result)
+        mock_context.db.execute = AsyncMock(
+            side_effect=[mock_vehicle_result, mock_trip_result]
+        )
         mock_context.db.commit = AsyncMock()
 
         mock_info = MagicMock(spec=Info)
@@ -434,4 +601,43 @@ class TestVehicleMutations:
 
         assert result is True
         assert mock_vehicle.is_active is False
+        mock_context.db.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_delete_vehicle_hard_deletes_vehicle_without_trips(self) -> None:
+        """Test that deleteVehicle permanently removes a vehicle that has no trips."""
+        # Mock user
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        # Mock vehicle owned by user
+        mock_vehicle = MagicMock(spec=Vehicle)
+        mock_vehicle.user_id = 1
+        mock_vehicle.is_active = True
+
+        # First DB call returns the vehicle; second (Trip check) returns None → hard delete
+        mock_vehicle_result = MagicMock()
+        mock_vehicle_result.scalar_one_or_none.return_value = mock_vehicle
+
+        mock_trip_result = MagicMock()
+        mock_trip_result.scalar_one_or_none.return_value = None  # No associated trips
+
+        # Mock context
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(
+            side_effect=[mock_vehicle_result, mock_trip_result]
+        )
+        mock_context.db.delete = AsyncMock()  # AsyncSession.delete() is a coroutine
+        mock_context.db.commit = AsyncMock()
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        mutations = VehicleMutations()
+        result = await mutations.delete_vehicle(mock_info, vehicle_id=1)
+
+        assert result is True
+        mock_context.db.delete.assert_called_once_with(mock_vehicle)
         mock_context.db.commit.assert_called_once()

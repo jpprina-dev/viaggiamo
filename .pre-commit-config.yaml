@@ -15,20 +15,6 @@ repos:
 
   - repo: local
     hooks:
-      - id: black
-        name: black
-        entry: bash -c 'uv run black "$@"' --
-        language: system
-        types: [python]
-        files: ^backend/
-        pass_filenames: true
-      - id: isort
-        name: isort
-        entry: bash -c 'uv run isort "$@"' --
-        language: system
-        types: [python]
-        files: ^backend/
-        pass_filenames: true
       - id: mypy
         name: mypy
         entry: bash -c 'uv run mypy backend/'
