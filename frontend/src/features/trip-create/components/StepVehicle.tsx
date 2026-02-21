@@ -4,13 +4,13 @@
 
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from 'react-hook-form'
 import { Car, Users, DollarSign, Plus, ChevronDown } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import type { CreateTripFormData, Vehicle } from '../types'
-import { useRouter } from 'next/navigation'
-import { ROUTES } from '@/config/routes'
+import { AddVehicleModal, useCreateVehicle } from '@/features/vehicles'
+import type { VehicleCreateInput } from '@/features/vehicles'
 
 interface StepVehicleProps {
   register: UseFormRegister<CreateTripFormData>
@@ -19,6 +19,7 @@ interface StepVehicleProps {
   setValue: UseFormSetValue<CreateTripFormData>
   vehicles: Vehicle[]
   vehiclesLoading: boolean
+  refetchVehicles: () => Promise<void>
 }
 
 export function StepVehicle({
@@ -28,13 +29,15 @@ export function StepVehicle({
   setValue,
   vehicles,
   vehiclesLoading,
+  refetchVehicles,
 }: StepVehicleProps) {
-  const router = useRouter()
   const selectedVehicleId = watch('vehicleId')
   const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [addModalOpen, setAddModalOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const { createVehicle, loading: createLoading } = useCreateVehicle()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -53,10 +56,20 @@ export function StepVehicle({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleAddVehicle = () => {
+  const handleAddVehicle = useCallback(() => {
     setIsDropdownOpen(false)
-    router.push(ROUTES.ADD_VEHICLE)
-  }
+    setAddModalOpen(true)
+  }, [])
+
+  const handleCreateVehicleSubmit = useCallback(
+    async (data: VehicleCreateInput) => {
+      const newVehicle = await createVehicle(data)
+      await refetchVehicles()
+      setValue('vehicleId', newVehicle.id, { shouldValidate: true })
+      setAddModalOpen(false)
+    },
+    [createVehicle, refetchVehicles, setValue]
+  )
 
   const handleSelectVehicle = (vehicleId: number) => {
     setValue('vehicleId', vehicleId, { shouldValidate: true })
@@ -276,6 +289,13 @@ export function StepVehicle({
           del viaje como combustible y peajes.
         </p>
       </div>
+
+      <AddVehicleModal
+        show={addModalOpen}
+        onSubmit={handleCreateVehicleSubmit}
+        onClose={() => setAddModalOpen(false)}
+        isLoading={createLoading}
+      />
     </div>
   )
 }

@@ -18,15 +18,9 @@ interface StepIndicatorProps {
 export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
   return (
     <nav aria-label="Progress" className="mb-8">
-      <ol className="flex items-center justify-center">
-        {steps.map((step, index) => (
-          <li
-            key={step.id}
-            className={cn(
-              'relative flex items-center',
-              index !== steps.length - 1 && 'flex-1'
-            )}
-          >
+      <ol className="flex w-full items-start justify-between">
+        {steps.map((step) => (
+          <li key={step.id} className="relative flex flex-1 flex-col items-center justify-start">
             <div className="flex flex-col items-center">
               <span
                 className={cn(
@@ -53,14 +47,6 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
                 {step.title}
               </span>
             </div>
-            {index !== steps.length - 1 && (
-              <div
-                className={cn(
-                  'mx-2 h-0.5 flex-1 transition-colors duration-200',
-                  currentStep > step.id ? 'bg-primary-600' : 'bg-gray-300'
-                )}
-              />
-            )}
           </li>
         ))}
       </ol>

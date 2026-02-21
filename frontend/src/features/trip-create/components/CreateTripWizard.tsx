@@ -38,7 +38,7 @@ const STEPS = [
 export function CreateTripWizard() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
-  const { vehicles, loading: vehiclesLoading } = useMyVehicles()
+  const { vehicles, loading: vehiclesLoading, refetch: refetchVehicles } = useMyVehicles()
   const { createTrip, loading: isSubmitting } = useCreateTrip()
 
   const form = useForm<CreateTripFormData>({
@@ -144,6 +144,7 @@ export function CreateTripWizard() {
             setValue={setValue}
             vehicles={vehicles}
             vehiclesLoading={vehiclesLoading}
+            refetchVehicles={refetchVehicles}
           />
         )
       case 4:

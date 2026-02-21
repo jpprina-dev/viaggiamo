@@ -29,6 +29,7 @@ export interface Vehicle {
   licensePlate: string
   seats: number
   isActive: boolean
+  createdAt: string
 }
 
 // Form step schemas

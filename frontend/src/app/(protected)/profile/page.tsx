@@ -9,7 +9,6 @@ import {
   WelcomeCard,
   QuickActions,
   UserInfoCard,
-  StatsCards,
 } from '@/features/profile/components'
 import { ROUTES } from '@/config/routes'
 
@@ -51,10 +50,7 @@ export default function ProfilePage() {
             <p className="text-gray-600">Gestioná tu cuenta y actividades</p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <WelcomeCard user={user} />
-            <StatsCards />
-          </div>
+          <WelcomeCard user={user} />
           <QuickActions />
           
           {/* Mis Viajes y Vehículos */}

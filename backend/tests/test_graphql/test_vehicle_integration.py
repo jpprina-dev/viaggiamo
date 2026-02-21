@@ -221,6 +221,81 @@ class TestVehicleGraphQLIntegration:
 
 
 @pytest.mark.integration
+class TestVehicleDeleteBehavior:
+    """Integration tests for vehicle delete behavior (soft vs hard delete)."""
+
+    @pytest.mark.asyncio
+    async def test_my_vehicles_excludes_soft_deleted_vehicle(self) -> None:
+        """
+        Test that myVehicles query excludes vehicles with is_active=False.
+
+        Simulates the post-soft-delete state by executing the myVehicles query
+        against a mocked context that returns an inactive vehicle, then verifying
+        the resolver returns an empty list.
+        """
+        from unittest.mock import AsyncMock, MagicMock
+
+        from strawberry.types import Info
+
+        from app.graphql.context import Context
+        from app.graphql.resolvers.vehicle import VehicleQueries
+        from app.models.user import User
+        from app.models.vehicle import Vehicle
+
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        # Soft-deleted vehicle — is_active is False
+        soft_deleted_vehicle = MagicMock(spec=Vehicle)
+        soft_deleted_vehicle.id = 1
+        soft_deleted_vehicle.user_id = 1
+        soft_deleted_vehicle.make = "Toyota"
+        soft_deleted_vehicle.model = "Corolla"
+        soft_deleted_vehicle.year = 2020
+        soft_deleted_vehicle.color = "Blue"
+        soft_deleted_vehicle.license_plate = "ABC-123"
+        soft_deleted_vehicle.seats = 5
+        soft_deleted_vehicle.is_active = False
+        soft_deleted_vehicle.vehicle_legal_compliance_ack = True
+        soft_deleted_vehicle.created_at = "2024-01-01T00:00:00Z"
+        soft_deleted_vehicle.updated_at = "2024-01-01T00:00:00Z"
+
+        # DB returns empty because is_active=True filter excludes the soft-deleted vehicle
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(return_value=mock_result)
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        queries = VehicleQueries()
+        result = await queries.my_vehicles(mock_info)
+
+        # Soft-deleted vehicle must not appear in the list
+        assert result == [], (
+            f"myVehicles must return empty list after soft-delete, but got: {result}"
+        )
+
+        # Confirm the query included the is_active filter
+        from sqlalchemy.dialects import sqlite
+
+        executed_query = mock_context.db.execute.call_args[0][0]
+        compiled = executed_query.compile(
+            dialect=sqlite.dialect(), compile_kwargs={"literal_binds": True}
+        )
+        where_clause = (
+            str(compiled).split("WHERE")[-1] if "WHERE" in str(compiled) else ""
+        )
+        assert "is_active" in where_clause, (
+            f"myVehicles WHERE clause must include is_active filter. Got: '{where_clause}'"
+        )
+
+
+@pytest.mark.integration
 class TestVehicleBusinessLogic:
     """Integration tests for vehicle business logic."""
 

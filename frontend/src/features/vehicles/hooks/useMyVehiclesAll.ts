@@ -1,5 +1,5 @@
 /**
- * Hook for fetching current user's vehicles
+ * Hook for fetching the current user's active vehicles for CRUD management
  */
 
 import { useCallback, useState, useEffect } from 'react'
@@ -19,19 +19,20 @@ const MY_VEHICLES_QUERY = gql`
       licensePlate
       seats
       isActive
+      vehicleLegalComplianceAck
       createdAt
     }
   }
 `
 
-interface UseMyVehiclesResult {
+interface UseMyVehiclesAllResult {
   vehicles: Vehicle[]
   loading: boolean
   error: Error | null
   refetch: () => Promise<void>
 }
 
-export function useMyVehicles(): UseMyVehiclesResult {
+export function useMyVehiclesAll(): UseMyVehiclesAllResult {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
@@ -51,14 +52,13 @@ export function useMyVehicles(): UseMyVehiclesResult {
       const response = await graphqlClient.request<{
         myVehicles: Vehicle[]
       }>(MY_VEHICLES_QUERY)
-
-      // Filter only active vehicles and sort by creation time ascending (oldest first)
-      const activeVehicles = response.myVehicles
-        .filter(v => v.isActive)
-        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-      setVehicles(activeVehicles)
+      // Sort by creation time ascending (oldest first)
+      const sortedVehicles = [...response.myVehicles].sort((a, b) => 
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      setVehicles(sortedVehicles)
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to fetch vehicles')
+      const error = err instanceof Error ? err : new Error('Error al cargar vehículos')
       setError(error)
       setVehicles([])
     } finally {
@@ -77,4 +77,3 @@ export function useMyVehicles(): UseMyVehiclesResult {
     refetch: fetchVehicles,
   }
 }
-

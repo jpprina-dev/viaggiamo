@@ -111,3 +111,7 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# spec kit
+.specify/
+specs/
