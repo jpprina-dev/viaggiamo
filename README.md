@@ -2,6 +2,10 @@
 
 A modern carpooling platform built with FastAPI, GraphQL, Next.js, and PostgreSQL.
 
+## 📚 Documentation
+
+For comprehensive project documentation — setup guides, API reference, architecture, and contributing guidelines — see **[docs/README.md](docs/README.md)**.
+
 ## ✅ Project Status: INITIALIZED AND RUNNING
 
 All services are up and the database structure matches your models perfectly!
