@@ -15,7 +15,7 @@ Thank you for your interest in contributing to Viaggiamo! This is a carpooling M
 
 ## Pull Request Requirements
 
-Every PR description **MUST** confirm compliance with the four core principles from the project constitution:
+Every PR description **MUST** confirm compliance with the five core principles from the project constitution:
 
 | Principle | What to Confirm |
 |---|---|
@@ -23,12 +23,15 @@ Every PR description **MUST** confirm compliance with the four core principles f
 | **Test-First** | New behaviour has tests; coverage has not decreased. |
 | **UX Consistency** | UI follows the design system and accessibility standards. |
 | **Performance** | No regressions; new queries are efficient. |
+| **Documentation Source of Truth** | `docs/` was reviewed for lifecycle placement and impact; updates included when needed. |
 
 Additional rules:
 
 - Any **UI change** MUST include a screenshot or screen recording.
 - Any **new GraphQL resolver** MUST include query execution times.
 - **Tests MUST pass** and **coverage MUST NOT decrease**.
+- Any **new feature** MUST list consulted `docs/` pages, identify lifecycle
+  placement, and include required docs updates in the same PR.
 
 ## Detailed Guides
 

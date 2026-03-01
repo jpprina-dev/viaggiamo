@@ -1,29 +1,29 @@
 <!-- SYNC IMPACT REPORT
 =============================================================================
-Version Change: N/A (template) → 1.0.0 (initial ratification)
+Version Change: 1.0.0 → 1.1.0
 
-Modified Principles: none (first population from template)
+Modified Principles:
+  - I. Code Quality & Maintainability → I. Code Quality & Maintainability
+    (clarified docs are architectural references when code/docs differ)
+  - II. Test-First Development (NON-NEGOTIABLE) → unchanged
+  - III. User Experience Consistency → unchanged
+  - IV. Performance Requirements → unchanged
+  - V. Documentation as Source of Truth (new)
 
 Added Sections:
-  - I. Code Quality & Maintainability (new)
-  - II. Test-First Development (new)
-  - III. User Experience Consistency (new)
-  - IV. Performance Requirements (new)
-  - Tech Stack Standards (new)
-  - Development Workflow & Quality Gates (new)
-  - Governance (new)
+  - V. Documentation as Source of Truth
 
 Removed Sections: none
 
 Templates Requiring Updates:
-  - .specify/templates/plan-template.md ✅ — "Constitution Check" section is
-    generic; gates will reference these 4 principles at plan time (no edits needed)
-  - .specify/templates/spec-template.md ✅ — User Scenarios & Testing, Success
-    Criteria sections align with Principle II and III (no edits needed)
-  - .specify/templates/tasks-template.md ✅ — Phase structure and TDD note
-    align with Principle II; no edits needed
-  - .specify/templates/checklist-template.md ✅ — not yet inspected; reviewed
-    at amendment time if relevant
+  - .specify/templates/plan-template.md ✅ updated
+  - .specify/templates/spec-template.md ✅ updated
+  - .specify/templates/tasks-template.md ✅ updated
+  - .specify/templates/checklist-template.md ✅ reviewed; no changes required
+  - .specify/templates/commands/*.md ⚠ pending (directory not present in repo)
+  - docs/contributing/README.md ✅ updated
+  - docs/contributing/code-style.md ✅ updated
+  - docs/README.md ✅ updated
 
 Deferred Items: none
 =============================================================================
@@ -46,6 +46,8 @@ Every piece of code MUST be typed, linted, and formatted before merging.
 - Functions and methods MUST do one thing. Any function exceeding 40 lines is a
   signal to refactor unless there is a documented reason in the code.
 - Dead code MUST NOT be committed. Remove it; version control preserves history.
+- If implementation details diverge from behavior documented in `docs/`, the PR
+  MUST either align code to docs or include a docs update in the same change.
 
 **Rationale**: A carpooling platform handles payments, user identity, and trip
 safety. Ambiguous, untyped, or poorly named code directly increases the risk of
@@ -111,6 +113,28 @@ Response time and resource budgets are hard limits, not aspirational targets.
 availability, departure times) directly degrades user trust and booking
 conversion.
 
+### V. Documentation as Source of Truth
+
+Project documentation under `docs/` MUST be treated as the canonical source of
+truth for user journeys, lifecycle stages, architecture boundaries, and feature
+interactions.
+
+- Every new feature MUST begin with a documentation review in `docs/` to map:
+  (a) where the feature sits in the user's lifecycle, and (b) what existing
+  features, flows, or contracts it can affect.
+- Feature planning artifacts MUST explicitly record the lifecycle position and
+  cross-feature impact derived from docs before implementation starts.
+- If code introduces behavior not reflected in docs, docs MUST be updated in
+  the same PR unless the PR is explicitly marked as an internal refactor with
+  no user-visible, API, or architectural impact.
+- Docs updates MUST include at least one affected page in `docs/` when a
+  feature changes user flow, API behavior, data model semantics, or operating
+  procedures.
+
+**Rationale**: In a product with interconnected booking, profile, and trip
+flows, documentation drift causes regressions and inconsistent experiences.
+Treating docs as canonical keeps teams aligned on system behavior.
+
 ## Tech Stack Standards
 
 These choices are fixed for the life of the MVP and MUST NOT be changed without
@@ -142,11 +166,15 @@ All code changes MUST pass these gates before merging:
    `pnpm build` (frontend, which includes `tsc`). Zero errors required.
 2. **Tests pass** — `uv run pytest` with no failures; test count MUST NOT decrease.
 3. **Constitution Check** — PR author MUST confirm in the PR description that
-   the change complies with all four Core Principles.
+   the change complies with all five Core Principles.
 4. **Performance spot-check** — For any new GraphQL resolver, the author MUST
    include query execution times in the PR description (can be from local dev).
 5. **UX review** — Any change to a UI component MUST include a screenshot or
    screen recording in the PR.
+6. **Documentation lifecycle check** — For every new feature, the PR MUST:
+   (a) reference consulted `docs/` pages, (b) state lifecycle placement for the
+   feature, (c) list impacted features/flows, and (d) update affected docs
+   before merge when necessary.
 
 Branch naming: `feature/<short-description>`, `fix/<short-description>`,
 `chore/<short-description>`.
@@ -156,11 +184,19 @@ Commits MUST follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`,
 
 ## Governance
 
-This constitution supersedes all other documented practices in the repository.
-Any conflict between a cursor rule, README, or inline comment and this
-constitution resolves in favour of the constitution.
+This constitution governs engineering standards and quality gates. Product,
+architecture, and lifecycle behavior documented in `docs/` is the source of
+truth for feature intent and cross-feature impact analysis.
+
+If there is a conflict:
+
+- Governance/process conflicts resolve in favour of this constitution.
+- Product behavior, lifecycle, and architecture references resolve in favour of
+  `docs/`, which MUST then be synchronized with implementation through the same
+  PR whenever required by Principle V.
 
 **Amendment procedure**:
+
 1. Open a PR with the proposed change to this file.
 2. The PR description MUST explain: (a) what changed, (b) why, (c) migration
    plan for existing code that violates the new rule.
@@ -168,6 +204,7 @@ constitution resolves in favour of the constitution.
 4. Merge requires explicit approval from the project lead.
 
 **Versioning policy**:
+
 - MAJOR: Removal or redefinition of a Core Principle (backward-incompatible governance change).
 - MINOR: New principle added, or section materially expanded.
 - PATCH: Clarifications, wording corrections, non-semantic refinements.
@@ -178,4 +215,4 @@ is warranted.
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-21 | **Last Amended**: 2026-02-21
+**Version**: 1.1.0 | **Ratified**: 2026-02-21 | **Last Amended**: 2026-03-01

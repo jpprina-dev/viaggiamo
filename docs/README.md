@@ -6,6 +6,11 @@ Welcome to the Viaggiamo developer documentation. This is the single entry point
 
 Viaggiamo is a carpooling MVP platform that connects drivers with passengers for shared rides. For a full project overview, start with the [Project Overview](overview.md).
 
+Per the project constitution, `docs/` is the source of truth for user lifecycle
+flows, architecture context, and cross-feature interactions. Every new feature
+must start by consulting relevant docs pages and must update them when behavior
+changes.
+
 ---
 
 ## Project Overview

@@ -31,7 +31,19 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] **Code Quality & Maintainability**: lint/type/format approach is defined
+      for all touched backend and frontend areas.
+- [ ] **Test-First Development**: failing-test-first strategy is documented for
+      backend and required frontend coverage.
+- [ ] **UX Consistency**: impacted UI surfaces, accessibility constraints, and
+      loading/error states are identified.
+- [ ] **Performance Requirements**: expected API/query/frontend budget impacts
+      are identified with validation approach.
+- [ ] **Documentation as Source of Truth**:
+      - Consulted `docs/` pages are listed in this plan.
+      - Feature lifecycle position in the user journey is explicitly mapped.
+      - Potential cross-feature impacts are listed.
+      - Required documentation updates are identified for post-implementation.
 
 ## Project Structure
 

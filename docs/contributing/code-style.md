@@ -64,3 +64,4 @@ All of the following **MUST** pass before a PR can be merged:
 | Frontend build | `pnpm build` | Zero errors (includes `tsc`) |
 | Tests | `uv run pytest` | All pass, coverage not decreased |
 | Constitution | *(PR description)* | Compliance confirmed |
+| Docs Sync | *(PR description + docs changes)* | Lifecycle impact reviewed in `docs/`; updates included when necessary |
