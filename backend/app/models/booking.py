@@ -1,4 +1,4 @@
-"""Booking model for trip reservations."""
+"""Booking model for trip reservations and passenger requests."""
 
 from datetime import datetime
 from decimal import Decimal
@@ -10,12 +10,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 if TYPE_CHECKING:
+    from app.models.request_decision_event import RequestDecisionEvent
     from app.models.trip import Trip
     from app.models.user import User
 
 
 class Booking(Base):
-    """Booking model for trip reservations."""
+    """Booking model for trip reservations and request lifecycle."""
 
     __tablename__ = "bookings"
 
@@ -35,9 +36,14 @@ class Booking(Base):
     passenger_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     seats_requested: Mapped[int] = mapped_column(Integer, default=1)
     total_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    STATUS_PENDING = "pending"
+    STATUS_ACCEPTED = "accepted"
+    STATUS_REJECTED = "rejected"
+    STATUS_CANCELLED = "cancelled"
+
     status: Mapped[str] = mapped_column(
-        String(20), default="pending"
-    )  # pending, confirmed, cancelled
+        String(20), default=STATUS_PENDING
+    )  # pending, accepted, rejected, cancelled
     notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
     booking_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
@@ -55,3 +61,9 @@ class Booking(Base):
     # Relationships
     trip: Mapped["Trip"] = relationship("Trip", back_populates="bookings")
     passenger: Mapped["User"] = relationship("User", back_populates="bookings")
+    decision_events: Mapped[list["RequestDecisionEvent"]] = relationship(
+        "RequestDecisionEvent",
+        back_populates="booking",
+        cascade="all, delete-orphan",
+        order_by="RequestDecisionEvent.created_at.desc()",
+    )

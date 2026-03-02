@@ -104,19 +104,21 @@ A Trip is a ride offered by a driver from one city to another.
 
 ## Booking
 
-A Booking is a seat reservation made by a passenger on a specific trip.
+A Booking is the passenger request and seat-allocation record for a specific trip.
 
 **Key information stored:**
 
 - **Reservation:** number of seats requested, total price (calculated automatically)
-- **Status:** pending → confirmed → cancelled (follows a defined lifecycle)
+- **Status:** pending → accepted/rejected → cancelled (driver-managed request lifecycle)
 - **Notes:** optional message from the passenger to the driver
 - **Timing:** when the booking was made
 - **Cancellation details** (if cancelled): who cancelled (the passenger, the driver, or the system), reason for cancellation, time of cancellation
 
 **Business rules:**
 
-- A passenger can have only **one active booking** per trip.
+- A passenger can have only **one active request** per trip.
+- Rejected requests stay in the same record and can be reconsidered by the driver.
+- Seats are consumed only when a request transitions to **accepted**.
 - If a **driver cancels** a passenger's booking, that passenger **cannot re-book** the same trip.
 - When a booking is cancelled, the reserved seats are **automatically restored** to the trip's available count.
 

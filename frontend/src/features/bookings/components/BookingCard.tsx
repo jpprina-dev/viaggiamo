@@ -16,13 +16,17 @@ interface BookingCardProps {
 }
 
 const statusConfig = {
-  confirmed: {
-    label: 'Confirmada',
+  accepted: {
+    label: 'Aceptada',
     color: 'bg-green-100 text-green-800',
   },
   pending: {
     label: 'Pendiente',
     color: 'bg-yellow-100 text-yellow-800',
+  },
+  rejected: {
+    label: 'Rechazada',
+    color: 'bg-red-100 text-red-800',
   },
   completed: {
     label: 'Completada',

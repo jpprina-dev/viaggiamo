@@ -16,10 +16,17 @@ The modular approach provides:
 - Better scalability for new features
 """
 
+from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 from strawberry.schema import Schema
 
+from app.graphql.context import Context
 from app.graphql.schema import Mutation, Query, schema
+from app.models.booking import Booking
+from app.models.trip import Trip
+from app.models.user import User
 
 
 @pytest.mark.unit
@@ -88,3 +95,159 @@ class TestSchemaLegacy:
 
         assert Mutation.__doc__ is not None
         assert "GraphQL Mutation root" in Mutation.__doc__
+
+    def test_schema_includes_booking_mutation_contract_points(self):
+        """Ensure booking lifecycle mutations remain available in schema."""
+        sdl = str(schema)
+        assert "createBooking" in sdl
+        assert "updateBooking" in sdl
+
+    def test_schema_includes_trip_bookings_query_contract_point(self):
+        """Ensure driver request-management query exists in schema."""
+        sdl = str(schema)
+        assert "tripBookings" in sdl
+
+    @pytest.mark.asyncio
+    async def test_create_booking_contract_rejects_full_trip(self):
+        """GraphQL contract: createBooking returns full-capacity error."""
+        user = MagicMock(spec=User)
+        user.id = 33
+
+        trip = MagicMock(spec=Trip)
+        trip.id = 91
+        trip.driver_id = 77
+        trip.available_seats = 0
+        trip.is_active = True
+        trip.departure_time = datetime.now(UTC) + timedelta(hours=2)
+
+        no_existing = MagicMock()
+        no_existing.scalar_one_or_none.return_value = None
+        no_cancelled = MagicMock()
+        no_cancelled.scalar_one_or_none.return_value = None
+        trip_result = MagicMock()
+        trip_result.scalar_one_or_none.return_value = trip
+
+        db = MagicMock()
+        db.execute = AsyncMock(side_effect=[no_existing, no_cancelled, trip_result])
+        db.add = MagicMock()
+        db.commit = AsyncMock()
+        db.refresh = AsyncMock()
+        context = Context(db=db, user=user)
+
+        result = await schema.execute(
+            """
+            mutation CreateBooking($bookingInput: BookingCreateInput!) {
+              createBooking(bookingInput: $bookingInput) {
+                id
+                status
+              }
+            }
+            """,
+            variable_values={"bookingInput": {"tripId": 91, "seatsRequested": 1}},
+            context_value=context,
+        )
+
+        assert result.errors is not None
+        assert "Trip is full" in str(result.errors[0])
+
+    @pytest.mark.asyncio
+    async def test_create_booking_contract_rejects_past_departure(self):
+        """GraphQL contract: createBooking rejects after departure cutoff."""
+        user = MagicMock(spec=User)
+        user.id = 33
+
+        trip = MagicMock(spec=Trip)
+        trip.id = 92
+        trip.driver_id = 77
+        trip.available_seats = 2
+        trip.is_active = True
+        trip.departure_time = datetime.now(UTC) - timedelta(minutes=5)
+
+        no_existing = MagicMock()
+        no_existing.scalar_one_or_none.return_value = None
+        no_cancelled = MagicMock()
+        no_cancelled.scalar_one_or_none.return_value = None
+        trip_result = MagicMock()
+        trip_result.scalar_one_or_none.return_value = trip
+
+        db = MagicMock()
+        db.execute = AsyncMock(side_effect=[no_existing, no_cancelled, trip_result])
+        db.add = MagicMock()
+        db.commit = AsyncMock()
+        db.refresh = AsyncMock()
+        context = Context(db=db, user=user)
+
+        result = await schema.execute(
+            """
+            mutation CreateBooking($bookingInput: BookingCreateInput!) {
+              createBooking(bookingInput: $bookingInput) {
+                id
+                status
+              }
+            }
+            """,
+            variable_values={"bookingInput": {"tripId": 92, "seatsRequested": 1}},
+            context_value=context,
+        )
+
+        assert result.errors is not None
+        assert "Trip request window is closed" in str(result.errors[0])
+
+    @pytest.mark.asyncio
+    async def test_update_booking_contract_requires_driver_for_status_changes(self):
+        """GraphQL contract: passenger cannot apply status decisions."""
+        passenger = MagicMock(spec=User)
+        passenger.id = 51
+
+        booking = MagicMock(spec=Booking)
+        booking.id = 701
+        booking.trip_id = 80
+        booking.passenger_id = 51
+        booking.status = Booking.STATUS_PENDING
+        booking.seats_requested = 1
+        booking.total_price = 99
+        booking.notes = None
+        booking.booking_time = datetime.now(UTC)
+        booking.created_at = datetime.now(UTC)
+        booking.updated_at = datetime.now(UTC)
+        booking.cancelled_by = None
+        booking.cancellation_reason = None
+        booking.cancellation_time = None
+
+        trip = MagicMock(spec=Trip)
+        trip.id = 80
+        trip.driver_id = 77
+        trip.available_seats = 2
+        trip.is_active = True
+        trip.departure_time = datetime.now(UTC) + timedelta(hours=1)
+
+        booking_result = MagicMock()
+        booking_result.scalar_one_or_none.return_value = booking
+        trip_result = MagicMock()
+        trip_result.scalar_one_or_none.return_value = trip
+
+        db = MagicMock()
+        db.execute = AsyncMock(side_effect=[booking_result, trip_result])
+        db.add = MagicMock()
+        db.commit = AsyncMock()
+        db.refresh = AsyncMock()
+        context = Context(db=db, user=passenger)
+
+        result = await schema.execute(
+            """
+            mutation UpdateBooking($bookingId: Int!, $bookingInput: BookingUpdateInput!) {
+              updateBooking(bookingId: $bookingId, bookingInput: $bookingInput) {
+                id
+                status
+              }
+            }
+            """,
+            variable_values={
+                "bookingId": 701,
+                "bookingInput": {"status": Booking.STATUS_ACCEPTED},
+            },
+            context_value=context,
+        )
+
+        assert result.errors is not None
+        assert "Only driver can change booking status" in str(result.errors[0])

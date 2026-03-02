@@ -20,12 +20,16 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react'
+import { gql } from 'graphql-request'
+import toast from 'react-hot-toast'
 import type { DriverTripInfo } from '../types'
 import { useTripBookings } from '../hooks/useTripBookings'
+import { graphqlClient } from '@/lib/graphql-client'
 
 interface DriverTripCardProps {
   trip: DriverTripInfo
   showRoleIcon?: boolean
+  enableRequestActions?: boolean
 }
 
 const statusConfig = {
@@ -43,10 +47,15 @@ const statusConfig = {
   },
 }
 
-export function DriverTripCard({ trip, showRoleIcon = false }: DriverTripCardProps) {
+export function DriverTripCard({
+  trip,
+  showRoleIcon = false,
+  enableRequestActions = false,
+}: DriverTripCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isPassengersExpanded, setIsPassengersExpanded] = useState(false)
   const [isCancelledExpanded, setIsCancelledExpanded] = useState(false)
+  const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null)
   const departureDate = new Date(trip.departureTime)
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
   const formattedTime = format(departureDate, 'HH:mm')
@@ -56,12 +65,36 @@ export function DriverTripCard({ trip, showRoleIcon = false }: DriverTripCardPro
   const statusInfo = statusConfig[status]
   
   // Always fetch bookings to show counts in dropdown buttons
-  const { bookings, loading } = useTripBookings(trip.id, true)
+  const { bookings, loading, refetch } = useTripBookings(trip.id, true)
   
   // Calculate counts for all dropdown types
   const pendingCount = bookings.filter((b) => b.status === 'pending').length
-  const acceptedCount = bookings.filter((b) => b.status === 'confirmed' || b.status === 'completed').length
+  const acceptedCount = bookings.filter((b) => b.status === 'accepted' || b.status === 'completed').length
   const cancelledByDriverCount = bookings.filter((b) => b.status === 'cancelled' && b.cancelledBy === 'driver').length
+
+  const updateBookingStatusMutation = gql`
+    mutation UpdateBookingStatus($bookingId: Int!, $status: String!) {
+      updateBooking(bookingId: $bookingId, bookingInput: { status: $status }) {
+        id
+        status
+      }
+    }
+  `
+
+  const handleUpdateStatus = async (bookingId: number, status: string) => {
+    setUpdatingBookingId(bookingId)
+    try {
+      await graphqlClient.request(updateBookingStatusMutation, { bookingId, status })
+      await refetch()
+      toast.success('Solicitud actualizada')
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'No se pudo actualizar la solicitud'
+      toast.error(message)
+    } finally {
+      setUpdatingBookingId(null)
+    }
+  }
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -184,9 +217,29 @@ export function DriverTripCard({ trip, showRoleIcon = false }: DriverTripCardPro
                         </div>
 
                         {/* Booking Details */}
-                        <div className="text-right flex-shrink-0">
+                        <div className="text-right flex-shrink-0 space-y-1">
                           <p className="text-xs text-gray-500">Asientos</p>
                           <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
+                          {enableRequestActions && (
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={updatingBookingId === booking.id}
+                                onClick={() => void handleUpdateStatus(booking.id, 'accepted')}
+                                className="rounded bg-green-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                Aceptar
+                              </button>
+                              <button
+                                type="button"
+                                disabled={updatingBookingId === booking.id}
+                                onClick={() => void handleUpdateStatus(booking.id, 'rejected')}
+                                className="rounded bg-red-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                Rechazar
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -222,12 +275,12 @@ export function DriverTripCard({ trip, showRoleIcon = false }: DriverTripCardPro
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
                   <p className="mt-2 text-sm text-gray-600">Cargando pasajeros...</p>
                 </div>
-              ) : bookings.filter((b) => b.status === 'confirmed' || b.status === 'completed').length === 0 ? (
+              ) : bookings.filter((b) => b.status === 'accepted' || b.status === 'completed').length === 0 ? (
                 <p className="text-sm text-gray-600 py-3">No hay pasajeros</p>
               ) : (
                 <div className="space-y-3 mt-3">
                   {bookings
-                    .filter((b) => b.status === 'confirmed' || b.status === 'completed')
+                    .filter((b) => b.status === 'accepted' || b.status === 'completed')
                     .map((booking) => (
                       <div
                         key={booking.id}

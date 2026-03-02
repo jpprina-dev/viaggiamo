@@ -16,11 +16,11 @@ interface BookingsViewProps {
 }
 
 export function BookingsView({ bookings, filter = 'all' }: BookingsViewProps) {
-  // Filter bookings to show only: confirmed, pending, and cancelled by driver
+  // Filter bookings to show only: accepted, pending/rejected, and cancelled by driver
   const filteredBookings = useMemo(() => {
     let filtered = bookings.filter((b) => {
-      // Include confirmed and pending bookings
-      if (b.status === 'confirmed' || b.status === 'pending') {
+      // Include active request/booking states
+      if (b.status === 'accepted' || b.status === 'pending' || b.status === 'rejected') {
         return true
       }
       // Include cancelled bookings only if cancelled by driver
@@ -36,8 +36,14 @@ export function BookingsView({ bookings, filter = 'all' }: BookingsViewProps) {
 
     // Apply additional filter for active/completed
     if (filter === 'active') {
-      // Only show confirmed and pending (exclude completed)
-      filtered = filtered.filter((b) => b.status === 'confirmed' || b.status === 'pending' || (b.status === 'cancelled' && b.cancelledBy === 'driver'))
+      // Only show request and active booking states (exclude completed)
+      filtered = filtered.filter(
+        (b) =>
+          b.status === 'accepted' ||
+          b.status === 'pending' ||
+          b.status === 'rejected' ||
+          (b.status === 'cancelled' && b.cancelledBy === 'driver')
+      )
     } else if (filter === 'completed') {
       // Only show completed
       filtered = filtered.filter((b) => b.status === 'completed')

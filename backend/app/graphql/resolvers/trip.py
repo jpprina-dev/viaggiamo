@@ -445,6 +445,8 @@ class TripMutations:
         db_trip.total_seats = trip_input.total_seats
         db_trip.price_per_seat = trip_input.price_per_seat
         db_trip.description = trip_input.description
+        db_trip.is_active = True
+        db_trip.is_completed = False
         db_trip.trip_legal_compliance_ack = trip_input.trip_legal_compliance_ack
         db_trip.trip_preferences = trip_input.trip_preferences
 

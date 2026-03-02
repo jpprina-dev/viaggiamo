@@ -17,6 +17,14 @@ interface BookingCardProps {
 }
 
 export function BookingCard({ booking, onCancel, cancelLoading }: BookingCardProps) {
+  const statusLabel: Record<string, string> = {
+    pending: 'Pendiente',
+    accepted: 'Aceptada',
+    rejected: 'Rechazada',
+    cancelled: 'Cancelada',
+  }
+  const canCancel = booking.status === 'pending' || booking.status === 'accepted'
+
   return (
     <div className="mb-6 space-y-4">
       {/* Status Badge */}
@@ -24,7 +32,7 @@ export function BookingCard({ booking, onCancel, cancelLoading }: BookingCardPro
         <div className="inline-flex items-center rounded-full bg-yellow-100 px-4 py-2">
           <CheckCircle className="mr-2 h-5 w-5 text-yellow-600" />
           <span className="text-sm font-semibold text-yellow-800">
-            Estado: {booking.status === 'pending' ? 'Pendiente' : booking.status}
+            Estado: {statusLabel[booking.status] ?? booking.status}
           </span>
         </div>
       </div>
@@ -42,14 +50,16 @@ export function BookingCard({ booking, onCancel, cancelLoading }: BookingCardPro
       </div>
 
       {/* Cancel Button */}
-      <button
-        onClick={onCancel}
-        disabled={cancelLoading}
-        className="w-full rounded-lg bg-red-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400 flex items-center justify-center"
-      >
-        <X className="mr-2 h-5 w-5" />
-        {cancelLoading ? 'Cancelando...' : 'Cancelar Reserva'}
-      </button>
+      {canCancel && (
+        <button
+          onClick={onCancel}
+          disabled={cancelLoading}
+          className="w-full rounded-lg bg-red-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400 flex items-center justify-center"
+        >
+          <X className="mr-2 h-5 w-5" />
+          {cancelLoading ? 'Cancelando...' : 'Cancelar Reserva'}
+        </button>
+      )}
 
       <p className="text-xs text-center text-gray-500">
         Al cancelar, los asientos volverán a estar disponibles

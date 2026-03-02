@@ -1,6 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { Clock, User } from 'lucide-react'
+import { gql } from 'graphql-request'
+import toast from 'react-hot-toast'
+import { graphqlClient } from '@/lib/graphql-client'
 
 interface Booking {
   id: number
@@ -21,9 +25,87 @@ interface Booking {
 interface TripRequestsListProps {
   bookings: Booking[]
   loading: boolean
+  onStatusChanged?: () => Promise<void>
 }
 
-export function TripRequestsList({ bookings, loading }: TripRequestsListProps) {
+const UPDATE_BOOKING_STATUS = gql`
+  mutation UpdateBookingStatus($bookingId: Int!, $status: String!) {
+    updateBooking(bookingId: $bookingId, bookingInput: { status: $status }) {
+      id
+      status
+    }
+  }
+`
+
+export function TripRequestsList({ bookings, loading, onStatusChanged }: TripRequestsListProps) {
+  const [submittingById, setSubmittingById] = useState<Record<number, boolean>>({})
+
+  const updateStatus = async (bookingId: number, status: string) => {
+    setSubmittingById((prev) => ({ ...prev, [bookingId]: true }))
+    try {
+      await graphqlClient.request(UPDATE_BOOKING_STATUS, { bookingId, status })
+      toast.success('Solicitud actualizada')
+      if (onStatusChanged) {
+        await onStatusChanged()
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'No se pudo actualizar la solicitud'
+      toast.error(message)
+    } finally {
+      setSubmittingById((prev) => ({ ...prev, [bookingId]: false }))
+    }
+  }
+
+  const renderActionButtons = (booking: Booking) => {
+    const isSubmitting = submittingById[booking.id] === true
+    if (booking.status === 'pending') {
+      return (
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void updateStatus(booking.id, 'accepted')}
+            disabled={isSubmitting}
+            className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Aceptar
+          </button>
+          <button
+            type="button"
+            onClick={() => void updateStatus(booking.id, 'rejected')}
+            disabled={isSubmitting}
+            className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Rechazar
+          </button>
+        </div>
+      )
+    }
+    if (booking.status === 'rejected') {
+      return (
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void updateStatus(booking.id, 'pending')}
+            disabled={isSubmitting}
+            className="rounded-md bg-slate-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Reconsiderar
+          </button>
+          <button
+            type="button"
+            onClick={() => void updateStatus(booking.id, 'accepted')}
+            disabled={isSubmitting}
+            className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Aceptar ahora
+          </button>
+        </div>
+      )
+    }
+    return null
+  }
+
   if (loading) {
     return (
       <div className="text-center py-4">
@@ -79,9 +161,14 @@ export function TripRequestsList({ bookings, loading }: TripRequestsListProps) {
                   Pendiente
                 </span>
               )}
-              {booking.status === 'confirmed' && (
+              {booking.status === 'accepted' && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  Confirmado
+                  Aceptado
+                </span>
+              )}
+              {booking.status === 'rejected' && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Rechazado
                 </span>
               )}
               {booking.status === 'cancelled' && (
@@ -111,6 +198,8 @@ export function TripRequestsList({ bookings, loading }: TripRequestsListProps) {
               <p className="text-sm text-gray-700">{booking.cancellationReason}</p>
             </div>
           )}
+
+          {renderActionButtons(booking)}
         </div>
       ))}
     </div>

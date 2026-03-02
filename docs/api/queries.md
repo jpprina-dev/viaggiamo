@@ -540,7 +540,7 @@ Returns all bookings for the authenticated user (as passenger).
 | `passengerId` | Int | Passenger's user ID |
 | `seatsRequested` | Int | Number of seats booked |
 | `totalPrice` | Decimal | Total price (pricePerSeat × seatsRequested) |
-| `status` | String | Booking status |
+| `status` | String | Request status (`pending`, `accepted`, `rejected`, `cancelled`) |
 | `notes` | String | Passenger notes |
 | `createdAt` | DateTime | Booking creation timestamp |
 | `updatedAt` | DateTime | Last update timestamp |
@@ -615,7 +615,7 @@ curl -X POST http://localhost:8000/graphql \
 
 ## `tripBookings`
 
-Returns all bookings for a specific trip. Intended for the trip's driver.
+Returns all booking requests for a specific trip. Intended for the trip's driver.
 
 **Auth required:** Yes
 
@@ -625,7 +625,7 @@ Returns all bookings for a specific trip. Intended for the trip's driver.
 |------|------|----------|---------|-------------|
 | `tripId` | Int! | Yes | — | The trip's ID |
 
-**Response — `[BookingType]`:** Same fields as `myBookings`.
+**Response — `[BookingType]`:** Same fields as `myBookings`, including request status for driver decisions.
 
 **GraphQL example:**
 

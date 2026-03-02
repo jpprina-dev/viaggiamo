@@ -424,7 +424,7 @@ mutation {
 
 ## `createBooking`
 
-Book seats on a trip as a passenger.
+Create a passenger request for a trip.
 
 **Auth required:** Yes
 
@@ -433,7 +433,7 @@ Book seats on a trip as a passenger.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `tripId` | Int | Yes | The trip to book |
-| `seatsRequested` | Int | Yes | Number of seats to reserve |
+| `seatsRequested` | Int | Yes | Number of seats requested |
 | `notes` | String | No | Message to the driver |
 
 **Response — `BookingType`:**
@@ -445,24 +445,27 @@ Book seats on a trip as a passenger.
 | `passengerId` | Int | Passenger's user ID |
 | `seatsRequested` | Int | Seats reserved |
 | `totalPrice` | Decimal | pricePerSeat × seatsRequested |
-| `status` | String | Booking status |
+| `status` | String | Request status (`pending`, `accepted`, `rejected`, `cancelled`) |
 | `notes` | String | Passenger notes |
 | `createdAt` | DateTime | Booking creation timestamp |
 | `updatedAt` | DateTime | Last update timestamp |
 
 **Business rules:**
 
-- A user cannot book their own trip.
-- Only one active booking per trip per user is allowed.
-- The trip must have enough available seats.
+- A user cannot request their own trip.
+- Only one active request per trip per user is allowed.
+- Requests are blocked when the trip is full (`availableSeats == 0`).
+- Requests are blocked at or after departure time.
 - Re-booking is blocked if the driver previously cancelled the user's booking for that trip.
+- Seats are decremented only when the driver accepts a request.
 - Total price is calculated as `pricePerSeat × seatsRequested`.
 
 **Error cases:**
 
-- Not enough available seats.
+- Trip is full.
+- Trip request window is closed.
 - Booking own trip.
-- Duplicate active booking.
+- Duplicate active request.
 - Re-booking after driver cancellation.
 
 **GraphQL example:**
@@ -487,7 +490,7 @@ mutation {
 
 ## `updateBooking`
 
-Update an existing booking. Passengers can modify seats and notes; drivers can change the booking status.
+Update an existing booking request. Drivers manage request decisions; passengers can still update passenger-owned fields.
 
 **Auth required:** Yes (passenger or driver)
 
@@ -503,9 +506,17 @@ Update an existing booking. Passengers can modify seats and notes; drivers can c
 |-------|------|-------------|
 | `seatsRequested` | Int | Updated number of seats (passenger only) |
 | `notes` | String | Updated notes (passenger only) |
-| `status` | String | Updated booking status (driver only) |
+| `status` | String | Updated request status (driver only: `pending`, `accepted`, `rejected`, `cancelled`) |
 
 **Response — `BookingType`:** The updated booking.
+
+**Driver decision rules:**
+
+- Only the trip owner can decide request statuses.
+- Allowed transitions: `pending -> accepted|rejected`, `rejected -> pending|accepted`.
+- `availableSeats` decrements only on transitions into `accepted`.
+- `availableSeats` increments when an accepted booking transitions to `cancelled`.
+- Decision changes are blocked once the request window is closed.
 
 **GraphQL example:**
 

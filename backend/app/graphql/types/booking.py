@@ -21,7 +21,7 @@ class BookingType:
     passenger_id: int
     seats_requested: int
     total_price: Decimal
-    status: str
+    status: str  # pending, accepted, rejected, cancelled
     notes: str | None = None
     booking_time: datetime
     created_at: datetime
@@ -110,5 +110,5 @@ class BookingUpdateInput:
     """Input type for booking updates."""
 
     seats_requested: int | None = None
-    status: str | None = None
+    status: str | None = None  # pending, accepted, rejected, cancelled
     notes: str | None = None
