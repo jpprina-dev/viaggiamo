@@ -11,7 +11,7 @@ type CityType = 'origin' | 'destination'
 interface UseCityAutocompleteResult {
   suggestions: string[]
   loading: boolean
-  fetchSuggestions: (prefix: string) => Promise<void>
+  fetchSuggestions: (prefix: string) => void
 }
 
 // Debounce helper

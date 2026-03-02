@@ -54,7 +54,7 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
   const seatColor =
     seatRatio > 0.5 ? 'text-green-600' : seatRatio > 0 ? 'text-orange-600' : 'text-red-600'
 
-  const isBookingDisabled = 
+  const isBookingDisabled = Boolean(
     isOwnTrip ||
     trip.availableSeats === 0 || 
     !trip.isActive || 
@@ -62,8 +62,9 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
     bookingLoading || 
     bookingQueryLoading ||
     blockCheckLoading ||
-    isBlocked ||
+    isBlocked === true ||
     (booking && booking.status !== 'cancelled')
+  )
 
   const handleBooking = async (seatsRequested: number, notes: string) => {
     if (!user) {
