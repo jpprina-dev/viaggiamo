@@ -65,13 +65,6 @@
 
 [Add more user stories as needed, each with an assigned priority]
 
-## Documentation Context & Lifecycle Impact *(mandatory)*
-
-- **Docs Reviewed**: [List `docs/...` pages used as source of truth]
-- **Lifecycle Stage**: [Where this feature lives in the user journey]
-- **Cross-Feature Impact**: [Existing features/flows/contracts potentially affected]
-- **Docs to Update After Implementation**: [List pages that MUST be updated if behavior changes]
-
 ### Edge Cases
 
 <!--
