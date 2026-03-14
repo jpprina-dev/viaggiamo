@@ -115,3 +115,6 @@ temp/
 # spec kit
 .specify/
 specs/
+
+# Claude
+.claude/
