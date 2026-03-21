@@ -2,7 +2,7 @@
  * Hook for fetching user's bookings with trip and driver details
  */
 
-import { useCallback, useState, useEffect, useRef } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { graphqlClient } from '@/lib/graphql-client'
 import { gql } from 'graphql-request'
 import type { BookingWithTrip } from '../types'
@@ -83,23 +83,6 @@ export function useMyBookings(): UseMyBookingsResult {
   useEffect(() => {
     fetchBookings()
   }, [fetchBookings])
-
-  // 5-second polling with visibilityState guard (FR-004)
-  const fetchRef = useRef(fetchBookings)
-  fetchRef.current = fetchBookings
-
-  useEffect(() => {
-    if (!user) return
-
-    const poll = () => {
-      if (document.visibilityState === 'visible') {
-        fetchRef.current()
-      }
-    }
-
-    const intervalId = setInterval(poll, 5_000)
-    return () => clearInterval(intervalId)
-  }, [user])
 
   return {
     bookings,

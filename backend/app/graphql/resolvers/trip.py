@@ -8,6 +8,7 @@ from strawberry.types import Info
 
 from app.core.search_ranking import calculate_trip_relevance
 from app.graphql.context import Context
+from app.graphql.resolvers.booking import _notify_passenger_status_change
 from app.graphql.types import (
     TripCreateInput,
     TripSearchInput,
@@ -395,6 +396,62 @@ class TripQueries:
         return [row[0] for row in result.all()]
 
 
+async def _auto_reject_pending_bookings(context: Context, trip: Trip) -> None:
+    """FR-011: Auto-reject all pending bookings when trip is completed."""
+    result = await context.db.execute(
+        select(Booking).where(
+            Booking.trip_id == trip.id,
+            Booking.status == Booking.STATUS_PENDING,
+        )
+    )
+    pending_bookings = result.scalars().all()
+
+    for booking in pending_bookings:
+        booking.status = Booking.STATUS_REJECTED
+        event = RequestDecisionEvent(
+            booking_id=booking.id,
+            actor_user_id=context.user.id,
+            previous_status=Booking.STATUS_PENDING,
+            new_status=Booking.STATUS_REJECTED,
+            decided_at=datetime.now(),
+            seat_delta=0,
+        )
+        context.db.add(event)
+        await _notify_passenger_status_change(booking)
+
+
+async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None:
+    """FR-010: Cancel all accepted/pending bookings when trip is deactivated."""
+    result = await context.db.execute(
+        select(Booking).where(
+            Booking.trip_id == trip.id,
+            Booking.status.in_(
+                [
+                    Booking.STATUS_ACCEPTED,
+                    Booking.STATUS_PENDING,
+                ]
+            ),
+        )
+    )
+    bookings = result.scalars().all()
+
+    for booking in bookings:
+        previous_status = booking.status
+        booking.status = Booking.STATUS_CANCELLED
+        booking.cancelled_by = "driver"
+        booking.cancellation_time = datetime.now()
+        event = RequestDecisionEvent(
+            booking_id=booking.id,
+            actor_user_id=context.user.id,
+            previous_status=previous_status,
+            new_status=Booking.STATUS_CANCELLED,
+            decided_at=datetime.now(),
+            seat_delta=0,
+        )
+        context.db.add(event)
+        await _notify_passenger_status_change(booking)
+
+
 @strawberry.type
 class TripMutations:
     """Trip-related mutations."""
@@ -548,11 +605,11 @@ class TripMutations:
 
         # FR-011: Auto-reject pending bookings when trip is completed
         if trip_input.is_completed is True:
-            await self._auto_reject_pending_bookings(context, trip)
+            await _auto_reject_pending_bookings(context, trip)
 
         # FR-010: Cancel all bookings when trip is deactivated
         if trip_input.is_active is False:
-            await self._cancel_bookings_on_deactivation(context, trip)
+            await _cancel_bookings_on_deactivation(context, trip)
 
         await context.db.commit()
         await context.db.refresh(trip)
@@ -575,66 +632,6 @@ class TripMutations:
             created_at=trip.created_at,
             updated_at=trip.updated_at,
         )
-
-    async def _auto_reject_pending_bookings(self, context: Context, trip: Trip) -> None:
-        """FR-011: Auto-reject all pending bookings when trip is completed."""
-        result = await context.db.execute(
-            select(Booking).where(
-                Booking.trip_id == trip.id,
-                Booking.status == Booking.STATUS_PENDING,
-            )
-        )
-        pending_bookings = result.scalars().all()
-
-        for booking in pending_bookings:
-            booking.status = Booking.STATUS_REJECTED
-            event = RequestDecisionEvent(
-                booking_id=booking.id,
-                actor_user_id=context.user.id,
-                previous_status=Booking.STATUS_PENDING,
-                new_status=Booking.STATUS_REJECTED,
-                decided_at=datetime.now(),
-                seat_delta=0,
-            )
-            context.db.add(event)
-            await self._notify_passenger_status_change(booking)
-
-    async def _cancel_bookings_on_deactivation(
-        self, context: Context, trip: Trip
-    ) -> None:
-        """FR-010: Cancel all accepted/pending bookings when trip is deactivated."""
-        result = await context.db.execute(
-            select(Booking).where(
-                Booking.trip_id == trip.id,
-                Booking.status.in_(
-                    [
-                        Booking.STATUS_ACCEPTED,
-                        Booking.STATUS_PENDING,
-                    ]
-                ),
-            )
-        )
-        bookings = result.scalars().all()
-
-        for booking in bookings:
-            previous_status = booking.status
-            booking.status = Booking.STATUS_CANCELLED
-            booking.cancelled_by = "driver"
-            booking.cancellation_time = datetime.now()
-            event = RequestDecisionEvent(
-                booking_id=booking.id,
-                actor_user_id=context.user.id,
-                previous_status=previous_status,
-                new_status=Booking.STATUS_CANCELLED,
-                decided_at=datetime.now(),
-                seat_delta=0,
-            )
-            context.db.add(event)
-            await self._notify_passenger_status_change(booking)
-
-    async def _notify_passenger_status_change(self, booking: Booking) -> None:
-        """Dispatch passenger notification for trip-level status changes."""
-        _ = booking
 
     @strawberry.mutation
     async def delete_trip(self, info: Info[Context, None], trip_id: int) -> bool:
@@ -664,7 +661,7 @@ class TripMutations:
             raise ValueError("Not authorized to delete this trip")
 
         trip.is_active = False
-        await self._cancel_bookings_on_deactivation(context, trip)
+        await _cancel_bookings_on_deactivation(context, trip)
         await context.db.commit()
 
         return True

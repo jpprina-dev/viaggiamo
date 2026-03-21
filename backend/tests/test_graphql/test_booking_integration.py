@@ -151,18 +151,23 @@ async def test_update_booking_pending_to_accepted_decrements_seat() -> None:
     context.db.refresh = AsyncMock()
 
     mutation = BookingMutations()
-    mutation._notify_passenger_status_change = AsyncMock()
     info = _build_info_with_context(context)
 
-    await mutation.update_booking(
-        info,
-        booking_id=booking.id,
-        booking_input=BookingUpdateInput(status=Booking.STATUS_ACCEPTED),
-    )
+    import app.graphql.resolvers.booking as booking_module
+
+    notify_mock = AsyncMock()
+
+    with pytest.MonkeyPatch().context() as mp:
+        mp.setattr(booking_module, "_notify_passenger_status_change", notify_mock)
+        await mutation.update_booking(
+            info,
+            booking_id=booking.id,
+            booking_input=BookingUpdateInput(status=Booking.STATUS_ACCEPTED),
+        )
 
     assert booking.status == Booking.STATUS_ACCEPTED
     assert trip.available_seats == 1
-    mutation._notify_passenger_status_change.assert_awaited_once()
+    notify_mock.assert_awaited_once()
 
 
 @pytest.mark.integration

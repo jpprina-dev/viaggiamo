@@ -333,18 +333,15 @@ class BookingQueries:
         ]
 
 
+async def _notify_passenger_status_change(booking: Booking) -> None:
+    """Dispatch passenger notification for request status changes."""
+    # Placeholder for existing notification channel integration.
+    _ = booking
+
+
 @strawberry.type
 class BookingMutations:
     """Booking-related mutations."""
-
-    async def _notify_passenger_status_change(
-        self,
-        booking: Booking,
-    ) -> None:
-        """Dispatch passenger notification for request status changes."""
-        # Placeholder for existing notification channel integration.
-        # We keep this method explicit so tests can validate it is called.
-        _ = booking
 
     @strawberry.mutation
     async def create_booking(
@@ -547,7 +544,7 @@ class BookingMutations:
             )
             context.db.add(event)
 
-            await self._notify_passenger_status_change(booking)
+            await _notify_passenger_status_change(booking)
 
         if booking_input.notes is not None:
             booking.notes = booking_input.notes
@@ -676,6 +673,6 @@ class BookingMutations:
         booking.cancellation_time = datetime.now()
 
         await context.db.commit()
-        await self._notify_passenger_status_change(booking)
+        await _notify_passenger_status_change(booking)
 
         return True
