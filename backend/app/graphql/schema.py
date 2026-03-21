@@ -27,7 +27,10 @@ class Query(
     - BookingQueries: Booking-related queries (myBookings, booking, tripBookings, myBookingHistory, myDriverTripHistory)
     """
 
-    pass
+    @strawberry.field
+    async def health(self) -> str:
+        """Health check endpoint."""
+        return "OK"
 
 
 @strawberry.type
@@ -52,16 +55,5 @@ class Mutation(
     pass
 
 
-# Add health check to Query class
-@strawberry.type
-class QueryWithHealth(Query):
-    """Query class with health check endpoint."""
-
-    @strawberry.field
-    async def health(self) -> str:
-        """Health check endpoint."""
-        return "OK"
-
-
 # Create the GraphQL schema
-schema = strawberry.Schema(query=QueryWithHealth, mutation=Mutation)
+schema = strawberry.Schema(query=Query, mutation=Mutation)
