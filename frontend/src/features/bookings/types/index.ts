@@ -30,6 +30,7 @@ export interface BookingWithTrip {
   bookingTime: string
   notes?: string
   trip: TripInfo
+  wasResetFromRejected: boolean
   // Cancellation tracking
   cancelledBy?: 'passenger' | 'driver' | 'system' | null
   cancellationReason?: string

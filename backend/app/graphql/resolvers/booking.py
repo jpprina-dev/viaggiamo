@@ -5,6 +5,7 @@ from datetime import datetime
 import strawberry
 from sqlalchemy import and_, or_, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 from strawberry.types import Info
 
 from app.graphql.context import Context
@@ -13,7 +14,14 @@ from app.graphql.resolvers.booking_request_rules import (
     seat_delta_for_transition,
     validate_status_transition,
 )
-from app.graphql.types import BookingCreateInput, BookingType, BookingUpdateInput
+from app.graphql.types import (
+    BookingCreateInput,
+    BookingType,
+    BookingUpdateInput,
+    DriverTripHistoryType,
+    TripType,
+    UserType,
+)
 from app.models.booking import Booking
 from app.models.request_decision_event import RequestDecisionEvent
 from app.models.trip import Trip
@@ -41,7 +49,8 @@ class BookingQueries:
         # Only show bookings that are not cancelled, or were cancelled by driver
         # Passenger-cancelled bookings are hidden
         result = await context.db.execute(
-            select(Booking).where(
+            select(Booking)
+            .where(
                 Booking.passenger_id == context.user.id,
                 or_(
                     Booking.status != Booking.STATUS_CANCELLED,
@@ -51,6 +60,7 @@ class BookingQueries:
                     ),
                 ),
             )
+            .options(selectinload(Booking.decision_events))
         )
         bookings = result.scalars().all()
 
@@ -69,6 +79,7 @@ class BookingQueries:
                 cancelled_by=booking.cancelled_by,
                 cancellation_reason=booking.cancellation_reason,
                 cancellation_time=booking.cancellation_time,
+                decision_events=list(booking.decision_events),
             )
             for booking in bookings
         ]
@@ -213,6 +224,113 @@ class BookingQueries:
         booking = result.scalar_one_or_none()
 
         return booking is not None
+
+    @strawberry.field
+    async def my_booking_history(self, info: Info[Context, None]) -> list[BookingType]:
+        """Get passenger's accepted bookings for inactive trips (History tab)."""
+        context = info.context
+        if not context.user:
+            raise ValueError("Authentication required")
+
+        result = await context.db.execute(
+            select(Booking)
+            .join(Trip, Booking.trip_id == Trip.id)
+            .where(
+                Booking.passenger_id == context.user.id,
+                Booking.status == Booking.STATUS_ACCEPTED,
+                Trip.is_active == False,  # noqa: E712
+            )
+            .options(selectinload(Booking.trip).selectinload(Trip.driver))
+        )
+        bookings = result.scalars().all()
+
+        return [
+            BookingType(
+                id=b.id,
+                trip_id=b.trip_id,
+                passenger_id=b.passenger_id,
+                seats_requested=b.seats_requested,
+                total_price=b.total_price,
+                status=b.status,
+                notes=b.notes,
+                booking_time=b.booking_time,
+                created_at=b.created_at,
+                updated_at=b.updated_at,
+                cancelled_by=b.cancelled_by,
+                cancellation_reason=b.cancellation_reason,
+                cancellation_time=b.cancellation_time,
+            )
+            for b in bookings
+        ]
+
+    @strawberry.field
+    async def my_driver_trip_history(
+        self, info: Info[Context, None]
+    ) -> list[DriverTripHistoryType]:
+        """Get driver's inactive trips with accepted passengers (History tab)."""
+        context = info.context
+        if not context.user:
+            raise ValueError("Authentication required")
+
+        result = await context.db.execute(
+            select(Trip)
+            .where(
+                Trip.driver_id == context.user.id,
+                Trip.is_active == False,  # noqa: E712
+            )
+            .options(
+                selectinload(
+                    Trip.bookings.and_(Booking.status == Booking.STATUS_ACCEPTED)
+                ).selectinload(Booking.passenger)
+            )
+        )
+        trips = result.scalars().all()
+
+        return [
+            DriverTripHistoryType(
+                trip=TripType(
+                    id=t.id,
+                    driver_id=t.driver_id,
+                    vehicle_id=t.vehicle_id,
+                    origin=t.origin,
+                    destination=t.destination,
+                    departure_time=t.departure_time,
+                    available_seats=t.available_seats,
+                    total_seats=t.total_seats,
+                    price_per_seat=t.price_per_seat,
+                    description=t.description,
+                    is_active=t.is_active,
+                    is_completed=t.is_completed,
+                    trip_legal_compliance_ack=t.trip_legal_compliance_ack,
+                    trip_preferences=t.trip_preferences,
+                    created_at=t.created_at,
+                    updated_at=t.updated_at,
+                ),
+                passengers=[
+                    UserType(
+                        id=b.passenger.id,
+                        email=b.passenger.email,
+                        username=b.passenger.username,
+                        name=b.passenger.name,
+                        last_name=b.passenger.last_name,
+                        status=b.passenger.status,
+                        email_verified=b.passenger.email_verified,
+                        phone=b.passenger.phone,
+                        phone_verified=b.passenger.phone_verified,
+                        profile_picture=b.passenger.profile_picture,
+                        profile_short_bio=b.passenger.profile_short_bio,
+                        identification=b.passenger.identification,
+                        identification_type=b.passenger.identification_type,
+                        auth_provider=b.passenger.auth_provider,
+                        trip_preferences=b.passenger.trip_preferences,
+                        created_at=b.passenger.created_at,
+                        updated_at=b.passenger.updated_at,
+                    )
+                    for b in t.bookings
+                ],
+            )
+            for t in trips
+        ]
 
 
 @strawberry.type

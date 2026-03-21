@@ -7,12 +7,14 @@
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
-import { Calendar, User, MapPin, AlertCircle, Briefcase } from 'lucide-react'
+import { Calendar, User, AlertCircle, Briefcase, X, Info } from 'lucide-react'
 import type { BookingWithTrip } from '../types'
+import { useCancelBooking } from '../hooks/useCancelBooking'
 
 interface BookingCardProps {
   booking: BookingWithTrip
   showRoleIcon?: boolean
+  onBookingCancelled?: (bookingId: number) => void
 }
 
 const statusConfig = {
@@ -38,11 +40,21 @@ const statusConfig = {
   },
 }
 
-export function BookingCard({ booking, showRoleIcon = false }: BookingCardProps) {
+export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled }: BookingCardProps) {
   const { trip } = booking
   const departureDate = new Date(trip.departureTime)
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
   const formattedTime = format(departureDate, 'HH:mm')
+  const { cancelBooking, loading: cancelling } = useCancelBooking()
+
+  const handleCancel = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const success = await cancelBooking(booking.id)
+    if (success && onBookingCancelled) {
+      onBookingCancelled(booking.id)
+    }
+  }
 
   const statusInfo = statusConfig[booking.status as keyof typeof statusConfig] || {
     label: booking.status,
@@ -137,6 +149,55 @@ export function BookingCard({ booking, showRoleIcon = false }: BookingCardProps)
             </div>
           </div>
         </div>
+
+        {/* Driver-reset acknowledgment banner (T016) */}
+        {booking.status === 'pending' && booking.wasResetFromRejected && (
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+            <div className="flex gap-2">
+              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-900">
+                  El conductor ha restablecido tu solicitud
+                </p>
+                <p className="text-sm text-blue-700 mt-1">
+                  Tu solicitud fue rechazada anteriormente y ha sido restablecida por el conductor.
+                </p>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                    className="px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                  >
+                    Mantener
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={cancelling}
+                    className="px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50"
+                  >
+                    {cancelling ? 'Cancelando...' : 'Cancelar'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel button for pending bookings (non-reset) */}
+        {booking.status === 'pending' && !booking.wasResetFromRejected && (
+          <div className="border-t border-gray-100 pt-3">
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={cancelling}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50"
+            >
+              <X className="w-4 h-4" />
+              {cancelling ? 'Cancelando...' : 'Cancelar solicitud'}
+            </button>
+          </div>
+        )}
       </div>
     </Link>
   )

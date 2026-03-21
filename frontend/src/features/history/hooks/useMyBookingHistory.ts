@@ -1,16 +1,16 @@
 /**
- * Hook for fetching user's bookings with trip and driver details
+ * Hook for fetching passenger's booking history (accepted bookings on inactive trips)
  */
 
-import { useCallback, useState, useEffect, useRef } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { graphqlClient } from '@/lib/graphql-client'
 import { gql } from 'graphql-request'
-import type { BookingWithTrip } from '../types'
+import type { BookingWithTrip } from '@/features/bookings/types'
 import { useAuth } from '@/contexts/AuthContext'
 
-const MY_BOOKINGS_WITH_DETAILS = gql`
-  query MyBookingsWithDetails {
-    myBookings {
+const MY_BOOKING_HISTORY = gql`
+  query MyBookingHistory {
+    myBookingHistory {
       id
       tripId
       seatsRequested
@@ -42,20 +42,20 @@ const MY_BOOKINGS_WITH_DETAILS = gql`
   }
 `
 
-interface UseMyBookingsResult {
+interface UseMyBookingHistoryResult {
   bookings: BookingWithTrip[]
   loading: boolean
   error: Error | null
   refetch: () => Promise<void>
 }
 
-export function useMyBookings(): UseMyBookingsResult {
+export function useMyBookingHistory(): UseMyBookingHistoryResult {
   const [bookings, setBookings] = useState<BookingWithTrip[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const { user } = useAuth()
 
-  const fetchBookings = useCallback(async () => {
+  const fetchHistory = useCallback(async () => {
     if (!user) {
       setBookings([])
       setLoading(false)
@@ -67,13 +67,14 @@ export function useMyBookings(): UseMyBookingsResult {
 
     try {
       const response = await graphqlClient.request<{
-        myBookings: BookingWithTrip[]
-      }>(MY_BOOKINGS_WITH_DETAILS)
+        myBookingHistory: BookingWithTrip[]
+      }>(MY_BOOKING_HISTORY)
 
-      setBookings(response.myBookings)
+      setBookings(response.myBookingHistory)
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to fetch bookings')
-      setError(error)
+      const fetchError =
+        err instanceof Error ? err : new Error('Failed to fetch booking history')
+      setError(fetchError)
       setBookings([])
     } finally {
       setLoading(false)
@@ -81,31 +82,8 @@ export function useMyBookings(): UseMyBookingsResult {
   }, [user])
 
   useEffect(() => {
-    fetchBookings()
-  }, [fetchBookings])
+    fetchHistory()
+  }, [fetchHistory])
 
-  // 5-second polling with visibilityState guard (FR-004)
-  const fetchRef = useRef(fetchBookings)
-  fetchRef.current = fetchBookings
-
-  useEffect(() => {
-    if (!user) return
-
-    const poll = () => {
-      if (document.visibilityState === 'visible') {
-        fetchRef.current()
-      }
-    }
-
-    const intervalId = setInterval(poll, 5_000)
-    return () => clearInterval(intervalId)
-  }, [user])
-
-  return {
-    bookings,
-    loading,
-    error,
-    refetch: fetchBookings
-  }
+  return { bookings, loading, error, refetch: fetchHistory }
 }
-

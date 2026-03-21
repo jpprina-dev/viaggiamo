@@ -24,7 +24,7 @@ class Query(
     - UserQueries: User-related queries (me, user)
     - VehicleQueries: Vehicle-related queries
     - TripQueries: Trip-related queries (trips, trip, myTrips)
-    - BookingQueries: Booking-related queries (myBookings, booking, tripBookings)
+    - BookingQueries: Booking-related queries (myBookings, booking, tripBookings, myBookingHistory, myDriverTripHistory)
     """
 
     pass

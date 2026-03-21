@@ -251,3 +251,47 @@ class TestSchemaLegacy:
 
         assert result.errors is not None
         assert "Only driver can change booking status" in str(result.errors[0])
+
+
+# ── T034: myBookingHistory contract tests ──────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_my_booking_history_schema_shape() -> None:
+    """myBookingHistory must appear in schema and return BookingType list."""
+    sdl = str(schema)
+    assert "myBookingHistory" in sdl
+
+
+@pytest.mark.asyncio
+async def test_my_booking_history_auth_guard() -> None:
+    """myBookingHistory must reject unauthenticated requests."""
+    context = Context(db=MagicMock(), user=None)
+    result = await schema.execute(
+        "{ myBookingHistory { id status } }",
+        context_value=context,
+    )
+    assert result.errors is not None
+    assert "Authentication required" in str(result.errors[0])
+
+
+# ── T035: myDriverTripHistory contract tests ───────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_my_driver_trip_history_schema_shape() -> None:
+    """myDriverTripHistory must appear in schema."""
+    sdl = str(schema)
+    assert "myDriverTripHistory" in sdl
+
+
+@pytest.mark.asyncio
+async def test_my_driver_trip_history_auth_guard() -> None:
+    """myDriverTripHistory must reject unauthenticated requests."""
+    context = Context(db=MagicMock(), user=None)
+    result = await schema.execute(
+        "{ myDriverTripHistory { trip { id } passengers { id } } }",
+        context_value=context,
+    )
+    assert result.errors is not None
+    assert "Authentication required" in str(result.errors[0])

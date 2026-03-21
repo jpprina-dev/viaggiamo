@@ -21,3 +21,26 @@ export interface HistoryTripItem {
 
 export type HistoryItem = HistoryBookingItem | HistoryTripItem
 
+export interface PassengerInfo {
+  id: number
+  name: string
+  lastName: string
+  username: string
+  profilePicture?: string
+}
+
+export interface DriverTripWithPassengers {
+  trip: {
+    id: number
+    origin: string
+    destination: string
+    departureTime: string
+    pricePerSeat: number
+    isActive: boolean
+    isCompleted: boolean
+    totalSeats: number
+    availableSeats: number
+  }
+  passengers: PassengerInfo[]
+}
+

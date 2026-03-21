@@ -1,11 +1,14 @@
 """Booking-related GraphQL types."""
 
+from dataclasses import field
 from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Annotated
 
 import strawberry
 from sqlalchemy import select
+
+from app.models.request_decision_event import RequestDecisionEvent
 
 if TYPE_CHECKING:
     from app.graphql.types.trip import TripType
@@ -31,6 +34,21 @@ class BookingType:
     cancelled_by: str | None = None
     cancellation_reason: str | None = None
     cancellation_time: datetime | None = None
+
+    # Eager-loaded decision events (not exposed directly in schema)
+    decision_events: strawberry.Private[list[RequestDecisionEvent]] = field(
+        default_factory=list
+    )
+
+    @strawberry.field
+    async def was_reset_from_rejected(self, info: strawberry.Info) -> bool:
+        """True when status is pending and the latest decision event is rejected→pending."""
+        if self.status != "pending":
+            return False
+        if not self.decision_events:
+            return False
+        latest = self.decision_events[0]
+        return latest.previous_status == "rejected" and latest.new_status == "pending"
 
     @strawberry.field
     async def trip(
@@ -94,6 +112,14 @@ class BookingType:
             created_at=user.created_at,
             updated_at=user.updated_at,
         )
+
+
+@strawberry.type
+class DriverTripHistoryType:
+    """A driver's inactive trip with its accepted passengers."""
+
+    trip: Annotated["TripType", strawberry.lazy("app.graphql.types.trip")]
+    passengers: list[Annotated["UserType", strawberry.lazy("app.graphql.types.user")]]
 
 
 @strawberry.input

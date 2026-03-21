@@ -20,7 +20,14 @@ Drivers create trips by specifying an origin, destination, departure time, price
 A search engine with fuzzy text matching lets passengers find trips even with approximate city names. Results are ranked by relevance, considering factors like date proximity, price, and text similarity.
 
 ### Booking System
-Passengers book seats on a trip. The system tracks available seats, prevents duplicate bookings, and supports cancellation by both passengers and drivers — with seat restoration on cancellation.
+Passengers request seats on a trip. Bookings follow a status lifecycle: **Pending → Accepted / Rejected / Cancelled**. Drivers manage requests by accepting or rejecting them; passengers can cancel pending requests. Key behaviors:
+
+- **Status tracking**: Passengers see live status updates via 5-second polling in the Solicitudes tab.
+- **Driver reset**: If a driver resets a rejected booking back to Pending, the passenger sees a "Mantener / Cancelar" acknowledgment prompt.
+- **Auto-reject on completion**: When a trip is marked completed, all remaining Pending bookings are automatically moved to Rejected.
+- **Trip deactivation**: When a driver deactivates a trip, all accepted and pending bookings are cancelled with `cancelled_by=driver`.
+- **History**: Accepted bookings for inactive trips appear in the passenger's History tab (`myBookingHistory` query). Drivers see their inactive trips with accepted passengers (`myDriverTripHistory` query).
+- **Active tab filter**: The Solicitudes tab shows bookings for active trips, with rejected bookings always visible regardless of trip state.
 
 ### Vehicle Registration
 Drivers register their vehicles with details like make, model, year, license plate, and seat count. Vehicles can be reused across multiple trips.

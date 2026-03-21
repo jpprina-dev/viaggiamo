@@ -13,9 +13,10 @@ import Link from 'next/link'
 interface BookingsViewProps {
   bookings: BookingWithTrip[]
   filter?: 'active' | 'completed' | 'all'
+  onBookingCancelled?: (bookingId: number) => void
 }
 
-export function BookingsView({ bookings, filter = 'all' }: BookingsViewProps) {
+export function BookingsView({ bookings, filter = 'all', onBookingCancelled }: BookingsViewProps) {
   // Filter bookings to show only: accepted, pending/rejected, and cancelled by driver
   const filteredBookings = useMemo(() => {
     let filtered = bookings.filter((b) => {
@@ -36,13 +37,14 @@ export function BookingsView({ bookings, filter = 'all' }: BookingsViewProps) {
 
     // Apply additional filter for active/completed
     if (filter === 'active') {
-      // Only show request and active booking states (exclude completed)
+      // Show bookings for active trips, but keep rejected visible regardless of trip state
       filtered = filtered.filter(
         (b) =>
-          b.status === 'accepted' ||
-          b.status === 'pending' ||
-          b.status === 'rejected' ||
-          (b.status === 'cancelled' && b.cancelledBy === 'driver')
+          (b.trip.isActive === true || b.status === 'rejected') &&
+          (b.status === 'accepted' ||
+            b.status === 'pending' ||
+            b.status === 'rejected' ||
+            (b.status === 'cancelled' && b.cancelledBy === 'driver'))
       )
     } else if (filter === 'completed') {
       // Only show completed
@@ -73,7 +75,7 @@ export function BookingsView({ bookings, filter = 'all' }: BookingsViewProps) {
   return (
     <div className="space-y-4">
       {filteredBookings.map((booking) => (
-        <BookingCard key={booking.id} booking={booking} />
+        <BookingCard key={booking.id} booking={booking} onBookingCancelled={onBookingCancelled} />
       ))}
     </div>
   )
