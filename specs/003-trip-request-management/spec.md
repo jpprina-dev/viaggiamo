@@ -12,7 +12,7 @@
 - Q: Does driver revocation of an accepted request (accepted → rejected) trigger a notification to the passenger? → A: Yes — notify the passenger immediately, same as other status changes.
 - Q: What passenger details are shown in the accepted passengers list (FR-017)? → A: Name, profile photo, and average rating.
 - Q: After revocation, can the passenger submit a new join request for the same trip? → A: No — a revoked passenger cannot submit a new join request for the same trip.
-- Q: Is passenger-initiated cancellation (accepted/revalidated → canceled) in scope for this feature? → A: Out of scope. The `canceled` status is defined in the state machine for data model completeness; the trigger and UI are handled by a separate passenger-cancellation feature.
+- Q: Is passenger-initiated cancellation in scope for this feature? → A: Partially. `pending → canceled` (passenger withdraws a pending request) IS in scope as FR-020. The withdrawn request disappears permanently from the driver's view. `accepted → canceled` and `revalidated → canceled` remain out of scope and are handled by a separate passenger-cancellation feature.
 - Q: What are the canonical Join Request statuses and their transitions? → A: pending → accepted (driver accepts) | pending → rejected (driver rejects; passenger cannot rejoin unless driver revalidates) | pending → canceled (passenger withdraws) | rejected → revalidated (driver re-enables) | accepted → canceled (passenger exits) | accepted → revoked (driver removes) | revalidated → canceled (passenger exits) | revalidated → revoked (driver removes).
 
 ### Session 2026-03-02
@@ -105,6 +105,8 @@ As a driver, I can revisit a previously rejected passenger request and revalidat
 - Driver revokes a confirmed passenger (status: revoked), freeing a seat; previously rejected passengers remain rejected unless the driver explicitly revalidates them.
 - Driver attempts to revoke a confirmed passenger after departure time; system must block the action.
 - A revoked passenger attempts to submit a new join request for the same trip; system must block it.
+- A passenger withdraws a pending request and then re-submits a new request for the same trip while seats and the window remain open; the system must allow the re-submission (a withdrawn request does not block future requests, unlike a revoked one).
+- A passenger attempts to withdraw a request that is no longer pending (e.g., already accepted or rejected); the system must reject the withdrawal and inform the passenger that the action is not available for the current status.
 
 ## Requirements *(mandatory)*
 
@@ -112,7 +114,7 @@ As a driver, I can revisit a previously rejected passenger request and revalidat
 
 - **FR-001**: System MUST allow drivers to publish a trip with required trip details and a defined seat capacity.
 - **FR-002**: System MUST allow passengers to submit a join request to a published trip while requests are open and at least one seat is available.
-- **FR-003**: System MUST provide drivers with a request management view showing all requests for each trip, grouped by status: pending, accepted, revalidated, rejected, revoked, and canceled.
+- **FR-003**: System MUST provide drivers with a request management view showing all requests for each trip, grouped by status: pending, accepted, revalidated, rejected and revoked.
 - **FR-004**: System MUST allow drivers to accept a pending request when at least one seat is available.
 - **FR-005**: System MUST allow drivers to reject a pending request without changing seat availability.
 - **FR-006**: System MUST prevent the combined count of accepted and revalidated passengers from exceeding trip seat capacity.
@@ -129,11 +131,12 @@ As a driver, I can revisit a previously rejected passenger request and revalidat
 - **FR-017**: System MUST provide drivers with a dedicated frontend view listing all currently confirmed passengers (status: accepted or revalidated) for a trip, accessible from the request management screen. Each entry MUST display the passenger's name, profile photo, and average rating.
 - **FR-018**: System MUST allow drivers to revoke a previously accepted or revalidated request (status: revoked) while the trip is still open, increasing available seat count by one.
 - **FR-019**: System MUST prevent drivers from revoking a confirmed passenger after the trip departure time has passed.
+- **FR-020**: System MUST allow a passenger to withdraw their own pending join request at any time while the trip is still open. Upon withdrawal, the request status transitions to canceled, the request is permanently removed from the driver's request management view, and the passenger's seat reservation (if any) is released. The passenger MUST be able to submit a new join request for the same trip after withdrawing, provided seats are available and the request window is still open.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Trip**: A driver-published ride offer with route, departure time, seat capacity, and current available seats.
-- **Join Request**: A passenger request to join a specific trip, including requester identity, request timestamp, and current decision status. Canonical status state machine: `pending` → `accepted` (driver accepts) | `pending` → `rejected` (driver rejects) | `rejected` → `revalidated` (driver re-enables) | `accepted` → `canceled` (passenger exits) | `accepted` → `revoked` (driver removes) | `revalidated` → `canceled` (passenger exits) | `revalidated` → `revoked` (driver removes).
+- **Join Request**: A passenger request to join a specific trip, including requester identity, request timestamp, and current decision status. Canonical status state machine: `pending` → `accepted` (driver accepts) | `pending` → `rejected` (driver rejects) | `pending` → `canceled` (passenger withdraws) | `rejected` → `revalidated` (driver re-enables) | `accepted` → `canceled` (passenger exits — out of scope for this feature) | `accepted` → `revoked` (driver removes) | `revalidated` → `canceled` (passenger exits — out of scope for this feature) | `revalidated` → `revoked` (driver removes).
 - **Request Decision Event**: A record of each driver action on a join request, including prior status, new status, actor, and decision timestamp.
 - **Driver**: The trip owner responsible for publishing trips and deciding request outcomes.
 - **Passenger**: The traveler requesting a seat and receiving decision updates.
@@ -141,7 +144,8 @@ As a driver, I can revisit a previously rejected passenger request and revalidat
 ### Assumptions & Dependencies
 
 - Trip publication, driver identity, and passenger identity flows already exist and are out of scope for this feature.
-- Passenger-initiated cancellation (accepted/revalidated → canceled) is out of scope. The `canceled` status exists in the data model for completeness and is reserved for a future passenger-cancellation feature.
+- Passenger-initiated withdrawal of a **pending** request (`pending → canceled`) is in scope as FR-020. After withdrawal, the passenger may re-submit a new request for the same trip if seats and the request window remain open.
+- Passenger-initiated cancellation from **accepted or revalidated** status (`accepted/revalidated → canceled`) is out of scope. The `canceled` status exists in the data model for those transitions for completeness; the trigger and UI are handled by a separate passenger-cancellation feature.
 - The feature depends on existing notification channels used for booking-related updates.
 - Request management is only available before trip departure or explicit trip closure.
 - The join-request submission window closes at the scheduled departure time.

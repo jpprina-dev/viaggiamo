@@ -31,4 +31,5 @@
 
 ## Notes
 
-- Validation pass 1: all checklist items passed.
+- Validation pass 1 (2026-03-02): all checklist items passed.
+- Validation pass 2 (2026-03-28): FR-020 added (passenger withdraw of pending request). State machine, assumptions, clarifications, and edge cases updated. All checklist items re-validated and pass.

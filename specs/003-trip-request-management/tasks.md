@@ -1,141 +1,169 @@
-# Tasks: Trip Request Management
+# Tasks: Trip Request Management (Re-implementation)
 
-**Input**: Design documents from `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/`
-**Prerequisites**: `plan.md`, `spec.md`, plus `research.md`, `data-model.md`, `contracts/trip-request-management.graphql.md`, `quickstart.md`
+**Input**: Design documents from `specs/003-trip-request-management/`
+**Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/trip-request-management.graphql.md`, `quickstart.md`
 
-**Tests**: Included. The spec + constitution + quickstart require test-first delivery for backend behavior and contract integrity.
+**Tests**: Included per constitution II (Test-First, NON-NEGOTIABLE). All backend behavior must have failing tests written before implementation.
 
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing.
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing. This is a re-implementation — existing code is the starting point, not a blank slate.
 
 ## Format: `[ID] [P?] [Story] Description`
 
-- **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: User story label (`US1`, `US2`, `US3`) for story-phase tasks only
+- **[P]**: Can run in parallel (different files, no dependencies on incomplete tasks)
+- **[Story]**: User story label (`US1`–`US4`) for story-phase tasks only
 - All tasks include exact file paths
 
 ---
 
-## Phase 1: Setup (Shared Infrastructure)
+## Phase 1: Setup (Re-implementation Baseline)
 
-**Purpose**: Align feature scope, tests, and docs baseline before code changes.
+**Purpose**: Identify the full diff between the current 4-status implementation and the target 6-status model before any code changes.
 
-- [X] T001 Capture API/data-model change baseline in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/plan.md`
-- [X] T002 Create implementation checklist from quickstart scenarios in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/quickstart.md`
-- [X] T003 [P] Add request-status terminology notes for implementers in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/research.md`
+- [ ] T001 Audit all uses of `STATUS_CANCELLED`, `cancelPassengerBooking`, and `wasResetFromRejected` across `backend/app/models/booking.py`, `backend/app/graphql/resolvers/booking.py`, `backend/app/graphql/types/booking.py`, and `backend/app/graphql/schema.py` — document findings inline as TODO comments
+- [ ] T002 [P] Audit all frontend references to `cancelled`, `wasResetFromRejected`, and `cancelPassengerBooking` across `frontend/src/features/bookings/`, `frontend/src/features/driver-trips/`, `frontend/src/features/trip-details/`, and `frontend/src/types/booking.ts` — document findings inline as TODO comments
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-**Purpose**: Core request-lifecycle and validation scaffolding required by all stories.
+**Purpose**: Core model, rule engine, and migration changes that all user stories depend on.
 
-**⚠️ CRITICAL**: No user story work starts before this phase completes.
+**⚠️ CRITICAL**: No user story work begins before this phase completes.
 
-- [X] T004 Define canonical booking/request status constants and transition comments in `/home/juampri/projects/personal/viaggiamo/backend/app/models/booking.py`
-- [X] T005 [P] Add request-decision audit model for status history in `/home/juampri/projects/personal/viaggiamo/backend/app/models/request_decision_event.py`
-- [X] T006 [P] Wire new audit relationship from booking entity in `/home/juampri/projects/personal/viaggiamo/backend/app/models/booking.py`
-- [X] T007 Create Alembic migration for request decision events and request uniqueness constraints in `/home/juampri/projects/personal/viaggiamo/backend/alembic/versions/001_trip_request_management.py`
-- [X] T008 [P] Add shared request transition validation helper in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/resolvers/booking_request_rules.py`
-- [X] T009 [P] Extend GraphQL booking status documentation comments in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/types/booking.py`
+- [ ] T003 Replace `STATUS_CANCELLED = "cancelled"` with `STATUS_CANCELED = "canceled"`, add `STATUS_REVALIDATED = "revalidated"` and `STATUS_REVOKED = "revoked"` constants in `backend/app/models/booking.py`
+- [ ] T004 [P] Rewrite `VALID_TRANSITIONS` dict and `seat_delta_for_transition()` in `backend/app/graphql/resolvers/booking_request_rules.py` to cover all 8 canonical transitions: `pending→accepted (−1)`, `pending→rejected (0)`, `pending→canceled (0)`, `rejected→revalidated (−1)`, `accepted→revoked (+1)`, `accepted→canceled (+1)`, `revalidated→revoked (+1)`, `revalidated→canceled (+1)`; update capacity guard to count both `accepted` and `revalidated` as seat-holding statuses
+- [ ] T005 [P] Remove `wasResetFromRejected` computed field and its `request_decision_events` join logic from `backend/app/graphql/types/booking.py`
+- [ ] T006 Write Alembic migration `backend/alembic/versions/002_trip_request_reimplement.py`: (1) `UPDATE bookings SET status='revoked' WHERE status='cancelled' AND cancelled_by='driver'`; (2) `UPDATE bookings SET status='canceled' WHERE status='cancelled' AND (cancelled_by != 'driver' OR cancelled_by IS NULL)`; (3) for each booking with `status='pending'` whose latest `request_decision_events` row has `previous_status='rejected'`, set `status='revalidated'`; (4) add check constraint on `status` column for the 6 valid values
+- [ ] T007 [P] Write failing integration tests for the full 6-status transition matrix in `backend/tests/test_graphql/test_booking_integration.py`: assert all 8 allowed transitions succeed; assert `canceled→any` and `revoked→any` are terminal (blocked); assert `revalidated` is blocked when no seats remain; assert seat delta is correct for all transitions (red phase — these must fail before Phase 3 starts)
 
-**Checkpoint**: Request lifecycle foundation ready for story implementation.
+- [ ] T058 [P] Write contract test: `updateBooking` mutation accepts `"revoked"` and `"revalidated"` as valid `status` input values and returns a `BookingType` with correct shape; verify invalid status values return a GraphQL error — in `backend/tests/test_graphql/test_schema.py`
+- [ ] T059 [P] Write contract test: `cancelBooking(bookingId: Int!)` returns `Boolean!` and returns a GraphQL error when called on a `revoked` or `canceled` booking (terminal states) — in `backend/tests/test_graphql/test_schema.py`
+- [ ] T060 [P] Write contract test: `tripBookings(tripId: Int!)` returns an array of `BookingType` containing only the expected fields (`id`, `status`, `passenger`, `seatsRequested`, etc.) and never includes a `wasResetFromRejected` field — in `backend/tests/test_graphql/test_schema.py`
+
+**Checkpoint**: Model constants, rules engine, migration, contract tests, and integration test scaffolding are in place. All T007, T058–T060 tests must be red.
 
 ---
 
-## Phase 3: User Story 1 - Publish Trip and Receive Requests (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 — Publish Trip and Receive Requests / Passenger Withdraw (Priority: P1) 🎯 MVP
 
-**Goal**: Driver publishes active trips and passengers can create pending join requests while the trip is open and has seats.
+**Goal**: Driver publishes an active trip; passengers can submit pending join requests and withdraw them (`pending → canceled`). Withdrawn requests disappear from the driver's view. Passenger may re-submit after withdrawing.
 
-**Independent Test**: Publish a trip, submit a request, verify request is pending and driver sees it in trip requests list without seat decrement.
+**Independent Test**: Publish a trip, submit a request, verify it is `pending` in driver view. Withdraw the request, verify it disappears from driver view and `tripBookings`. Re-submit, verify new `pending` request is accepted by system.
 
 ### Tests for User Story 1
 
-- [X] T010 [P] [US1] Add GraphQL integration test for active trip creation in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_trip_resolvers.py`
-- [X] T011 [P] [US1] Add GraphQL integration test that `createBooking` creates `pending` request without seat decrement in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_booking_integration.py`
-- [X] T012 [P] [US1] Add GraphQL contract test for `createBooking` rejection when trip is full or past departure in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_schema.py`
-- [X] T040 [P] [US1] Add frontend smoke test for bookings page render in `/home/juampri/projects/personal/viaggiamo/frontend/src/app/bookings/__tests__/page.smoke.test.tsx`
+- [ ] T008 [P] [US1] Write failing test: `createBooking` creates `pending` request without decrementing `available_seats` in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T009 [P] [US1] Write failing test: `cancelBooking` on a `pending` booking → `canceled`, no seat change, booking excluded from subsequent `tripBookings` response in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T010 [P] [US1] Write failing test: passenger can create a new request for the same trip after withdrawing a pending one (re-submission allowed) in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T011 [P] [US1] Write failing test: `cancelBooking` on a `pending` booking blocked after trip departure time in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T012 [P] [US1] Write failing test: `tripBookings` excludes `canceled` bookings; returns `pending`, `accepted`, `rejected`, `revalidated`, `revoked` in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T013 [P] [US1] Write failing test: `myBookings` excludes passenger-canceled bookings; returns all other statuses in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T061 [P] [US1] Write failing test: passenger receives a notification when their own pending request is withdrawn (`cancelBooking` on `pending` status dispatches notification event per FR-010) in `backend/tests/test_graphql/test_booking_integration.py`
 
 ### Implementation for User Story 1
 
-- [X] T013 [US1] Update `create_trip` active-state and initial seat behavior in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/resolvers/trip.py`
-- [X] T014 [US1] Update `create_booking` to keep seats unchanged at request creation and enforce full/departure constraints in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/resolvers/booking.py`
-- [X] T015 [P] [US1] Update booking query response mapping for request terminology and pending visibility in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/resolvers/booking.py`
-- [X] T016 [P] [US1] Update trip details request form UI text and error states for full/cutoff conditions in `/home/juampri/projects/personal/viaggiamo/frontend/src/features/trip-details/components/BookingForm.tsx`
-- [X] T017 [US1] Update passenger bookings page to display pending request semantics in `/home/juampri/projects/personal/viaggiamo/frontend/src/app/bookings/page.tsx`
+- [ ] T014 [US1] Update `create_booking` resolver in `backend/app/graphql/resolvers/booking.py`: enforce `pending` initial status; block full trip, past-departure, duplicate active request, and revoked-passenger cases; allow re-submission after `canceled` (not after `revoked`)
+- [ ] T015 [US1] Extend `cancel_booking` resolver in `backend/app/graphql/resolvers/booking.py` to cover `pending → canceled` via the shared `validate_status_transition()` path in addition to existing `accepted/revalidated → canceled` handling; do not block re-submission for passengers who canceled from `pending`
+- [ ] T016 [US1] Update `trip_bookings` query in `backend/app/graphql/resolvers/booking.py` to filter out `status = 'canceled'` bookings from the driver-facing result
+- [ ] T017 [US1] Update `my_bookings` query in `backend/app/graphql/resolvers/booking.py` to exclude bookings where `status = 'canceled'` (passenger voluntarily exited)
+- [ ] T018 [P] [US1] Update `BookingStatus` type to include all 6 canonical statuses (`pending`, `accepted`, `rejected`, `revalidated`, `revoked`, `canceled`) in `frontend/src/features/bookings/types/index.ts` and sync `frontend/src/types/booking.ts`
+- [ ] T019 [P] [US1] Remove `wasResetFromRejected` field and the "Mantener / Cancelar" two-button banner from `frontend/src/features/bookings/components/BookingCard.tsx`; add `REVALIDATED` (blue) and `REVOKED` (orange) status badge cases to the existing badge switch
+- [ ] T020 [US1] Add "Cancelar solicitud" (withdraw) action button for `status === 'pending'` in `frontend/src/features/bookings/components/BookingCard.tsx` using the existing `useCancelBooking` hook
+- [ ] T021 [P] [US1] Update `BookingsView` filter in `frontend/src/features/bookings/components/BookingsView.tsx` to show `revalidated` and `revoked` statuses alongside existing ones; exclude only `canceled`
 
-**Checkpoint**: US1 is independently functional and testable (MVP).
+**Checkpoint**: US1 independently functional. Driver sees all non-canceled requests. Passenger can submit, see pending, withdraw, and re-submit.
 
 ---
 
-## Phase 4: User Story 2 - Accept or Reject Passengers (Priority: P2)
+## Phase 4: User Story 2 — Accept or Reject Passengers (Priority: P2)
 
-**Goal**: Trip owner can accept/reject pending requests with deterministic seat accounting and capacity protection.
+**Goal**: Driver reviews pending requests and accepts or rejects each one. Acceptance decrements seat count; rejection does not. Concurrent acceptance of the last seat resolves in favour of the first successful transaction.
 
-**Independent Test**: Driver accepts one pending request and rejects another; accepted path decrements seat count, rejected path keeps seat count unchanged, over-capacity acceptance fails.
+**Independent Test**: Create 2 pending requests on a 1-seat trip. Accept one → verify `accepted`, `available_seats` = 0. Attempt to accept the second → verify blocked with full-capacity error. Reject the second → verify `rejected`, seats unchanged.
 
 ### Tests for User Story 2
 
-- [X] T018 [P] [US2] Add GraphQL integration test for `pending -> accepted` seat decrement behavior in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_booking_integration.py`
-- [X] T019 [P] [US2] Add GraphQL integration test for `pending -> rejected` no-seat-change behavior in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_booking_integration.py`
-- [X] T020 [P] [US2] Add GraphQL integration test for last-seat acceptance race (first success wins) in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_booking_integration.py`
-- [X] T021 [P] [US2] Add authorization contract test for driver-only decision updates in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_schema.py`
-- [X] T051 [P] [US2] Add integration test for driver decision blocking when trip is manually closed before departure in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_booking_integration.py`
-- [X] T041 [P] [US2] Add frontend e2e test for driver accept/reject request flow in `/home/juampri/projects/personal/viaggiamo/frontend/tests/e2e/driver-request-decisions.spec.ts`
-- [X] T044 [P] [US2] Add integration test for passenger notification trigger on accept/reject in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T022 [P] [US2] Write failing test: `updateBooking → accepted` decrements `available_seats` by 1 in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T023 [P] [US2] Write failing test: `updateBooking → rejected` leaves `available_seats` unchanged in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T024 [P] [US2] Write failing test: last-seat race — two concurrent `pending → accepted` mutations, only first succeeds; second returns full-capacity error in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T025 [P] [US2] Write failing test: `updateBooking` accept/reject blocked for non-owner driver in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T026 [P] [US2] Write failing test: `updateBooking` accept/reject blocked when trip is manually closed (is_active=False) in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T027 [P] [US2] Write failing test: passenger receives notification when status changes to `accepted` or `rejected` in `backend/tests/test_graphql/test_booking_integration.py`
 
 ### Implementation for User Story 2
 
-- [X] T022 [US2] Implement driver-only decision transitions and seat decrement on acceptance in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/resolvers/booking.py`
-- [X] T023 [US2] Persist decision audit events for accept/reject actions in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/resolvers/booking.py`
-- [X] T024 [P] [US2] Expose accepted/rejected statuses consistently in booking GraphQL type mapping in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/types/booking.py`
-- [X] T025 [P] [US2] Add driver request action controls (accept/reject) in `/home/juampri/projects/personal/viaggiamo/frontend/src/features/driver-trips/components/DriverTripsView.tsx`
-- [X] T026 [US2] Update request list rendering and optimistic/error handling for decision actions in `/home/juampri/projects/personal/viaggiamo/frontend/src/features/trip-details/components/TripRequestsList.tsx`
-- [X] T043 [US2] Implement passenger status-change notification dispatch on booking decision updates in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/resolvers/booking.py`
-- [X] T045 [P] [US2] Add passenger-facing status-update visibility handling in `/home/juampri/projects/personal/viaggiamo/frontend/src/features/bookings/components/BookingCard.tsx`
+- [ ] T028 [US2] Implement `pending → accepted` and `pending → rejected` branches in `update_booking` resolver in `backend/app/graphql/resolvers/booking.py`: validate transition via rules engine, apply seat delta, persist `RequestDecisionEvent`, dispatch passenger notification
+- [ ] T029 [US2] Add Accept (green) and Reject (red) action buttons for `status === 'pending'` requests in `frontend/src/features/trip-details/components/TripRequestsList.tsx` with loading and error states
+- [ ] T030 [P] [US2] Add Accept and Reject action handlers to the pending-requests dropdown in `frontend/src/features/driver-trips/components/DriverTripCard.tsx` with loading spinner per button and inline error message on failure
 
-**Checkpoint**: US2 independently functional with correct authorization and seat accounting.
+**Checkpoint**: US2 independently functional. Driver can accept/reject pending requests with correct seat accounting and authorization.
 
 ---
 
-## Phase 5: User Story 3 - Reconsider Rejected Requests (Priority: P3)
+## Phase 5: User Story 3 — Monitor Confirmed Passengers and Revoke (Priority: P2)
 
-**Goal**: Trip owner can manually reconsider rejected requests while preserving uniqueness and capacity constraints.
+**Goal**: Driver views all confirmed passengers (accepted + revalidated) with name, profile photo, and average rating. Driver can revoke any confirmed passenger while the trip is open, freeing a seat. Revoke is blocked after departure. Revoked passengers cannot re-submit.
 
-**Independent Test**: Driver changes rejected request back to pending and then accepts it if seat exists; passenger cannot create a new duplicate request after rejection.
+**Independent Test**: Accept 2 passengers on a 2-seat trip. View confirmed list — verify both appear with name/photo/rating. Revoke one → verify `revoked`, `available_seats` = 1, passenger notified. Revoked passenger attempts new request → verify blocked.
 
 ### Tests for User Story 3
 
-- [X] T027 [P] [US3] Add GraphQL integration test for `rejected -> pending` reconsideration flow in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_booking_integration.py`
-- [X] T028 [P] [US3] Add GraphQL integration test preventing new request creation after rejection for same passenger/trip in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_booking_integration.py`
-- [X] T029 [P] [US3] Add GraphQL integration test for reconsideration blocked when trip is full in `/home/juampri/projects/personal/viaggiamo/backend/tests/test_graphql/test_booking_integration.py`
-- [X] T042 [P] [US3] Add frontend e2e test for rejected-request reconsideration flow in `/home/juampri/projects/personal/viaggiamo/frontend/tests/e2e/reconsider-rejected-request.spec.ts`
+- [ ] T031 [P] [US3] Write failing test: `updateBooking → revoked` from `accepted` increments `available_seats` by 1 and notifies passenger in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T032 [P] [US3] Write failing test: `updateBooking → revoked` from `revalidated` increments `available_seats` by 1 in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T033 [P] [US3] Write failing test: `updateBooking → revoked` blocked after trip departure time in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T034 [P] [US3] Write failing test: revoked passenger cannot create a new join request for the same trip in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T035 [P] [US3] Write failing test: `tripBookings` returns `accepted` and `revalidated` bookings with passenger name, profile photo field, and average rating in `backend/tests/test_graphql/test_booking_integration.py`
 
 ### Implementation for User Story 3
 
-- [X] T030 [US3] Implement `rejected -> pending` and `rejected -> accepted` transition rules in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/resolvers/booking.py`
-- [X] T031 [US3] Enforce rejected-request uniqueness behavior in request creation path in `/home/juampri/projects/personal/viaggiamo/backend/app/graphql/resolvers/booking.py`
-- [X] T032 [P] [US3] Add reconsider action controls and state badges in `/home/juampri/projects/personal/viaggiamo/frontend/src/features/trip-details/components/TripRequestsList.tsx`
-- [X] T033 [P] [US3] Update driver trips request management UI to support reconsideration actions in `/home/juampri/projects/personal/viaggiamo/frontend/src/features/driver-trips/components/DriverTripCard.tsx`
+- [ ] T036 [US3] Implement `accepted/revalidated → revoked` branch in `update_booking` resolver in `backend/app/graphql/resolvers/booking.py`: validate via rules engine, apply +1 seat delta, persist `RequestDecisionEvent`, dispatch passenger notification, mark booking as driver-removed
+- [ ] T037 [US3] Add revoked-passenger guard in `create_booking` resolver in `backend/app/graphql/resolvers/booking.py`: query for existing `revoked` booking for `(trip_id, passenger_id)`; if found, raise `"You were removed from this trip and cannot rejoin"` error
+- [ ] T038 [US3] Remove `cancel_passenger_booking` mutation function and its Strawberry registration from `backend/app/graphql/resolvers/booking.py` and `backend/app/graphql/schema.py`
+- [ ] T039 [P] [US3] Add Revoke action button for `status === 'accepted'` and `status === 'revalidated'` entries in the confirmed-passengers section of `frontend/src/features/trip-details/components/TripRequestsList.tsx` with loading state and error fallback message
+- [ ] T040 [US3] Add confirmed-passengers subsection (accepted + revalidated) with name, profile photo, average rating, and Revoke button to `frontend/src/features/driver-trips/components/DriverTripCard.tsx`; show `revoked` entries as read-only (no further actions); Revoke button must show loading spinner and display inline error on failure
+- [ ] T041 [P] [US3] Add `REVOKED` status badge (orange, read-only, no action buttons) to passenger-facing `frontend/src/features/bookings/components/BookingCard.tsx`
 
-**Checkpoint**: US3 independently functional with manual reconsideration and uniqueness guarantees.
+**Checkpoint**: US3 independently functional. Driver can view confirmed passengers, revoke them, and revoked passengers are blocked from re-joining.
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 6: User Story 4 — Revalidate Rejected Requests (Priority: P3)
 
-**Purpose**: Documentation alignment, validation, and final quality checks across all stories.
+**Goal**: Driver can re-approve a previously rejected request, transitioning it to `revalidated` (a confirmed seat). Revalidation is blocked when no seats remain. Rejected passengers cannot create a new request — only the driver can re-enable them.
 
-- [X] T034 [P] Update GraphQL mutation docs for request lifecycle and decision actions in `/home/juampri/projects/personal/viaggiamo/docs/api/mutations.md`
-- [X] T035 [P] Update GraphQL query docs for request statuses and visibility rules in `/home/juampri/projects/personal/viaggiamo/docs/api/queries.md`
-- [X] T036 [P] Update domain data-model docs for request state transitions and seat semantics in `/home/juampri/projects/personal/viaggiamo/docs/architecture/data-model.md`
-- [X] T037 Run backend quality gates (`uv run ruff check .`, `uv run mypy .`, `uv run pytest`) and record outcomes in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/quickstart.md`
-- [X] T038 Run frontend quality gate (`pnpm build`) and record outcome in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/quickstart.md`
-- [X] T039 Execute quickstart manual acceptance flow and log pass/fail evidence in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/quickstart.md`
-- [X] T046 Define KPI measurement method and data sources for SC-001/SC-002/SC-004/SC-005 in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/quickstart.md`
-- [X] T047 [P] Add post-release validation checklist for SC-001 and SC-002 in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/quickstart.md`
-- [X] T048 [P] Add post-release validation checklist for SC-004 and SC-005 in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/quickstart.md`
-- [X] T049 Run GraphQL resolver performance spot-checks for updated booking/trip mutations and record timings in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/quickstart.md`
-- [ ] T050 Capture screenshots or screen recording for updated driver/passenger request flows and link evidence in `/home/juampri/projects/personal/viaggiamo/specs/001-trip-request-management/quickstart.md`
+**Independent Test**: Reject a request. Attempt passenger re-submit → verify blocked. Driver revalidates → verify `revalidated`, `available_seats` decremented. With 0 seats, attempt revalidate → verify blocked with capacity error.
+
+### Tests for User Story 4
+
+- [ ] T042 [P] [US4] Write failing test: `updateBooking → revalidated` decrements `available_seats` by 1 in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T043 [P] [US4] Write failing test: `updateBooking → revalidated` blocked when `available_seats == 0` in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T044 [P] [US4] Write failing test: passenger cannot create a new request after rejection — uniqueness rule enforced in `backend/tests/test_graphql/test_booking_integration.py`
+- [ ] T045 [P] [US4] Write failing test: passenger receives notification when status changes to `revalidated` in `backend/tests/test_graphql/test_booking_integration.py`
+
+### Implementation for User Story 4
+
+- [ ] T046 [US4] Implement `rejected → revalidated` branch in `update_booking` resolver in `backend/app/graphql/resolvers/booking.py`: validate via rules engine, apply −1 seat delta, persist `RequestDecisionEvent`, dispatch passenger notification
+- [ ] T047 [US4] Enforce rejected-request uniqueness in `create_booking` resolver in `backend/app/graphql/resolvers/booking.py`: query for existing `rejected` booking for `(trip_id, passenger_id)`; if found, raise `"You already have an active request for this trip"` error
+- [ ] T048 [P] [US4] Add `REVALIDATED` status badge (blue/teal) to `frontend/src/features/bookings/components/BookingCard.tsx`; no Cancel action for this status in this feature (passenger exit from `revalidated` is handled by the separate passenger-cancellation feature, not FR-020)
+- [ ] T049 [P] [US4] Add Revalidate action button for `status === 'rejected'` entries in `frontend/src/features/trip-details/components/TripRequestsList.tsx` with loading state and inline error message on failure (e.g., "No seats available")
+- [ ] T050 [P] [US4] Add Revalidate action to the rejected-requests section of `frontend/src/features/driver-trips/components/DriverTripCard.tsx` with loading spinner and inline error fallback
+
+**Checkpoint**: All 4 user stories independently functional. Full 6-status state machine operational.
+
+---
+
+## Phase 7: Polish & Cross-Cutting Concerns
+
+**Purpose**: Documentation alignment, quality gates, and evidence collection.
+
+- [ ] T051 [P] Update `docs/api/mutations.md`: document `updateBooking` with `revoked` and `revalidated` status inputs; update `cancelBooking` to include `pending → canceled`; mark `cancelPassengerBooking` as removed
+- [ ] T052 [P] Update `docs/api/queries.md`: document `tripBookings` filter (excludes `canceled`); deprecate `hasDriverCancelledBooking` (replaced by checking `revoked` status)
+- [ ] T053 [P] Update `docs/architecture/data-model.md`: replace 4-status table with 6-status table; update state machine diagram; add data migration note
+- [ ] T054 Run backend quality gates and record outcomes in `specs/003-trip-request-management/quickstart.md`: `uv run ruff check .` → must be 0 errors; `uv run mypy .` → must be 0 errors; `uv run pytest` → all tests must pass
+- [ ] T055 Run frontend quality gate and record outcome in `specs/003-trip-request-management/quickstart.md`: `pnpm build` → must complete with 0 TypeScript errors
+- [ ] T056 Execute the manual acceptance flow from `specs/003-trip-request-management/quickstart.md` §4 (10-step scenario) and log pass/fail for each step
+- [ ] T057 [P] Capture screenshots or screen recording for: (a) `BookingCard` showing all 6 status badges; (b) driver request card with Revoke/Revalidate actions; (c) passenger withdraw flow — link evidence in `specs/003-trip-request-management/artifacts/ui-evidence.md`
+- [ ] T062 [P] Run local resolver timing measurements for the new paths — `updateBooking → revoked`, `updateBooking → revalidated`, and `cancelBooking → pending canceled` — using `uv run pytest tests/test_graphql/test_booking_integration.py --durations=10 -q`; record observed p95 values in `specs/003-trip-request-management/artifacts/performance-spot-check.md` (required for PR description per constitution IV gate)
 
 ---
 
@@ -143,77 +171,89 @@
 
 ### Phase Dependencies
 
-- **Phase 1 (Setup)**: Starts immediately.
-- **Phase 2 (Foundational)**: Depends on Phase 1; blocks all user stories.
-- **Phase 3 (US1)**: Depends on Phase 2; MVP slice.
-- **Phase 4 (US2)**: Depends on Phase 2 and reuses US1 request vocabulary.
-- **Phase 5 (US3)**: Depends on Phase 4 decision mechanics.
-- **Phase 6 (Polish)**: Depends on completion of desired stories.
+- **Phase 1 (Setup)**: Starts immediately — audit only, no code changes.
+- **Phase 2 (Foundational)**: Depends on Phase 1 audit. Blocks all user stories.
+- **Phase 3 (US1)**: Depends on Phase 2. MVP slice — deliver and validate before Phase 4/5.
+- **Phase 4 (US2)**: Depends on Phase 2. Reuses `update_booking` resolver skeleton from Phase 3.
+- **Phase 5 (US3)**: Depends on Phase 4 (revoke uses the same `update_booking` path).
+- **Phase 6 (US4)**: Depends on Phase 5 (revalidate mirrors revoke path in rules engine).
+- **Phase 7 (Polish)**: Depends on all desired user stories being complete.
 
 ### User Story Dependencies
 
-- **US1 (P1)**: No dependency on other stories once foundation is done.
-- **US2 (P2)**: Depends on shared request model and US1 request creation behavior.
-- **US3 (P3)**: Depends on US2 decision transition engine.
+- **US1 (P1)**: Independent after Phase 2. Core request lifecycle — no story dependencies.
+- **US2 (P2)**: Independent after Phase 2. Reuses request model from US1; `update_booking` resolver initialized in US1.
+- **US3 (P2)**: Depends on US2 (revoke is a driver action on an accepted/revalidated booking).
+- **US4 (P3)**: Depends on Phase 2 rules engine. Can run in parallel with US3 if staffed.
 
 ### Within Each User Story
 
-- Write tests first and verify they fail.
-- Implement backend rules before frontend integration.
-- Complete story-specific validation before moving on.
+1. Write failing tests first — verify they **fail** before writing any implementation code.
+2. Implement backend resolver changes to make tests pass.
+3. Implement frontend UI changes.
+4. Validate story independently at checkpoint before moving on.
 
 ### Parallel Opportunities
 
-- Foundation: T005, T006, T008, T009 can run in parallel after T004.
-- US1: T010, T011, T012, T040 can run in parallel; T016 and T017 can run in parallel after backend contract settles.
-- US2: T018, T019, T020, T021, T041, T044 can run in parallel; T025, T026, and T045 can run in parallel after T022.
-- US3: T027, T028, T029, T042 can run in parallel; T032 and T033 can run in parallel after T030.
-- Polish: T034, T035, T036, T047, and T048 can run in parallel.
+- **Phase 1**: T001 and T002 run in parallel.
+- **Phase 2**: T004, T005, T007, T058, T059, T060 run in parallel after T003.
+- **Phase 3 tests**: T008–T013, T061 all run in parallel.
+- **Phase 3 impl**: T018–T021 run in parallel after T014–T017 backend work.
+- **Phase 4 tests**: T022–T027 all run in parallel.
+- **Phase 5 tests**: T031–T035 all run in parallel.
+- **Phase 6 tests**: T042–T045 all run in parallel.
+- **Phase 7**: T051, T052, T053, T057, T062 run in parallel.
 
 ---
 
-## Parallel Example: User Story 2
+## Parallel Example: User Story 3
 
 ```bash
-# Parallel test authoring
-Task: "T018 [US2] add pending->accepted seat decrement test in backend/tests/test_graphql/test_booking_integration.py"
-Task: "T019 [US2] add pending->rejected no-seat-change test in backend/tests/test_graphql/test_booking_integration.py"
-Task: "T021 [US2] add driver-only authorization contract test in backend/tests/test_graphql/test_schema.py"
+# Parallel test authoring (all red-phase, different test functions in same file)
+Task: "T031 [US3] write failing test: accepted → revoked increments seat + notifies"
+Task: "T032 [US3] write failing test: revalidated → revoked increments seat"
+Task: "T033 [US3] write failing test: revoke blocked after departure time"
+Task: "T034 [US3] write failing test: revoked passenger blocked from re-submit"
+Task: "T035 [US3] write failing test: tripBookings returns passenger name/photo/rating"
 
-# Parallel frontend work after backend transition contract stabilizes
-Task: "T025 [US2] implement accept/reject controls in frontend/src/features/driver-trips/components/DriverTripsView.tsx"
-Task: "T026 [US2] implement request list state handling in frontend/src/features/trip-details/components/TripRequestsList.tsx"
+# After backend contracts settle, parallel frontend work
+Task: "T039 [US3] add Revoke button in TripRequestsList.tsx"
+Task: "T041 [US3] add REVOKED badge in BookingCard.tsx"
 ```
 
 ---
 
 ## Implementation Strategy
 
-### MVP First (US1 only)
+### MVP First (US1 Only)
 
-1. Complete Phase 1 and Phase 2.
-2. Deliver Phase 3 (US1) end-to-end.
-3. Validate independently with US1 tests and quickstart checks.
-4. Demo/deploy MVP before adding decision/reconsideration complexity.
+1. Complete Phase 1 (audit) and Phase 2 (foundational model + rules).
+2. Deliver Phase 3 (US1) end-to-end: pending requests, driver view filter, passenger withdraw, re-submission.
+3. **Stop and validate**: run T008–T013 tests (all green), manual quickstart steps 1–3.
+4. Demo/deploy MVP before adding decision complexity.
 
 ### Incremental Delivery
 
-1. Add US2 decision controls and seat accounting.
-2. Add US3 reconsideration path.
-3. Finish with documentation and quality gates (Phase 6).
+1. Phase 2 complete → foundation ready.
+2. Phase 3 (US1) → basic request lifecycle and withdraw. *(MVP)*
+3. Phase 4 (US2) → driver accept/reject with seat accounting.
+4. Phase 5 (US3) → driver revoke + confirmed-passenger view.
+5. Phase 6 (US4) → driver revalidate rejected requests.
+6. Phase 7 → docs, quality gates, evidence.
 
 ### Parallel Team Strategy
 
-1. Team aligns on foundation (Phase 1-2).
-2. Then split by slices:
-   - Backend rules/tests for next story
-   - Frontend UI integration for completed backend contract
-   - Documentation updates in parallel during polish
+1. Both developers align on Phase 2 (shared foundation).
+2. Developer A: US1 backend + tests → US2 backend + tests.
+3. Developer B: US1 frontend (BookingCard, BookingsView types) → US3/US4 frontend (TripRequestsList, DriverTripCard).
+4. Documentation (Phase 7) in parallel during final testing.
 
 ---
 
 ## Notes
 
-- All tasks follow strict checklist format: checkbox + task ID + optional `[P]` + optional `[US#]` + action with file path.
-- `[P]` markers denote safe parallelization when dependencies are satisfied.
-- User story tasks are independently testable at each checkpoint.
+- `[P]` = safe to parallelize (different files, no incomplete dependencies).
+- Constitution II (Test-First) is NON-NEGOTIABLE: every backend task group starts with failing tests.
+- All tasks reference concrete file paths — no vague descriptions.
+- `canceled` (American spelling) is canonical everywhere; `cancelled` must not appear in new code.
+- `cancelPassengerBooking` and `wasResetFromRejected` must be completely removed; zero references allowed after Phase 5.
