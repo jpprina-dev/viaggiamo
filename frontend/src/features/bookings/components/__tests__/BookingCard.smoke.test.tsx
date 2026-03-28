@@ -26,7 +26,6 @@ const baseBooking: BookingWithTrip = {
   totalPrice: 5000,
   status: 'pending',
   bookingTime: '2026-03-20T10:00:00',
-  wasResetFromRejected: false,
   trip: {
     id: 10,
     origin: 'Buenos Aires',
@@ -73,15 +72,22 @@ describe('BookingCard', () => {
     expect(screen.queryByText('Mantener')).not.toBeInTheDocument()
   })
 
-  // T018: wasResetFromRejected shows acknowledgment banner
-  it('renders driver-reset acknowledgment banner when wasResetFromRejected is true', () => {
-    const resetBooking = { ...baseBooking, status: 'pending', wasResetFromRejected: true }
-    render(<BookingCard booking={resetBooking} />)
+  // T019: revalidated status shows informational notice
+  it('renders revalidated booking with notice and no cancel button', () => {
+    const revalidated = { ...baseBooking, status: 'revalidated' }
+    render(<BookingCard booking={revalidated} />)
 
-    expect(screen.getByText('El conductor ha restablecido tu solicitud')).toBeInTheDocument()
-    expect(screen.getByText('Mantener')).toBeInTheDocument()
-    expect(screen.getByText('Cancelar')).toBeInTheDocument()
-    // Should NOT show the regular cancel button
+    expect(screen.getByText('Revalidada')).toBeInTheDocument()
+    expect(screen.getByText('El conductor ha revalidado tu solicitud')).toBeInTheDocument()
     expect(screen.queryByText('Cancelar solicitud')).not.toBeInTheDocument()
+  })
+
+  // T019: revoked status shows notice
+  it('renders revoked booking with notice', () => {
+    const revoked = { ...baseBooking, status: 'revoked' }
+    render(<BookingCard booking={revoked} />)
+
+    expect(screen.getByText('Revocada')).toBeInTheDocument()
+    expect(screen.getByText('El conductor ha revocado tu solicitud')).toBeInTheDocument()
   })
 })

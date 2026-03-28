@@ -54,7 +54,8 @@ export function DriverTripCard({
 }: DriverTripCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isPassengersExpanded, setIsPassengersExpanded] = useState(false)
-  const [isCancelledExpanded, setIsCancelledExpanded] = useState(false)
+  const [isRejectedExpanded, setIsRejectedExpanded] = useState(false)
+  const [isRevokedExpanded, setIsRevokedExpanded] = useState(false)
   const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null)
   const departureDate = new Date(trip.departureTime)
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
@@ -69,8 +70,9 @@ export function DriverTripCard({
   
   // Calculate counts for all dropdown types
   const pendingCount = bookings.filter((b) => b.status === 'pending').length
-  const acceptedCount = bookings.filter((b) => b.status === 'accepted' || b.status === 'completed').length
-  const cancelledByDriverCount = bookings.filter((b) => b.status === 'cancelled' && b.cancelledBy === 'driver').length
+  const confirmedCount = bookings.filter((b) => b.status === 'accepted' || b.status === 'revalidated').length
+  const rejectedCount = bookings.filter((b) => b.status === 'rejected').length
+  const revokedCount = bookings.filter((b) => b.status === 'revoked').length
 
   const updateBookingStatusMutation = gql`
     mutation UpdateBookingStatus($bookingId: Int!, $status: String!) {
@@ -250,8 +252,8 @@ export function DriverTripCard({
         </div>
       )}
 
-      {/* Accepted Passengers - For completed trips and history view */}
-      {(trip.isCompleted || showRoleIcon) && acceptedCount > 0 && (
+      {/* Confirmed Passengers (accepted + revalidated) */}
+      {confirmedCount > 0 && (
         <div className="border-t border-gray-200">
           <button
             onClick={() => setIsPassengersExpanded(!isPassengersExpanded)}
@@ -259,7 +261,7 @@ export function DriverTripCard({
           >
             <span className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-600" />
-              Pasajeros ({acceptedCount})
+              Pasajeros confirmados ({confirmedCount})
             </span>
             {isPassengersExpanded ? (
               <ChevronUp className="w-4 h-4" />
@@ -267,7 +269,7 @@ export function DriverTripCard({
               <ChevronDown className="w-4 h-4" />
             )}
           </button>
-          
+
           {isPassengersExpanded && (
             <div className="px-4 sm:px-5 pb-4 bg-gray-50">
               {loading ? (
@@ -275,12 +277,10 @@ export function DriverTripCard({
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
                   <p className="mt-2 text-sm text-gray-600">Cargando pasajeros...</p>
                 </div>
-              ) : bookings.filter((b) => b.status === 'accepted' || b.status === 'completed').length === 0 ? (
-                <p className="text-sm text-gray-600 py-3">No hay pasajeros</p>
               ) : (
                 <div className="space-y-3 mt-3">
                   {bookings
-                    .filter((b) => b.status === 'accepted' || b.status === 'completed')
+                    .filter((b) => b.status === 'accepted' || b.status === 'revalidated')
                     .map((booking) => (
                       <div
                         key={booking.id}
@@ -299,7 +299,7 @@ export function DriverTripCard({
                               <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                             </div>
                           )}
-                          
+
                           <div className="flex-1 min-w-0">
                             <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                               {booking.passenger.name} {booking.passenger.lastName}
@@ -308,10 +308,20 @@ export function DriverTripCard({
                           </div>
                         </div>
 
-                        {/* Booking Details */}
-                        <div className="text-right flex-shrink-0">
+                        {/* Booking Details + Revoke */}
+                        <div className="text-right flex-shrink-0 space-y-1">
                           <p className="text-xs text-gray-500">Asientos</p>
                           <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
+                          {enableRequestActions && trip.isActive && (
+                            <button
+                              type="button"
+                              disabled={updatingBookingId === booking.id}
+                              onClick={() => void handleUpdateStatus(booking.id, 'revoked')}
+                              className="rounded bg-orange-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Revocar
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -322,79 +332,139 @@ export function DriverTripCard({
         </div>
       )}
 
-      {/* Cancelled by Driver - Only in DriverTripsView (not history) */}
-      {!showRoleIcon && cancelledByDriverCount > 0 && (
+      {/* Rejected Requests - with Revalidate option */}
+      {!showRoleIcon && rejectedCount > 0 && (
         <div className="border-t border-gray-200">
           <button
-            onClick={() => setIsCancelledExpanded(!isCancelledExpanded)}
+            onClick={() => setIsRejectedExpanded(!isRejectedExpanded)}
             className="w-full px-4 sm:px-5 py-3 flex items-center justify-between text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <span className="flex items-center gap-2">
               <XCircle className="w-4 h-4 text-red-600" />
-              Solicitudes Canceladas ({cancelledByDriverCount})
+              Rechazados ({rejectedCount})
             </span>
-            {isCancelledExpanded ? (
+            {isRejectedExpanded ? (
               <ChevronUp className="w-4 h-4" />
             ) : (
               <ChevronDown className="w-4 h-4" />
             )}
           </button>
-          
-          {isCancelledExpanded && (
+
+          {isRejectedExpanded && (
             <div className="px-4 sm:px-5 pb-4 bg-gray-50">
               {loading ? (
                 <div className="text-center py-4">
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-                  <p className="mt-2 text-sm text-gray-600">Cargando solicitudes canceladas...</p>
+                  <p className="mt-2 text-sm text-gray-600">Cargando...</p>
                 </div>
-              ) : bookings.filter((b) => b.status === 'cancelled' && b.cancelledBy === 'driver').length === 0 ? (
-                <p className="text-sm text-gray-600 py-3">No hay solicitudes canceladas</p>
               ) : (
                 <div className="space-y-3 mt-3">
                   {bookings
-                    .filter((b) => b.status === 'cancelled' && b.cancelledBy === 'driver')
+                    .filter((b) => b.status === 'rejected')
                     .map((booking) => (
                       <div
                         key={booking.id}
-                        className="flex flex-col gap-3 p-3 bg-white rounded-lg border border-gray-200"
+                        className="flex items-center justify-between gap-3 p-3 bg-white rounded-lg border border-gray-200"
                       >
-                        {/* Passenger Info */}
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                            {booking.passenger.profilePicture ? (
-                              <img
-                                src={booking.passenger.profilePicture}
-                                alt={`${booking.passenger.name} ${booking.passenger.lastName}`}
-                                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0"
-                              />
-                            ) : (
-                              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                                <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                              </div>
-                            )}
-                            
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
-                                {booking.passenger.name} {booking.passenger.lastName}
-                              </p>
-                              <p className="text-[10px] sm:text-xs text-gray-500 truncate">@{booking.passenger.username}</p>
+                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                          {booking.passenger.profilePicture ? (
+                            <img
+                              src={booking.passenger.profilePicture}
+                              alt={`${booking.passenger.name} ${booking.passenger.lastName}`}
+                              className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                              <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                             </div>
-                          </div>
-
-                          {/* Booking Details */}
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-xs text-gray-500">Asientos</p>
-                            <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                              {booking.passenger.name} {booking.passenger.lastName}
+                            </p>
+                            <p className="text-[10px] sm:text-xs text-gray-500 truncate">@{booking.passenger.username}</p>
                           </div>
                         </div>
+                        <div className="text-right flex-shrink-0 space-y-1">
+                          <p className="text-xs text-gray-500">Asientos</p>
+                          <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
+                          {enableRequestActions && trip.isActive && (
+                            <button
+                              type="button"
+                              disabled={updatingBookingId === booking.id}
+                              onClick={() => void handleUpdateStatus(booking.id, 'revalidated')}
+                              className="rounded bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Revalidar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
-                        {/* Cancellation Reason */}
-                        {booking.cancellationReason && (
-                          <div className="pt-2 border-t border-gray-100">
-                            <p className="text-xs text-gray-500 mb-1">Motivo de cancelación:</p>
-                            <p className="text-xs text-gray-700">{booking.cancellationReason}</p>
+      {/* Revoked Passengers */}
+      {!showRoleIcon && revokedCount > 0 && (
+        <div className="border-t border-gray-200">
+          <button
+            onClick={() => setIsRevokedExpanded(!isRevokedExpanded)}
+            className="w-full px-4 sm:px-5 py-3 flex items-center justify-between text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <XCircle className="w-4 h-4 text-orange-600" />
+              Revocados ({revokedCount})
+            </span>
+            {isRevokedExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+
+          {isRevokedExpanded && (
+            <div className="px-4 sm:px-5 pb-4 bg-gray-50">
+              {loading ? (
+                <div className="text-center py-4">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+                  <p className="mt-2 text-sm text-gray-600">Cargando...</p>
+                </div>
+              ) : (
+                <div className="space-y-3 mt-3">
+                  {bookings
+                    .filter((b) => b.status === 'revoked')
+                    .map((booking) => (
+                      <div
+                        key={booking.id}
+                        className="flex items-center justify-between gap-3 p-3 bg-white rounded-lg border border-gray-200"
+                      >
+                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                          {booking.passenger.profilePicture ? (
+                            <img
+                              src={booking.passenger.profilePicture}
+                              alt={`${booking.passenger.name} ${booking.passenger.lastName}`}
+                              className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                              <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                              {booking.passenger.name} {booking.passenger.lastName}
+                            </p>
+                            <p className="text-[10px] sm:text-xs text-gray-500 truncate">@{booking.passenger.username}</p>
                           </div>
-                        )}
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xs text-gray-500">Asientos</p>
+                          <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
+                        </div>
                       </div>
                     ))}
                 </div>

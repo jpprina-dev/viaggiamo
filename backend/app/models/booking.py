@@ -21,14 +21,16 @@ class Booking(Base):
     __tablename__ = "bookings"
 
     # Add a partial unique index to prevent duplicate active bookings
-    # Only non-cancelled bookings are considered for uniqueness
+    # Only non-canceled bookings are considered for uniqueness.
+    # canceled is excluded so passengers can re-submit after self-canceling.
+    # revoked is NOT excluded, so revoked passengers cannot re-book.
     __table_args__ = (
         Index(
             "idx_unique_active_booking",
             "trip_id",
             "passenger_id",
             unique=True,
-            postgresql_where="status != 'cancelled'",
+            postgresql_where="status != 'canceled'",
         ),
     )
 
@@ -39,11 +41,13 @@ class Booking(Base):
     STATUS_PENDING = "pending"
     STATUS_ACCEPTED = "accepted"
     STATUS_REJECTED = "rejected"
-    STATUS_CANCELLED = "cancelled"
+    STATUS_REVALIDATED = "revalidated"
+    STATUS_REVOKED = "revoked"
+    STATUS_CANCELED = "canceled"
 
     status: Mapped[str] = mapped_column(
         String(20), default=STATUS_PENDING
-    )  # pending, accepted, rejected, cancelled
+    )  # pending, accepted, rejected, revalidated, revoked, canceled
     notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
     booking_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False

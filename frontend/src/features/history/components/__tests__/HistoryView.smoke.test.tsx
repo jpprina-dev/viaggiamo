@@ -58,7 +58,6 @@ describe('HistoryView', () => {
           totalPrice: 5000,
           status: 'accepted',
           bookingTime: '2026-03-20T10:00:00',
-          wasResetFromRejected: false,
           trip: {
             id: 10,
             origin: 'Cordoba',

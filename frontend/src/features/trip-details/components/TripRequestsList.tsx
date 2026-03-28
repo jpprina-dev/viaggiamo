@@ -86,19 +86,25 @@ export function TripRequestsList({ bookings, loading, onStatusChanged }: TripReq
         <div className="mt-3 flex items-center gap-2">
           <button
             type="button"
-            onClick={() => void updateStatus(booking.id, 'pending')}
+            onClick={() => void updateStatus(booking.id, 'revalidated')}
             disabled={isSubmitting}
-            className="rounded-md bg-slate-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Reconsiderar
+            Revalidar
           </button>
+        </div>
+      )
+    }
+    if (booking.status === 'accepted' || booking.status === 'revalidated') {
+      return (
+        <div className="mt-3 flex items-center gap-2">
           <button
             type="button"
-            onClick={() => void updateStatus(booking.id, 'accepted')}
+            onClick={() => void updateStatus(booking.id, 'revoked')}
             disabled={isSubmitting}
-            className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Aceptar ahora
+            Revocar
           </button>
         </div>
       )
@@ -171,9 +177,14 @@ export function TripRequestsList({ bookings, loading, onStatusChanged }: TripReq
                   Rechazado
                 </span>
               )}
-              {booking.status === 'cancelled' && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                  Cancelado
+              {booking.status === 'revalidated' && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  Revalidado
+                </span>
+              )}
+              {booking.status === 'revoked' && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  Revocado
                 </span>
               )}
             </div>

@@ -30,17 +30,14 @@ export interface BookingWithTrip {
   bookingTime: string
   notes?: string
   trip: TripInfo
-  wasResetFromRejected: boolean
-  // Cancellation tracking
-  cancelledBy?: 'passenger' | 'driver' | 'system' | null
-  cancellationReason?: string
-  cancellationTime?: string
 }
 
 export interface BookingsByStatus {
-  confirmed: BookingWithTrip[]
   pending: BookingWithTrip[]
+  accepted: BookingWithTrip[]
+  rejected: BookingWithTrip[]
+  revalidated: BookingWithTrip[]
+  revoked: BookingWithTrip[]
   completed: BookingWithTrip[]
-  cancelled: BookingWithTrip[]
 }
 

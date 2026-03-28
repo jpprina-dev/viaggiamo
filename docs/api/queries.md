@@ -1,6 +1,6 @@
 # Queries
 
-> Last updated: 2026-02-28
+> Last updated: 2026-03-28
 
 All queries are sent as `POST /graphql` with a JSON body. See the [API README](README.md) for general request format.
 
@@ -540,10 +540,12 @@ Returns all bookings for the authenticated user (as passenger).
 | `passengerId` | Int | Passenger's user ID |
 | `seatsRequested` | Int | Number of seats booked |
 | `totalPrice` | Decimal | Total price (pricePerSeat × seatsRequested) |
-| `status` | String | Request status (`pending`, `accepted`, `rejected`, `cancelled`) |
+| `status` | String | Request status — one of `pending`, `accepted`, `rejected`, `revalidated`, `revoked`, `canceled` |
 | `notes` | String | Passenger notes |
 | `createdAt` | DateTime | Booking creation timestamp |
 | `updatedAt` | DateTime | Last update timestamp |
+
+**Filtering:** Returns all bookings except those with `status = 'canceled'` (passenger-withdrawn requests are excluded).
 
 **GraphQL example:**
 
@@ -615,7 +617,7 @@ curl -X POST http://localhost:8000/graphql \
 
 ## `tripBookings`
 
-Returns all booking requests for a specific trip. Intended for the trip's driver.
+Returns booking requests for a specific trip. Intended for the trip's driver to manage the request queue.
 
 **Auth required:** Yes
 
@@ -625,7 +627,9 @@ Returns all booking requests for a specific trip. Intended for the trip's driver
 |------|------|----------|---------|-------------|
 | `tripId` | Int! | Yes | — | The trip's ID |
 
-**Response — `[BookingType]`:** Same fields as `myBookings`, including request status for driver decisions.
+**Response — `[BookingType]`:** Same fields as `myBookings`.
+
+**Filtering:** Excludes bookings with `status = 'canceled'` — passenger-withdrawn requests do not appear in the driver's view. All other statuses (`pending`, `accepted`, `rejected`, `revalidated`, `revoked`) are returned.
 
 **GraphQL example:**
 
@@ -654,7 +658,9 @@ curl -X POST http://localhost:8000/graphql \
 
 ## `hasDriverCancelledBooking`
 
-Checks whether the driver has previously cancelled the authenticated user's booking for a specific trip. Used to determine if re-booking is allowed.
+> **Deprecated** as of 2026-03-28. This query returns `true` if the passenger has a `revoked` booking for the given trip. The same information is now available by checking whether `myBookings` contains a booking for the trip with `status = 'revoked'`.
+
+Checks whether the driver has previously revoked the authenticated user's booking for a specific trip. Used to determine if re-booking is blocked.
 
 **Auth required:** Yes
 
@@ -664,7 +670,9 @@ Checks whether the driver has previously cancelled the authenticated user's book
 |------|------|----------|---------|-------------|
 | `tripId` | Int! | Yes | — | The trip's ID |
 
-**Response — `Boolean`:** `true` if the driver has cancelled the user's booking, `false` otherwise.
+**Response — `Boolean`:** `true` if the passenger has a `revoked` booking for this trip, `false` otherwise.
+
+**Migration:** Prefer checking `myBookings` for a booking with `tripId` matching and `status = 'revoked'`.
 
 **GraphQL example:**
 

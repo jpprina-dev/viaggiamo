@@ -16,42 +16,20 @@ interface BookingsViewProps {
   onBookingCancelled?: (bookingId: number) => void
 }
 
+const ACTIVE_STATUSES = new Set(['pending', 'accepted', 'rejected', 'revalidated', 'revoked'])
+
 export function BookingsView({ bookings, filter = 'all', onBookingCancelled }: BookingsViewProps) {
-  // Filter bookings to show only: accepted, pending/rejected, and cancelled by driver
+  // Filter bookings — API already excludes 'canceled'; show all returned bookings by default
+
   const filteredBookings = useMemo(() => {
-    let filtered = bookings.filter((b) => {
-      // Include active request/booking states
-      if (b.status === 'accepted' || b.status === 'pending' || b.status === 'rejected') {
-        return true
-      }
-      // Include cancelled bookings only if cancelled by driver
-      if (b.status === 'cancelled' && b.cancelledBy === 'driver') {
-        return true
-      }
-      // Include completed bookings if filter is 'completed' or 'all'
-      if (b.status === 'completed' && (filter === 'completed' || filter === 'all')) {
-        return true
-      }
-      return false
-    })
-
-    // Apply additional filter for active/completed
-    if (filter === 'active') {
-      // Show bookings for active trips, but keep rejected visible regardless of trip state
-      filtered = filtered.filter(
-        (b) =>
-          (b.trip.isActive === true || b.status === 'rejected') &&
-          (b.status === 'accepted' ||
-            b.status === 'pending' ||
-            b.status === 'rejected' ||
-            (b.status === 'cancelled' && b.cancelledBy === 'driver'))
-      )
-    } else if (filter === 'completed') {
-      // Only show completed
-      filtered = filtered.filter((b) => b.status === 'completed')
+    if (filter === 'completed') {
+      return bookings.filter((b) => b.status === 'completed')
     }
-
-    return filtered
+    if (filter === 'active') {
+      return bookings.filter((b) => ACTIVE_STATUSES.has(b.status) && b.trip.isActive === true)
+    }
+    // 'all' — exclude only canceled (already excluded by API, defensive guard)
+    return bookings.filter((b) => b.status !== 'canceled')
   }, [bookings, filter])
 
   if (filteredBookings.length === 0) {

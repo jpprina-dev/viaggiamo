@@ -1,6 +1,6 @@
 # Mutations
 
-> Last updated: 2026-02-28
+> Last updated: 2026-03-28
 
 All mutations are sent as `POST /graphql` with a JSON body. See the [API README](README.md) for general request format.
 
@@ -445,7 +445,7 @@ Create a passenger request for a trip.
 | `passengerId` | Int | Passenger's user ID |
 | `seatsRequested` | Int | Seats reserved |
 | `totalPrice` | Decimal | pricePerSeat × seatsRequested |
-| `status` | String | Request status (`pending`, `accepted`, `rejected`, `cancelled`) |
+| `status` | String | Request status — one of `pending`, `accepted`, `rejected`, `revalidated`, `revoked`, `canceled` |
 | `notes` | String | Passenger notes |
 | `createdAt` | DateTime | Booking creation timestamp |
 | `updatedAt` | DateTime | Last update timestamp |
@@ -453,11 +453,11 @@ Create a passenger request for a trip.
 **Business rules:**
 
 - A user cannot request their own trip.
-- Only one active request per trip per user is allowed.
+- Only one active request per trip per user is allowed (`canceled` bookings do not block re-submission; `revoked` bookings do).
 - Requests are blocked when the trip is full (`availableSeats == 0`).
 - Requests are blocked at or after departure time.
-- Re-booking is blocked if the driver previously cancelled the user's booking for that trip.
-- Seats are decremented only when the driver accepts a request.
+- Re-booking is blocked if the driver has revoked the user's booking for that trip (`status = 'revoked'`).
+- Seats are decremented only when a request transitions into `accepted` or `revalidated`.
 - Total price is calculated as `pricePerSeat × seatsRequested`.
 
 **Error cases:**
@@ -466,7 +466,7 @@ Create a passenger request for a trip.
 - Trip request window is closed.
 - Booking own trip.
 - Duplicate active request.
-- Re-booking after driver cancellation.
+- Re-booking after revocation.
 
 **GraphQL example:**
 
@@ -506,17 +506,24 @@ Update an existing booking request. Drivers manage request decisions; passengers
 |-------|------|-------------|
 | `seatsRequested` | Int | Updated number of seats (passenger only) |
 | `notes` | String | Updated notes (passenger only) |
-| `status` | String | Updated request status (driver only: `pending`, `accepted`, `rejected`, `cancelled`) |
+| `status` | String | Driver decision — one of `accepted`, `rejected`, `revalidated`, `revoked` |
 
 **Response — `BookingType`:** The updated booking.
 
 **Driver decision rules:**
 
-- Only the trip owner can decide request statuses.
-- Allowed transitions: `pending -> accepted|rejected`, `rejected -> pending|accepted`.
-- `availableSeats` decrements only on transitions into `accepted`.
-- `availableSeats` increments when an accepted booking transitions to `cancelled`.
-- Decision changes are blocked once the request window is closed.
+- Only the trip owner can change request status.
+- Allowed driver-initiated transitions and seat effects:
+
+| Transition | Seat change | Notes |
+|------------|-------------|-------|
+| `pending → accepted` | −1 | Blocked if no seats remain |
+| `pending → rejected` | 0 | |
+| `rejected → revalidated` | −1 | Blocked if no seats remain |
+| `accepted → revoked` | +1 | Blocked after departure |
+| `revalidated → revoked` | +1 | Blocked after departure |
+
+- All decision changes are blocked once the trip request window is closed (at departure time or when `isActive` is `false`).
 
 **GraphQL example:**
 
@@ -538,7 +545,7 @@ mutation {
 
 ## `cancelBooking`
 
-Cancel a booking as the passenger. Restores the seats to the trip's available pool.
+Withdraw a pending join request as the passenger (`pending → canceled`). The booking is permanently removed from the driver's request management view. The passenger may re-submit a new request for the same trip after withdrawing.
 
 **Auth required:** Yes (passenger)
 
@@ -548,12 +555,20 @@ Cancel a booking as the passenger. Restores the seats to the trip's available po
 |------|------|----------|-------------|
 | `bookingId` | Int! | Yes | The booking's ID |
 
-**Response — `Boolean`:** `true` if the booking was cancelled.
+**Response — `Boolean`:** `true` if the booking was canceled.
 
 **Business rules:**
 
 - Only the passenger who created the booking can cancel it.
-- Cancelled seats are returned to the trip's `availableSeats`.
+- Only `pending` status is supported for passenger withdrawal. Attempting to cancel an `accepted`, `rejected`, `revalidated`, or `revoked` booking returns an error.
+- A pending booking holds no seats, so no seat restoration occurs.
+- The booking disappears from `tripBookings` (driver view) after cancellation.
+- The passenger can submit a new request for the same trip after withdrawing (unlike after revocation).
+
+**Error cases:**
+
+- `"Invalid status transition"` — booking is not in `pending` status.
+- `"Trip is no longer open"` — trip has passed departure time or is inactive.
 
 **GraphQL example:**
 
@@ -565,32 +580,10 @@ mutation {
 
 ---
 
-## `cancelPassengerBooking`
+## ~~`cancelPassengerBooking`~~ *(removed)*
 
-Cancel a passenger's booking as the trip driver. Requires a reason and prevents the passenger from re-booking the same trip.
+> **This mutation has been removed** as of 2026-03-28. Driver removal of a confirmed passenger is now handled via `updateBooking` with `status: "revoked"`. The `revoked` status permanently blocks the passenger from re-joining the same trip and frees the seat.
+>
+> **Migration:** Replace `cancelPassengerBooking(bookingId: 5, reason: "...")` with `updateBooking(bookingId: 5, bookingInput: { status: "revoked" })`.
 
-**Auth required:** Yes (driver)
-
-**Parameters:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `bookingId` | Int! | Yes | The booking's ID |
-| `reason` | String! | Yes | Reason for cancellation |
-
-**Response — `Boolean`:** `true` if the booking was cancelled.
-
-**Business rules:**
-
-- Only the trip's driver can use this mutation.
-- A reason must be provided.
-- The passenger is blocked from re-booking the same trip after a driver cancellation.
-- Cancelled seats are returned to the trip's `availableSeats`.
-
-**GraphQL example:**
-
-```graphql
-mutation {
-  cancelPassengerBooking(bookingId: 5, reason: "Passenger was unresponsive to messages")
-}
-```
+---

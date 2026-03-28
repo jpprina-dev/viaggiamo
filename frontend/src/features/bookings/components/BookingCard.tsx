@@ -7,7 +7,7 @@
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
-import { Calendar, User, AlertCircle, Briefcase, X, Info } from 'lucide-react'
+import { Calendar, User, AlertCircle, Briefcase, X } from 'lucide-react'
 import type { BookingWithTrip } from '../types'
 import { useCancelBooking } from '../hooks/useCancelBooking'
 
@@ -18,25 +18,29 @@ interface BookingCardProps {
 }
 
 const statusConfig = {
-  accepted: {
-    label: 'Aceptada',
-    color: 'bg-green-100 text-green-800',
-  },
   pending: {
     label: 'Pendiente',
     color: 'bg-yellow-100 text-yellow-800',
+  },
+  accepted: {
+    label: 'Aceptada',
+    color: 'bg-green-100 text-green-800',
   },
   rejected: {
     label: 'Rechazada',
     color: 'bg-red-100 text-red-800',
   },
+  revalidated: {
+    label: 'Revalidada',
+    color: 'bg-blue-100 text-blue-800',
+  },
+  revoked: {
+    label: 'Revocada',
+    color: 'bg-orange-100 text-orange-800',
+  },
   completed: {
     label: 'Completada',
     color: 'bg-gray-100 text-gray-800',
-  },
-  cancelled: {
-    label: 'Cancelada',
-    color: 'bg-red-100 text-red-800',
   },
 }
 
@@ -101,15 +105,12 @@ export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled 
           </div>
         </div>
 
-        {/* Cancellation Reason (if cancelled by driver) */}
-        {booking.status === 'cancelled' && booking.cancelledBy === 'driver' && booking.cancellationReason && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
+        {/* Revoked by driver notice */}
+        {booking.status === 'revoked' && (
+          <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
             <div className="flex gap-2">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-red-900">Cancelada por el conductor</p>
-                <p className="text-sm text-red-700 mt-1">{booking.cancellationReason}</p>
-              </div>
+              <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm font-medium text-orange-900">El conductor ha revocado tu solicitud</p>
             </div>
           </div>
         )}
@@ -150,42 +151,18 @@ export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled 
           </div>
         </div>
 
-        {/* Driver-reset acknowledgment banner (T016) */}
-        {booking.status === 'pending' && booking.wasResetFromRejected && (
+        {/* Revalidated notice */}
+        {booking.status === 'revalidated' && (
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
             <div className="flex gap-2">
-              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-blue-900">
-                  El conductor ha restablecido tu solicitud
-                </p>
-                <p className="text-sm text-blue-700 mt-1">
-                  Tu solicitud fue rechazada anteriormente y ha sido restablecida por el conductor.
-                </p>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
-                    className="px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
-                  >
-                    Mantener
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    disabled={cancelling}
-                    className="px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50"
-                  >
-                    {cancelling ? 'Cancelando...' : 'Cancelar'}
-                  </button>
-                </div>
-              </div>
+              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm font-medium text-blue-900">El conductor ha revalidado tu solicitud</p>
             </div>
           </div>
         )}
 
-        {/* Cancel button for pending bookings (non-reset) */}
-        {booking.status === 'pending' && !booking.wasResetFromRejected && (
+        {/* Cancel button for pending bookings */}
+        {booking.status === 'pending' && (
           <div className="border-t border-gray-100 pt-3">
             <button
               type="button"

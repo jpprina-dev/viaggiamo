@@ -1,14 +1,11 @@
 """Booking-related GraphQL types."""
 
-from dataclasses import field
 from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Annotated
 
 import strawberry
 from sqlalchemy import select
-
-from app.models.request_decision_event import RequestDecisionEvent
 
 if TYPE_CHECKING:
     from app.graphql.types.trip import TripType
@@ -24,7 +21,7 @@ class BookingType:
     passenger_id: int
     seats_requested: int
     total_price: Decimal
-    status: str  # pending, accepted, rejected, cancelled
+    status: str  # pending, accepted, rejected, revalidated, revoked, canceled
     notes: str | None = None
     booking_time: datetime
     created_at: datetime
@@ -34,21 +31,6 @@ class BookingType:
     cancelled_by: str | None = None
     cancellation_reason: str | None = None
     cancellation_time: datetime | None = None
-
-    # Eager-loaded decision events (not exposed directly in schema)
-    decision_events: strawberry.Private[list[RequestDecisionEvent]] = field(
-        default_factory=list
-    )
-
-    @strawberry.field
-    async def was_reset_from_rejected(self, info: strawberry.Info) -> bool:
-        """True when status is pending and the latest decision event is rejected→pending."""
-        if self.status != "pending":
-            return False
-        if not self.decision_events:
-            return False
-        latest = self.decision_events[0]
-        return latest.previous_status == "rejected" and latest.new_status == "pending"
 
     @strawberry.field
     async def trip(
@@ -136,5 +118,7 @@ class BookingUpdateInput:
     """Input type for booking updates."""
 
     seats_requested: int | None = None
-    status: str | None = None  # pending, accepted, rejected, cancelled
+    status: str | None = (
+        None  # pending, accepted, rejected, revalidated, revoked, canceled
+    )
     notes: str | None = None

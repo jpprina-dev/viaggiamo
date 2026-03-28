@@ -18,10 +18,6 @@ const MY_BOOKING_HISTORY = gql`
       status
       bookingTime
       notes
-      cancelledBy
-      cancellationReason
-      cancellationTime
-      wasResetFromRejected
       trip {
         id
         origin

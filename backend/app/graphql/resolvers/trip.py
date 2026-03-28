@@ -437,14 +437,13 @@ async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None
 
     for booking in bookings:
         previous_status = booking.status
-        booking.status = Booking.STATUS_CANCELLED
-        booking.cancelled_by = "driver"
+        booking.status = Booking.STATUS_REVOKED
         booking.cancellation_time = datetime.now()
         event = RequestDecisionEvent(
             booking_id=booking.id,
             actor_user_id=context.user.id,
             previous_status=previous_status,
-            new_status=Booking.STATUS_CANCELLED,
+            new_status=Booking.STATUS_REVOKED,
             decided_at=datetime.now(),
             seat_delta=0,
         )
