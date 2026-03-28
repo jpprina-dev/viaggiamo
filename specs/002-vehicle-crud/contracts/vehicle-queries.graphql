@@ -1,0 +1,64 @@
+# Vehicle GraphQL Query Contracts
+# Feature: 001-vehicle-crud
+# Date: 2026-02-21
+
+"""
+Returns all active vehicles owned by the currently authenticated user.
+
+Contract:
+- Requires authentication (JWT Bearer token in Authorization header).
+- Returns ONLY vehicles with is_active = true.
+- Soft-deleted vehicles (is_active = false) are NEVER included.
+- Results are scoped to the calling user — no user can see another user's vehicles.
+
+Error behaviour:
+- Unauthenticated call → GraphQL error: "Authentication required"
+"""
+query MyVehicles {
+  myVehicles {
+    id
+    userId
+    make
+    model
+    year
+    color
+    licensePlate
+    seats
+    isActive
+    vehicleLegalComplianceAck
+    createdAt
+    updatedAt
+  }
+}
+
+"""
+Returns a single vehicle by ID.
+
+Contract:
+- Does NOT require authentication (used for trip history display where the
+  vehicle owner may have soft-deleted the vehicle).
+- Returns null if no vehicle with the given ID exists.
+- Returns the vehicle regardless of is_active status (used for historical reference).
+
+Arguments:
+  vehicleId: Int! — the database ID of the vehicle
+
+Error behaviour:
+- Non-existent ID → returns null (not an error)
+"""
+query Vehicle($vehicleId: Int!) {
+  vehicle(vehicleId: $vehicleId) {
+    id
+    userId
+    make
+    model
+    year
+    color
+    licensePlate
+    seats
+    isActive
+    vehicleLegalComplianceAck
+    createdAt
+    updatedAt
+  }
+}
