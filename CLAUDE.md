@@ -27,4 +27,9 @@ Python 3.11+, TypeScript 5.3 (strict): Follow standard conventions
 - 003-trip-state-machine: Added Python 3.11 + FastAPI (latest stable), Strawberry GraphQL (latest stable), SQLAlchemy 2.x async, asyncpg, Alembic
 
 <!-- MANUAL ADDITIONS START -->
+## Shell Output Efficiency
+
+- Pipe long command output through `head`, `tail`, or `grep` to reduce token usage.
+- Never use `cat` on large files — use the `Read` tool with `offset`/`limit` instead.
+- Avoid running commands whose full output isn't needed; filter at the source.
 <!-- MANUAL ADDITIONS END -->
