@@ -9,13 +9,18 @@ from sqlalchemy.orm import selectinload
 from strawberry.types import Info
 
 from app.graphql.context import Context
+from app.graphql.exceptions import (
+    BookingPermissionError,
+)
 from app.graphql.resolvers.booking_request_rules import (
     is_trip_open_for_request_management,
     seat_delta_for_transition,
     validate_status_transition,
 )
 from app.graphql.types import (
+    BookingAuditLogType,
     BookingCreateInput,
+    BookingStatus,
     BookingType,
     BookingUpdateInput,
     DriverTripHistoryType,
@@ -23,8 +28,11 @@ from app.graphql.types import (
     UserType,
 )
 from app.models.booking import Booking
+from app.models.booking import BookingStatus as BookingStatusEnum
+from app.models.booking_audit_log import ActorRole, BookingAuditLog
 from app.models.request_decision_event import RequestDecisionEvent
 from app.models.trip import Trip
+from app.services.booking_state_machine import BookingStateMachine
 
 
 @strawberry.type
@@ -253,6 +261,65 @@ class BookingQueries:
                 cancellation_time=b.cancellation_time,
             )
             for b in bookings
+        ]
+
+    @strawberry.field
+    async def booking_audit_log(
+        self, info: Info[Context, None], booking_id: int
+    ) -> list[BookingAuditLogType]:
+        """Return the audit trail for a booking.
+
+        Only the booking's passenger, the trip's driver, or an admin may access.
+
+        Args:
+            booking_id: The booking ID whose audit log to retrieve.
+
+        Returns:
+            List of audit log entries ordered by created_at ASC.
+
+        Raises:
+            ValueError: If not authenticated, booking not found, or not authorized.
+        """
+        context = info.context
+        if not context.user:
+            raise ValueError("Authentication required")
+
+        booking_result = await context.db.execute(
+            select(Booking).where(Booking.id == booking_id)
+        )
+        booking = booking_result.scalar_one_or_none()
+        if not booking:
+            raise ValueError("Booking not found")
+
+        trip_result = await context.db.execute(
+            select(Trip).where(Trip.id == booking.trip_id)
+        )
+        trip = trip_result.scalar_one_or_none()
+
+        is_passenger = booking.passenger_id == context.user.id
+        is_driver = trip and trip.driver_id == context.user.id
+
+        if not (is_passenger or is_driver):
+            raise ValueError("Not authorized to view this booking's audit log")
+
+        logs_result = await context.db.execute(
+            select(BookingAuditLog)
+            .where(BookingAuditLog.booking_id == booking_id)
+            .order_by(BookingAuditLog.created_at.asc())
+        )
+        logs = logs_result.scalars().all()
+
+        return [
+            BookingAuditLogType(
+                id=log.id,
+                booking_id=log.booking_id,
+                from_status=log.from_status,
+                to_status=log.to_status,
+                actor_id=log.actor_id,
+                actor_role=log.actor_role,
+                created_at=log.created_at,
+            )
+            for log in logs
         ]
 
     @strawberry.field
@@ -518,7 +585,7 @@ class BookingMutations:
                 raise ValueError("Cannot accept request: no seats available")
 
             previous_status = booking.status
-            booking.status = next_status
+            booking.status = next_status  # type: ignore[assignment]  # legacy path accepts raw strings
             trip.available_seats += delta
 
             event = RequestDecisionEvent(
@@ -535,6 +602,91 @@ class BookingMutations:
 
         if booking_input.notes is not None:
             booking.notes = booking_input.notes
+
+        await context.db.commit()
+        await context.db.refresh(booking)
+
+        return BookingType(
+            id=booking.id,
+            trip_id=booking.trip_id,
+            passenger_id=booking.passenger_id,
+            seats_requested=booking.seats_requested,
+            total_price=booking.total_price,
+            status=booking.status,
+            notes=booking.notes,
+            booking_time=booking.booking_time,
+            created_at=booking.created_at,
+            updated_at=booking.updated_at,
+            cancelled_by=booking.cancelled_by,
+            cancellation_reason=booking.cancellation_reason,
+            cancellation_time=booking.cancellation_time,
+        )
+
+    @strawberry.mutation
+    async def update_booking_status(
+        self,
+        info: Info[Context, None],
+        booking_id: int,
+        status: BookingStatus,  # type: ignore[valid-type]
+    ) -> BookingType:
+        """Transition a booking to a new status via the state machine.
+
+        Only allowed transitions are accepted (see BookingStateMachine).
+        Every successful transition is atomically recorded in BookingAuditLog.
+
+        Args:
+            booking_id: The booking to update.
+            status: The desired target status.
+
+        Returns:
+            The updated BookingType.
+
+        Raises:
+            ValueError: If not authenticated or booking not found.
+            BookingStateConflictError: If current status is terminal (CONFLICT).
+            BookingPermissionError: If actor role is not allowed (FORBIDDEN).
+            BookingTransitionError: If the transition is not in the allowed set (UNPROCESSABLE).
+        """
+        context = info.context
+        if not context.user:
+            raise ValueError("Authentication required")
+
+        # SELECT FOR UPDATE — first-request-wins concurrency
+        booking_result = await context.db.execute(
+            select(Booking).where(Booking.id == booking_id).with_for_update()
+        )
+        booking = booking_result.scalar_one_or_none()
+        if not booking:
+            raise ValueError("Booking not found")
+
+        trip_result = await context.db.execute(
+            select(Trip).where(Trip.id == booking.trip_id)
+        )
+        trip = trip_result.scalar_one_or_none()
+
+        # Determine actor role
+        if booking.passenger_id == context.user.id:
+            actor_role = ActorRole.passenger
+        elif trip and trip.driver_id == context.user.id:
+            actor_role = ActorRole.driver
+        else:
+            raise BookingPermissionError("You are not a participant of this booking.")
+
+        target_status = BookingStatusEnum(status.value)  # type: ignore[attr-defined]
+        from_status = booking.status
+
+        # Validate transition — raises domain exception on failure
+        BookingStateMachine.validate(from_status, target_status, actor_role)
+
+        # Atomic write: update status + insert audit log
+        booking.status = target_status
+        audit_log = BookingAuditLog()
+        audit_log.booking_id = booking.id
+        audit_log.from_status = str(from_status)
+        audit_log.to_status = str(target_status)
+        audit_log.actor_id = context.user.id
+        audit_log.actor_role = actor_role
+        context.db.add(audit_log)
 
         await context.db.commit()
         await context.db.refresh(booking)
