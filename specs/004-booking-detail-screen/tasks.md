@@ -17,7 +17,7 @@
 
 **Purpose**: Shared types, pure utilities, and infrastructure that MUST be complete before ANY user story can begin.
 
-**⚠️ CRITICAL**: No user story work can begin until T001–T006 are complete. T002 and T003 are TDD — write T003 first (failing), then T002.
+**⚠️ CRITICAL**: No user story work can begin until T001–T006 are complete. T002 and T003 follow TDD — write T002 first (verify it fails), then implement T003 to make it pass.
 
 - [ ] T001 Add `BookingStatus`, `Role`, `Action` as `const` enums and `BookingDetail` TypeScript interface to `frontend/src/features/bookings/types/index.ts`; also add `bookingDetailSchema` Zod validator (status must pass `z.enum(['pending','accepted','rejected','cancelled','revoked'])`)
 - [ ] T002 Write unit tests for `getAllowedActions` (10 cases: 5 statuses × 2 roles, plus terminal-state invariants) in `frontend/src/features/bookings/utils/__tests__/getAllowedActions.test.ts` — these MUST FAIL before T003
@@ -40,7 +40,8 @@
 - [ ] T008 [P] [US1] Implement `useUpdateBookingStatus` mutation hook in `frontend/src/features/bookings/hooks/useUpdateBookingStatus.ts`; maps `extensions.code` (CONFLICT / FORBIDDEN / UNPROCESSABLE / network) to Spanish inline error strings per `contracts/typescript.md`
 - [ ] T009 [US1] Create `BookingActionPanel` component in `frontend/src/features/bookings/components/BookingActionPanel.tsx` with props `{ bookingId, allowedActions, disabled, onSuccess }`; renders one button per action, opens `ActionConfirmModal` on click, calls `useUpdateBookingStatus` on confirm, displays inline error below buttons, renders `null` when `allowedActions` is empty
 - [ ] T010 [P] [US1] Add smoke test for `BookingActionPanel` in `frontend/src/features/bookings/components/__tests__/BookingActionPanel.smoke.test.tsx`; verify it renders correct button labels for each role/status combination using `getAllowedActions`
-- [ ] T011 [US1] Create booking detail page in `frontend/src/app/(protected)/bookings/[id]/page.tsx`; use `useBookingDetail` for polling, render `BookingStatusBadge`, passenger/driver info, `BookingActionPanel`, and a stale-data banner when `connectionError` is true; handle `loading` skeleton state
+- [ ] T011 [US1] Create booking detail page in `frontend/src/app/(protected)/bookings/[id]/page.tsx`; use `useBookingDetail` for polling, render `BookingStatusBadge`, passenger/driver info, `BookingActionPanel`, and a `loading` skeleton state; use responsive Tailwind classes (`sm:`, `md:`) for the layout; use primitives from `frontend/src/components/ui/` where available
+- [ ] T014a [P] [US1] Add `<Link href={/bookings/${booking.id}}>` wrapper to `frontend/src/features/bookings/components/BookingCard.tsx` so passengers can navigate to the booking detail page from the active bookings list
 - [ ] T012 [P] [US1] Add smoke test for booking detail page in `frontend/src/app/(protected)/bookings/[id]/__tests__/page.smoke.test.tsx`; verify loading, not-found, and loaded states render without crashing
 - [ ] T013 [US1] Fix passenger active tab filter in `frontend/src/features/bookings/components/BookingsView.tsx`: change `ACTIVE_STATUSES` from `new Set(['pending','accepted','rejected','revalidated','revoked'])` to `new Set(['pending','accepted'])`; terminal-state bookings now appear only in the history tab
 - [ ] T014 [US1] Export new hooks and components from barrel files: add `useBookingDetail`, `useUpdateBookingStatus` to `frontend/src/features/bookings/hooks/index.ts`; add `BookingStatusBadge`, `BookingActionPanel`, `ActionConfirmModal` to `frontend/src/features/bookings/components/index.ts`
@@ -85,10 +86,10 @@
 
 **Independent Test**: Log in as a third user (not passenger or driver). Navigate to `/bookings/[id]` of another user's booking. Verify access-denied message appears and no booking data is visible. Log out, navigate to the same URL → redirect to `/login`.
 
-- [ ] T025 [US4] Handle `null` booking response (non-existent ID) in `frontend/src/app/(protected)/bookings/[id]/page.tsx`: render "Reserva no encontrada" with a back-to-bookings link; no booking data shown
-- [ ] T026 [US4] Handle GraphQL `Not authorized` error (forbidden/access denied) in `frontend/src/app/(protected)/bookings/[id]/page.tsx`: catch errors from `useBookingDetail`, detect `extensions.code === 'UNAUTHORIZED'` or `message` containing "Not authorized", render "No tienes permiso para ver esta reserva"
-- [ ] T027 [P] [US4] Write backend integration test in `backend/tests/test_graphql/test_booking_query.py` covering: (a) unrelated user → "Not authorized to view this booking", (b) unauthenticated → "Authentication required", (c) passenger → succeeds, (d) driver → succeeds
-- [ ] T028 [US4] Verify that `frontend/src/middleware.ts` covers the `/bookings/[id]` route under the `(protected)` group (unauthenticated users are already redirected to login by the existing middleware — document the verification, no code change expected)
+- [ ] T023 [US4] Handle `null` booking response (non-existent ID) in `frontend/src/app/(protected)/bookings/[id]/page.tsx`: render "Reserva no encontrada" with a back-to-bookings link; no booking data shown
+- [ ] T024 [US4] Handle GraphQL `Not authorized` error (forbidden/access denied) in `frontend/src/app/(protected)/bookings/[id]/page.tsx`: catch errors from `useBookingDetail`, detect `extensions.code === 'UNAUTHORIZED'` or `message` containing "Not authorized", render "No tienes permiso para ver esta reserva"
+- [ ] T025 [P] [US4] Write backend integration test in `backend/tests/test_graphql/test_booking_query.py` covering: (a) unrelated user → "Not authorized to view this booking", (b) unauthenticated → "Authentication required", (c) passenger → succeeds, (d) driver → succeeds
+- [ ] T026 [US4] Add a comment to `frontend/src/middleware.ts` confirming the `(protected)/bookings/[id]` path is covered by the existing protected-route matcher; if the path pattern does not already match, extend the config array to include it
 
 **Checkpoint**: User Story 4 is functional. Zero booking data is exposed to unrelated or unauthenticated users.
 
@@ -132,18 +133,18 @@
 - **US1 (Phase 2)**: Requires Phase 1 complete (T001–T006)
 - **US2 (Phase 3)**: Requires Phase 1 complete; `BookingActionPanel` from US1 (T009) must exist
 - **US3 (Phase 4)**: Requires Phase 1 complete; `useBookingDetail` from US1 (T007) must exist
-- **US4 (Phase 5)**: Requires US1 detail page (T011) to exist; backend test (T027) can run earlier
+- **US4 (Phase 5)**: Requires US1 detail page (T011) to exist; backend test (T025) can run earlier
 - **Polish (Phase 6)**: Requires `HistoryView` unchanged; can start backend rating work (T029–T035) in parallel with US3/US4
 
 ### User Story Dependencies
 
-| Story | Depends On | Can Parallelize With |
-|-------|-----------|---------------------|
-| US1 (P1) | Phase 1 only | US2 (after Phase 1) |
-| US2 (P1) | Phase 1 + T009 (BookingActionPanel) | US1 (mostly) |
-| US3 (P2) | Phase 1 + T007 (useBookingDetail) | US4 |
-| US4 (P3) | T011 (detail page) | US3 |
-| Polish | Phase 1 complete | Backend rating (T029–T035) is independent |
+| Story    | Depends On                          | Can Parallelize With              |
+|----------|-------------------------------------|-----------------------------------|
+| US1 (P1) | Phase 1 only                        | US2 (after Phase 1)               |
+| US2 (P1) | Phase 1 + T009 (BookingActionPanel) | US1 (mostly)                      |
+| US3 (P2) | Phase 1 + T007 (useBookingDetail)   | US4                               |
+| US4 (P3) | T011 (detail page)                  | US3                               |
+| Polish   | Phase 1 complete                    | Backend rating (T029–T035)        |
 
 ### Within Each Story
 
@@ -158,7 +159,7 @@
 
 ### Phase 1 — Run simultaneously after T001
 
-```
+```text
 Task T002: Write getAllowedActions unit tests (fails expected)
 Task T004: Create BookingStatusBadge component + smoke test
 Task T005: Create ActionConfirmModal component + smoke test
@@ -167,14 +168,14 @@ Task T006: Define NotificationService interface
 
 ### Phase 2 (US1) — Run simultaneously after Phase 1
 
-```
+```text
 Task T007: Implement useBookingDetail hook
 Task T008: Implement useUpdateBookingStatus hook
 ```
 
 ### Phase 6 (Polish) — Backend rating work runs in parallel with US3/US4
 
-```
+```text
 Task T029: Backend unit tests for submitRating (failing)
 Task T030: Backend integration tests for submitRating (failing)
 Task T036: Frontend ratings/types/index.ts
@@ -194,10 +195,10 @@ Task T036: Frontend ratings/types/index.ts
 ### Incremental Delivery
 
 1. Phase 1 + US1 → Passenger MVP (detail page + action + active list fix)
-2. + US2 → Driver inline actions (reuses US1 components)
-3. + US3 → Real-time sync via polling
-4. + US4 → Access control hardening
-5. + Polish → Rating prompts in history
+2. Add US2 → Driver inline actions (reuses US1 components)
+3. Add US3 → Real-time sync via polling
+4. Add US4 → Access control hardening
+5. Add Polish → Rating prompts in history
 
 ### Parallel Team Strategy
 

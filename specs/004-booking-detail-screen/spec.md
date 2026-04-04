@@ -110,7 +110,7 @@ A user who is neither the passenger nor the driver of a booking cannot open that
 - **FR-003**: Every action button MUST require confirmation via a modal dialog (blocking overlay) that describes the action and provides Confirm and Cancel controls before the status change is submitted.
 - **FR-004**: Action buttons MUST be disabled while a status change is in progress to prevent duplicate submissions.
 - **FR-005**: After a successful status change, the displayed status and available action buttons MUST update immediately without a full page reload.
-- **FR-006**: The booking status MUST stay in sync via a push-based connection (WebSocket or SSE): if the other party changes the status, the screen MUST reflect the new state within 5 seconds without the user manually refreshing. Push notifications (mobile/email) are explicitly out of scope.
+- **FR-006**: The booking status MUST reflect the other actor's changes within 5 seconds without the user manually refreshing. The preferred mechanism is a push-based connection (WebSocket or SSE); polling at ≤5-second intervals is acceptable as an interim implementation until push infrastructure exists. Push notifications (mobile/email) are explicitly out of scope.
 - **FR-007**: When a passenger cancels a pending or accepted booking, the booking MUST no longer appear in their active bookings list after navigating away.
 - **FR-008**: If a status change fails (network error or server-side conflict/forbidden), the screen MUST display a clear inline error message directly on the screen near the action area, restore the action buttons to their pre-action state, and show the current booking status as returned by the server.
 - **FR-009**: Users who are neither the passenger nor the driver for a booking MUST be denied access to the detail screen; no booking data may be exposed to them.
@@ -140,7 +140,7 @@ A user who is neither the passenger nor the driver of a booking cannot open that
 
 - The authenticated user's identity is available on every request via the existing session mechanism. No new authentication is introduced.
 - A booking has exactly one passenger and one driver (via the trip). No admin or third-party roles are in scope for this feature.
-- Real-time sync is achieved via a push-based connection (WebSocket or SSE). Polling is not required. Push notifications (mobile/email) are out of scope.
+- Real-time sync targets a push-based connection (WebSocket or SSE) as the long-term mechanism. Polling at ≤5-second intervals is the interim implementation (push infrastructure is not yet available in the stack). Push notifications (mobile/email) are out of scope.
 - Confirmation before actions (Accept, Reject, Cancel, Revoke) is a modal dialog with Confirm and Cancel controls — single-step, no multi-step flow required.
 - The booking detail screen is reached by navigating from an existing list view (e.g., active bookings for passengers, trip management for drivers). Direct URL access (deep links) is also supported.
 - Both mobile and desktop viewports must be supported; responsive layout is expected.
