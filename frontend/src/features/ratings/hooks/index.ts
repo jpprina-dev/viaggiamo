@@ -1,0 +1,1 @@
+export { useSubmitRating } from './useSubmitRating'

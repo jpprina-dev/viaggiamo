@@ -20,11 +20,11 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react'
-import { gql } from 'graphql-request'
-import toast from 'react-hot-toast'
 import type { DriverTripInfo } from '../types'
 import { useTripBookings } from '../hooks/useTripBookings'
-import { graphqlClient } from '@/lib/graphql-client'
+import { BookingActionPanel } from '@/features/bookings/components/BookingActionPanel'
+import { getAllowedActions } from '@/features/bookings/utils/getAllowedActions'
+import type { BookingStatus } from '@/features/bookings/types'
 
 interface DriverTripCardProps {
   trip: DriverTripInfo
@@ -56,7 +56,6 @@ export function DriverTripCard({
   const [isPassengersExpanded, setIsPassengersExpanded] = useState(false)
   const [isRejectedExpanded, setIsRejectedExpanded] = useState(false)
   const [isRevokedExpanded, setIsRevokedExpanded] = useState(false)
-  const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null)
   const departureDate = new Date(trip.departureTime)
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
   const formattedTime = format(departureDate, 'HH:mm')
@@ -74,28 +73,8 @@ export function DriverTripCard({
   const rejectedCount = bookings.filter((b) => b.status === 'rejected').length
   const revokedCount = bookings.filter((b) => b.status === 'revoked').length
 
-  const updateBookingStatusMutation = gql`
-    mutation UpdateBookingStatus($bookingId: Int!, $status: String!) {
-      updateBooking(bookingId: $bookingId, bookingInput: { status: $status }) {
-        id
-        status
-      }
-    }
-  `
-
-  const handleUpdateStatus = async (bookingId: number, status: string) => {
-    setUpdatingBookingId(bookingId)
-    try {
-      await graphqlClient.request(updateBookingStatusMutation, { bookingId, status })
-      await refetch()
-      toast.success('Solicitud actualizada')
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'No se pudo actualizar la solicitud'
-      toast.error(message)
-    } finally {
-      setUpdatingBookingId(null)
-    }
+  const handleActionSuccess = (_newStatus: BookingStatus) => {
+    void refetch()
   }
 
   return (
@@ -218,29 +197,16 @@ export function DriverTripCard({
                           </div>
                         </div>
 
-                        {/* Booking Details */}
-                        <div className="text-right flex-shrink-0 space-y-1">
+                        {/* Booking Details + Actions */}
+                        <div className="flex-shrink-0 space-y-1 text-right">
                           <p className="text-xs text-gray-500">Asientos</p>
                           <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
                           {enableRequestActions && (
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                disabled={updatingBookingId === booking.id}
-                                onClick={() => void handleUpdateStatus(booking.id, 'accepted')}
-                                className="rounded bg-green-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                              >
-                                Aceptar
-                              </button>
-                              <button
-                                type="button"
-                                disabled={updatingBookingId === booking.id}
-                                onClick={() => void handleUpdateStatus(booking.id, 'rejected')}
-                                className="rounded bg-red-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                              >
-                                Rechazar
-                              </button>
-                            </div>
+                            <BookingActionPanel
+                              bookingId={booking.id}
+                              allowedActions={getAllowedActions('driver', booking.status as BookingStatus)}
+                              onSuccess={handleActionSuccess}
+                            />
                           )}
                         </div>
                       </div>
@@ -309,18 +275,15 @@ export function DriverTripCard({
                         </div>
 
                         {/* Booking Details + Revoke */}
-                        <div className="text-right flex-shrink-0 space-y-1">
+                        <div className="flex-shrink-0 space-y-1 text-right">
                           <p className="text-xs text-gray-500">Asientos</p>
                           <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
                           {enableRequestActions && trip.isActive && (
-                            <button
-                              type="button"
-                              disabled={updatingBookingId === booking.id}
-                              onClick={() => void handleUpdateStatus(booking.id, 'revoked')}
-                              className="rounded bg-orange-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              Revocar
-                            </button>
+                            <BookingActionPanel
+                              bookingId={booking.id}
+                              allowedActions={getAllowedActions('driver', booking.status as BookingStatus)}
+                              onSuccess={handleActionSuccess}
+                            />
                           )}
                         </div>
                       </div>
@@ -385,19 +348,9 @@ export function DriverTripCard({
                             <p className="text-[10px] sm:text-xs text-gray-500 truncate">@{booking.passenger.username}</p>
                           </div>
                         </div>
-                        <div className="text-right flex-shrink-0 space-y-1">
+                        <div className="flex-shrink-0 space-y-1 text-right">
                           <p className="text-xs text-gray-500">Asientos</p>
                           <p className="text-sm font-medium text-gray-900">{booking.seatsRequested}</p>
-                          {enableRequestActions && trip.isActive && (
-                            <button
-                              type="button"
-                              disabled={updatingBookingId === booking.id}
-                              onClick={() => void handleUpdateStatus(booking.id, 'revalidated')}
-                              className="rounded bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              Revalidar
-                            </button>
-                          )}
                         </div>
                       </div>
                     ))}

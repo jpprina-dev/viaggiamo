@@ -2,7 +2,7 @@
  * Hook for fetching user's bookings with trip and driver details
  */
 
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import { graphqlClient } from '@/lib/graphql-client'
 import { gql } from 'graphql-request'
 import type { BookingWithTrip } from '../types'
@@ -76,8 +76,18 @@ export function useMyBookings(): UseMyBookingsResult {
     }
   }, [user])
 
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   useEffect(() => {
     fetchBookings()
+
+    intervalRef.current = setInterval(() => {
+      fetchBookings()
+    }, 5000)
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
   }, [fetchBookings])
 
   return {

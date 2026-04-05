@@ -10,7 +10,7 @@ from app.graphql.types.booking import (
     BookingUpdateInput,
     DriverTripHistoryType,
 )
-from app.graphql.types.rating import RatingCreateInput, RatingType
+from app.graphql.types.rating import RatingType, SubmitRatingInput
 from app.graphql.types.trip import (
     TripCreateInput,
     TripSearchInput,
@@ -54,5 +54,5 @@ __all__ = [
     "VehicleUpdateInput",
     # Rating
     "RatingType",
-    "RatingCreateInput",
+    "SubmitRatingInput",
 ]

@@ -71,10 +71,10 @@ class User(Base):
     vehicles: Mapped[list["Vehicle"]] = relationship(
         "Vehicle", back_populates="owner", cascade="all, delete-orphan"
     )
-    driver_ratings: Mapped[list["Rating"]] = relationship(
+    received_ratings: Mapped[list["Rating"]] = relationship(
         "Rating",
-        back_populates="rated_user",
-        foreign_keys="[Rating.rated_user_id]",
+        back_populates="ratee",
+        foreign_keys="[Rating.ratee_id]",
         cascade="all, delete-orphan",
     )
     given_ratings: Mapped[list["Rating"]] = relationship(

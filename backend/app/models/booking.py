@@ -12,6 +12,7 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.booking_audit_log import BookingAuditLog
+    from app.models.rating import Rating
     from app.models.request_decision_event import RequestDecisionEvent
     from app.models.trip import Trip
     from app.models.user import User
@@ -90,4 +91,9 @@ class Booking(Base):
         back_populates="booking",
         cascade="all, delete-orphan",
         order_by="BookingAuditLog.created_at.asc()",
+    )
+    ratings: Mapped[list["Rating"]] = relationship(
+        "Rating",
+        back_populates="booking",
+        cascade="all, delete-orphan",
     )

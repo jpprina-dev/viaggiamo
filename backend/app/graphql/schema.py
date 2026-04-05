@@ -13,6 +13,7 @@ from app.graphql.exceptions import (
 )
 from app.graphql.resolvers.auth import AuthMutations
 from app.graphql.resolvers.booking import BookingMutations, BookingQueries
+from app.graphql.resolvers.rating import RatingMutations, RatingQueries
 from app.graphql.resolvers.trip import TripMutations, TripQueries
 from app.graphql.resolvers.user import UserMutations, UserQueries
 from app.graphql.resolvers.vehicle import VehicleMutations, VehicleQueries
@@ -50,6 +51,7 @@ class Query(
     VehicleQueries,
     TripQueries,
     BookingQueries,
+    RatingQueries,
 ):
     """
     GraphQL Query root.
@@ -74,6 +76,7 @@ class Mutation(
     VehicleMutations,
     TripMutations,
     BookingMutations,
+    RatingMutations,
 ):
     """
     GraphQL Mutation root.

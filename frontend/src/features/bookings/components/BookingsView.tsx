@@ -16,7 +16,7 @@ interface BookingsViewProps {
   onBookingCancelled?: (bookingId: number) => void
 }
 
-const ACTIVE_STATUSES = new Set(['pending', 'accepted', 'rejected', 'revalidated', 'revoked'])
+const ACTIVE_STATUSES = new Set(['pending', 'accepted'])
 
 export function BookingsView({ bookings, filter = 'all', onBookingCancelled }: BookingsViewProps) {
   // Filter bookings — API already excludes 'canceled'; show all returned bookings by default

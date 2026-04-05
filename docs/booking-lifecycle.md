@@ -109,3 +109,36 @@ Unrelated users receive a `Not authorized` error.
 ## Concurrency
 
 The `updateBookingStatus` mutation acquires a `SELECT FOR UPDATE` lock on the `Booking` row before validating the transition. This ensures first-request-wins semantics — a second concurrent call will wait for the first to commit, then see the updated status and fail with `CONFLICT` if the state is now terminal.
+
+---
+
+## Rating Flow
+
+After a booking reaches a terminal state (`rejected`, `cancelled`, `revoked`) or its trip is marked as completed, either party may submit a rating for the other.
+
+| Who can rate | Rates whom | Condition                                     |
+| ------------ | ---------- | --------------------------------------------- |
+| Passenger    | Driver     | Booking is terminal **or** trip is completed  |
+| Driver       | Passenger  | Booking is terminal **or** trip is completed  |
+
+**Idempotency**: A `UNIQUE (booking_id, rater_id)` constraint prevents duplicate ratings. A second submission returns `ALREADY_RATED`.
+
+**Mutation**: `submitRating(bookingId, score, comment?)` — score is 1–5, comment is optional.
+
+**Error codes**: `ALREADY_RATED`, `FORBIDDEN` (caller unrelated), `UNPROCESSABLE` (booking not in a rateable state).
+
+---
+
+## Notification Events
+
+The `useBookingNotifications` hook (frontend) fires events when it detects status transitions during polling:
+
+| Event                                 | Transition                  | Recipient |
+| ------------------------------------- | --------------------------- | --------- |
+| `notifyBookingAccepted`               | pending → accepted          | passenger |
+| `notifyBookingRejected`               | pending → rejected          | passenger |
+| `notifyBookingRevoked`                | accepted → revoked          | passenger |
+| `notifyNewBookingRequest`             | new pending booking appears | driver    |
+| `notifyBookingCancelledByPassenger`   | any → cancelled             | driver    |
+
+Events are delivered via an injectable `NotificationService` interface (`frontend/src/lib/notifications/NotificationService.ts`). The default implementation is a no-op stub; a real transport can be injected when the notification system is built.
