@@ -69,9 +69,9 @@ export function useMyTrips(): UseMyTripsResult {
   useEffect(() => {
     fetchTrips()
 
-    intervalRef.current = setInterval(() => {
-      fetchTrips()
-    }, 5000)
+    // intervalRef.current = setInterval(() => {
+    //   fetchTrips()
+    // }, 10000)
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)

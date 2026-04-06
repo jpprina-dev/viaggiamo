@@ -81,9 +81,9 @@ export function useMyBookings(): UseMyBookingsResult {
   useEffect(() => {
     fetchBookings()
 
-    intervalRef.current = setInterval(() => {
-      fetchBookings()
-    }, 5000)
+    // intervalRef.current = setInterval(() => {
+    //   fetchBookings()
+    // }, 5000)
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
