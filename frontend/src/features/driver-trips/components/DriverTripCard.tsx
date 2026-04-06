@@ -69,7 +69,7 @@ export function DriverTripCard({
   
   // Calculate counts for all dropdown types
   const pendingCount = bookings.filter((b) => b.status === 'pending').length
-  const confirmedCount = bookings.filter((b) => b.status === 'accepted' || b.status === 'revalidated').length
+  const confirmedCount = bookings.filter((b) => b.status === 'accepted').length
   const rejectedCount = bookings.filter((b) => b.status === 'rejected').length
   const revokedCount = bookings.filter((b) => b.status === 'revoked').length
 
@@ -218,7 +218,7 @@ export function DriverTripCard({
         </div>
       )}
 
-      {/* Confirmed Passengers (accepted + revalidated) */}
+      {/* Confirmed Passengers */}
       {confirmedCount > 0 && (
         <div className="border-t border-gray-200">
           <button
@@ -246,7 +246,7 @@ export function DriverTripCard({
               ) : (
                 <div className="space-y-3 mt-3">
                   {bookings
-                    .filter((b) => b.status === 'accepted' || b.status === 'revalidated')
+                    .filter((b) => b.status === 'accepted')
                     .map((booking) => (
                       <div
                         key={booking.id}

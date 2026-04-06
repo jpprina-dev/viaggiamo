@@ -134,7 +134,7 @@ export interface BookingsByStatus {
   pending: BookingWithTrip[]
   accepted: BookingWithTrip[]
   rejected: BookingWithTrip[]
-  revalidated: BookingWithTrip[]
+  cancelled: BookingWithTrip[]
   revoked: BookingWithTrip[]
   completed: BookingWithTrip[]
 }

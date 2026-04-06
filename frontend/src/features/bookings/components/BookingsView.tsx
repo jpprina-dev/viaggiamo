@@ -28,8 +28,8 @@ export function BookingsView({ bookings, filter = 'all', onBookingCancelled }: B
     if (filter === 'active') {
       return bookings.filter((b) => ACTIVE_STATUSES.has(b.status) && b.trip.isActive === true)
     }
-    // 'all' — exclude only canceled (already excluded by API, defensive guard)
-    return bookings.filter((b) => b.status !== 'canceled')
+    // 'all' — return all bookings (API already filters by active; defensive no-op)
+    return bookings
   }, [bookings, filter])
 
   if (filteredBookings.length === 0) {

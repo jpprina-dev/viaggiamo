@@ -17,9 +17,8 @@ export enum BookingStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
-  REVALIDATED = 'revalidated',
+  CANCELLED = 'cancelled',
   REVOKED = 'revoked',
-  CANCELED = 'canceled',
 }
 
 export interface BookingCreateInput {

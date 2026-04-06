@@ -45,7 +45,7 @@ export interface BookingStats {
   pending: number
   accepted: number
   rejected: number
-  revalidated: number
+  cancelled: number
   revoked: number
 }
 

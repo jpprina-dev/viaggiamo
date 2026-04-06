@@ -72,16 +72,6 @@ describe('BookingCard', () => {
     expect(screen.queryByText('Mantener')).not.toBeInTheDocument()
   })
 
-  // T019: revalidated status shows informational notice
-  it('renders revalidated booking with notice and no cancel button', () => {
-    const revalidated = { ...baseBooking, status: 'revalidated' }
-    render(<BookingCard booking={revalidated} />)
-
-    expect(screen.getByText('Revalidada')).toBeInTheDocument()
-    expect(screen.getByText('El conductor ha revalidado tu solicitud')).toBeInTheDocument()
-    expect(screen.queryByText('Cancelar solicitud')).not.toBeInTheDocument()
-  })
-
   // T019: revoked status shows notice
   it('renders revoked booking with notice', () => {
     const revoked = { ...baseBooking, status: 'revoked' }

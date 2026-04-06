@@ -81,21 +81,7 @@ export function TripRequestsList({ bookings, loading, onStatusChanged }: TripReq
         </div>
       )
     }
-    if (booking.status === 'rejected') {
-      return (
-        <div className="mt-3 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => void updateStatus(booking.id, 'revalidated')}
-            disabled={isSubmitting}
-            className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Revalidar
-          </button>
-        </div>
-      )
-    }
-    if (booking.status === 'accepted' || booking.status === 'revalidated') {
+    if (booking.status === 'accepted') {
       return (
         <div className="mt-3 flex items-center gap-2">
           <button
@@ -175,11 +161,6 @@ export function TripRequestsList({ bookings, loading, onStatusChanged }: TripReq
               {booking.status === 'rejected' && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                   Rechazado
-                </span>
-              )}
-              {booking.status === 'revalidated' && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  Revalidado
                 </span>
               )}
               {booking.status === 'revoked' && (

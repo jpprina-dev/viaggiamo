@@ -30,9 +30,9 @@ const statusConfig = {
     label: 'Rechazada',
     color: 'bg-red-100 text-red-800',
   },
-  revalidated: {
-    label: 'Revalidada',
-    color: 'bg-blue-100 text-blue-800',
+  cancelled: {
+    label: 'Cancelada',
+    color: 'bg-gray-100 text-gray-800',
   },
   revoked: {
     label: 'Revocada',
@@ -150,16 +150,6 @@ export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled 
             </div>
           </div>
         </div>
-
-        {/* Revalidated notice */}
-        {booking.status === 'revalidated' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-            <div className="flex gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm font-medium text-blue-900">El conductor ha revalidado tu solicitud</p>
-            </div>
-          </div>
-        )}
 
         {/* Cancel button for pending bookings */}
         {booking.status === 'pending' && (

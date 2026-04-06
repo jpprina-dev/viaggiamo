@@ -423,12 +423,12 @@ class BookingMutations:
         if not context.user:
             raise ValueError("Authentication required")
 
-        # Check if user already has a non-canceled request for this trip
+        # Block re-request only if there is an active (non-terminal) booking
         existing_booking_result = await context.db.execute(
             select(Booking).where(
                 Booking.trip_id == booking_input.trip_id,
                 Booking.passenger_id == context.user.id,
-                Booking.status != Booking.STATUS_CANCELED,
+                Booking.status.in_([Booking.STATUS_PENDING, Booking.STATUS_ACCEPTED]),
             )
         )
         existing_booking = existing_booking_result.scalar_one_or_none()
