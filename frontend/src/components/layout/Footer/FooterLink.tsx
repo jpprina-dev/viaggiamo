@@ -8,7 +8,7 @@ interface FooterLinkProps {
 export function FooterLink({ href, children }: FooterLinkProps) {
   return (
     <li>
-      <Link href={href} className="hover:text-white transition-colors">
+      <Link href={href} className="text-white/40 hover:text-secondary-container transition-colors">
         {children}
       </Link>
     </li>

@@ -2,66 +2,136 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'TT Hoves Pro';
-  src: url('/fonts/TT Hoves Pro Trial Thin.ttf') format('truetype');
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
+/* ─────────────────────────────────────────────────────────────────────────
+   Ruta Gaucha — Design Tokens (CSS Custom Properties)
+   Source of truth: src/design-system/DESIGN_SYSTEM.md
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Primary */
+  --color-primary:                   #006d33;
+  --color-primary-container:         #7ce495;
+  --color-on-primary-fixed:          #00210b;
+
+  /* Secondary */
+  --color-secondary:                 #006a64;
+  --color-secondary-container:       #96f3e9;
+  --color-on-secondary-fixed:        #00201e;
+
+  /* Tertiary */
+  --color-tertiary:                  #8e4e14;
+  --color-tertiary-container:        #ffc295;
+
+  /* Anchor Dark */
+  --color-anchor-dark:               #21212b;
+
+  /* Surfaces */
+  --color-surface:                   #fcf8ff;
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #f5f2ff;
+  --color-surface-container:         #efecfa;
+  --color-surface-container-high:    #e9e6f5;
+  --color-surface-container-highest: #e3e1ef;
+
+  /* On-Surface */
+  --color-on-surface:                #1b1b24;
+  --color-on-surface-variant:        #3e4a3f;
+
+  /* Outline */
+  --color-outline:                   #6e7a6e;
+  --color-outline-variant:           #becabc;
+
+  /* Error */
+  --color-error:                     #ba1a1a;
+  --color-error-container:           #ffdad6;
+
+  /* Typography */
+  --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
+
+  /* Radius */
+  --radius-md:  0.75rem;
+  --radius-lg:  1rem;
+  --radius-xl:  1.5rem;
+  --radius-2xl: 2rem;
+
+  /* Shadows */
+  --shadow-ambient:    0 8px 28px 0 rgba(27,27,36,0.06);
+  --shadow-ambient-lg: 0 12px 40px 0 rgba(27,27,36,0.09);
+  --shadow-glass:      0 4px 24px 0 rgba(27,27,36,0.08);
 }
 
-@font-face {
-  font-family: 'TT Hoves Pro';
-  src: url('/fonts/TT Hoves Pro Trial Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'TT Hoves Pro';
-  src: url('/fonts/TT Hoves Pro Trial Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
+/* ─────────────────────────────────────────────────────────────────────────
+   Base
+   ───────────────────────────────────────────────────────────────────────── */
 @layer base {
   html {
-    font-family: 'TT Hoves Pro', system-ui, sans-serif;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-surface text-on-surface;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+    cursor: pointer;
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Components
+   ───────────────────────────────────────────────────────────────────────── */
 @layer components {
-  .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
-  }
-
-  .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
-  }
-
-  .btn-secondary {
-    @apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500;
-  }
-
-  .btn-outline {
-    @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-primary-500;
-  }
-
-  .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
-  }
-
-  .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
-  }
-
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    @apply backdrop-blur-[20px] bg-white/85;
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-dark {
+    background: rgba(33, 33, 43, 0.88);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-glass);
+  }
+
+  /* Filled Input — Ruta Gaucha style (filled bg + bottom border on focus) */
+  .input-filled {
+    @apply w-full px-4 py-3 bg-surface-container-high rounded-md border-0
+           border-b-2 border-transparent text-on-surface placeholder:text-on-surface-variant
+           focus:outline-none focus:border-primary-container transition-colors;
+  }
+
+  /* Ambient shadow card */
+  .card-ambient {
+    @apply bg-surface-container-lowest rounded-lg;
+    box-shadow: var(--shadow-ambient);
+  }
+
+  /* Route Visualizer dashed line */
+  .route-line {
+    @apply border-l-2 border-dashed border-primary-container h-8 ml-[0.4375rem];
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Utilities
+   ───────────────────────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-primary-container to-secondary-container bg-clip-text text-transparent;
+  }
+
+  /* Pin watermark — 5% opacity background texture */
+  .bg-pin-watermark {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5C20 5 13 13 13 22c0 12 17 33 17 33s17-21 17-33c0-9-7-17-17-17zm0 23a6 6 0 1 1 0-12 6 6 0 0 1 0 12z' fill='%237CE495' fill-opacity='0.05'/%3E%3C/svg%3E");
   }
 }

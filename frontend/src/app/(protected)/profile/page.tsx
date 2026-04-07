@@ -26,10 +26,10 @@ export default function ProfilePage() {
   // Mostrar loading mientras se verifica la autenticación
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-emerald-50 flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary-container border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+          <p className="mt-4 text-on-surface-variant">Cargando...</p>
         </div>
       </div>
     )
@@ -41,51 +41,51 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-emerald-50">
-      <main className="container py-8">
+    <div className="min-h-screen bg-surface">
+      <main className="container py-10">
         <div className="space-y-8">
           {/* Page Header */}
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Mi Perfil</h1>
-            <p className="text-gray-600">Gestioná tu cuenta y actividades</p>
+          <div>
+            <h1 className="text-headline-md text-on-surface">Mi Perfil</h1>
+            <p className="text-body-lg text-on-surface-variant mt-1">Gestioná tu cuenta y actividades</p>
           </div>
-          
+
           <WelcomeCard user={user} />
           <QuickActions />
-          
+
           {/* Mis Viajes y Vehículos */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link
               href={ROUTES.BOOKINGS}
-              className="bg-white border-2 border-gray-200 rounded-2xl shadow-sm p-8 hover:shadow-lg hover:border-primary-300 transition-all group"
+              className="bg-surface-container-lowest rounded-xl shadow-ambient p-8 hover:shadow-ambient-lg hover:-translate-y-0.5 transition-all group"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Mis Viajes</h3>
-                  <p className="text-gray-600">Gestioná tus reservas y viajes publicados</p>
+                  <h3 className="text-title-lg text-on-surface mb-1.5">Mis Viajes</h3>
+                  <p className="text-body-md text-on-surface-variant">Gestioná tus reservas y viajes publicados</p>
                 </div>
-                <div className="bg-primary-100 p-4 rounded-full group-hover:bg-primary-200 transition-colors">
-                  <Route className="h-8 w-8 text-primary-600" />
+                <div className="bg-secondary-container p-4 rounded-xl group-hover:brightness-95 transition-all">
+                  <Route className="h-7 w-7 text-secondary" />
                 </div>
               </div>
             </Link>
 
             <Link
               href={ROUTES.MY_VEHICLES}
-              className="bg-white border-2 border-gray-200 rounded-2xl shadow-sm p-8 hover:shadow-lg hover:border-primary-300 transition-all group"
+              className="bg-surface-container-lowest rounded-xl shadow-ambient p-8 hover:shadow-ambient-lg hover:-translate-y-0.5 transition-all group"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Mis Vehículos</h3>
-                  <p className="text-gray-600">Administrá tus vehículos registrados</p>
+                  <h3 className="text-title-lg text-on-surface mb-1.5">Mis Vehículos</h3>
+                  <p className="text-body-md text-on-surface-variant">Administrá tus vehículos registrados</p>
                 </div>
-                <div className="bg-primary-100 p-4 rounded-full group-hover:bg-primary-200 transition-colors">
-                  <Car className="h-8 w-8 text-primary-600" />
+                <div className="bg-tertiary-container p-4 rounded-xl group-hover:brightness-95 transition-all">
+                  <Car className="h-7 w-7 text-tertiary" />
                 </div>
               </div>
             </Link>
           </div>
-          
+
           <UserInfoCard user={user} />
         </div>
       </main>

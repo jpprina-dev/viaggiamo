@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, LogOut } from 'lucide-react'
@@ -10,232 +10,190 @@ import { NavLink } from './NavLink'
 import { UserMenu } from './UserMenu'
 import { GuestLinks } from './GuestLinks'
 import { ROUTES } from '@/config/routes'
+import { cn } from '@/utils/cn'
 
 export default function NavBar() {
   const { user, logout } = useAuth()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen)
   const closeMobileMenu = () => setMobileMenuOpen(false)
 
   return (
-    <header className="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
+    <header
+      className={cn(
+        'sticky top-0 z-50 transition-all duration-300',
+        scrolled
+          ? 'glass-dark'
+          : 'bg-anchor-dark'
+      )}
+    >
       <div className="container">
         <div className="flex justify-between items-center py-4">
+          {/* Logo */}
           <Link href={ROUTES.HOME} className="flex items-center space-x-2">
-            <GradientIcon width={32} height={32} className="h-8 w-8" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-600 bg-clip-text text-transparent">
+            <GradientIcon width={32} height={32} className="h-8 w-8 flex-shrink-0" />
+            <span className="text-xl font-bold text-primary-container">
               Viajamos
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             {user ? (
               <>
-                <NavLink href={ROUTES.SEARCH} pathname={pathname}>
-                  Buscar Viajes
-                </NavLink>
-                <NavLink href={ROUTES.ABOUT} pathname={pathname}>
-                  Acerca de
-                </NavLink>
-                <NavLink href={ROUTES.HELP} pathname={pathname}>
-                  Centro de Ayuda
-                </NavLink>
-                <NavLink href={ROUTES.TRIPS_CREATE} pathname={pathname}>
-                  Publicar Viaje
-                </NavLink>
-                <NavLink href={ROUTES.BOOKINGS} pathname={pathname}>
-                  Mis viajes
-                </NavLink>
+                <NavLink href={ROUTES.SEARCH} pathname={pathname}>Buscar Viajes</NavLink>
+                <NavLink href={ROUTES.ABOUT}  pathname={pathname}>Acerca de</NavLink>
+                <NavLink href={ROUTES.HELP}   pathname={pathname}>Centro de Ayuda</NavLink>
+                <NavLink href={ROUTES.TRIPS_CREATE} pathname={pathname}>Publicar Viaje</NavLink>
+                <NavLink href={ROUTES.BOOKINGS}     pathname={pathname}>Mis Viajes</NavLink>
                 <UserMenu user={user} />
               </>
             ) : (
               <>
-                <NavLink href={ROUTES.SEARCH} pathname={pathname}>
-                  Buscar Viajes
-                </NavLink>
+                <NavLink href={ROUTES.SEARCH} pathname={pathname}>Buscar Viajes</NavLink>
                 <GuestLinks pathname={pathname} />
               </>
             )}
           </nav>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile menu button */}
           <button
             onClick={toggleMobileMenu}
-            className="md:hidden flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden flex items-center justify-center p-2 rounded-lg hover:bg-white/10 transition-colors"
             aria-label="Toggle menu"
           >
-            {user ? (
-              user.profile_picture ? (
-                <img
-                  src={user.profile_picture}
-                  alt={`${user.name} ${user.last_name}`}
-                  className="w-9 h-9 rounded-full border-2 border-primary-500"
-                />
-              ) : (
-                <div className="w-9 h-9 rounded-full bg-primary-100 border-2 border-primary-500 flex items-center justify-center">
-                  <span className="text-primary-700 font-bold text-sm">
-                    {user.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )
+            {user && user.profile_picture ? (
+              <img
+                src={user.profile_picture}
+                alt={`${user.name} ${user.last_name}`}
+                className="w-9 h-9 rounded-full border-2 border-primary-container"
+              />
+            ) : user ? (
+              <div className="w-9 h-9 rounded-full bg-secondary-container border-2 border-primary-container flex items-center justify-center">
+                <span className="text-secondary font-bold text-sm">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
             ) : (
-              <div className="w-9 h-9 rounded-full bg-gray-200 border-2 border-gray-300 flex items-center justify-center">
-                <Menu className="w-5 h-5 text-gray-600" />
+              <div className="w-9 h-9 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center">
+                <Menu className="w-5 h-5 text-white" />
               </div>
             )}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            className="fixed inset-0 bg-black/60 z-40 md:hidden"
             onClick={closeMobileMenu}
           />
-          <div className="fixed right-0 top-0 bottom-0 w-80 bg-white shadow-xl z-50 md:hidden overflow-y-auto">
-            <div className="flex justify-between items-center p-4 border-b border-gray-200">
-              <span className="text-lg font-bold text-gray-900">Menú</span>
+          <div className="fixed right-0 top-0 bottom-0 w-80 bg-anchor-dark z-50 md:hidden overflow-y-auto shadow-ambient-lg">
+            <div className="flex justify-between items-center p-4 border-b border-white/10">
+              <span className="text-lg font-bold text-white">Menú</span>
               <button
                 onClick={closeMobileMenu}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
                 aria-label="Close menu"
               >
-                <X className="w-6 h-6 text-gray-600" />
+                <X className="w-6 h-6 text-white" />
               </button>
             </div>
 
-            <nav className="flex flex-col p-4 space-y-2">
+            <nav className="flex flex-col p-4 space-y-1">
               {user ? (
                 <>
-                  <div className="pb-4 mb-4 border-b border-gray-200">
+                  <div className="pb-4 mb-3 border-b border-white/10">
                     <div className="flex items-center space-x-3">
                       {user.profile_picture ? (
                         <img
                           src={user.profile_picture}
                           alt={`${user.name} ${user.last_name}`}
-                          className="w-12 h-12 rounded-full border-2 border-primary-500"
+                          className="w-12 h-12 rounded-full border-2 border-primary-container"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-primary-100 border-2 border-primary-500 flex items-center justify-center">
-                          <span className="text-primary-700 font-bold text-lg">
+                        <div className="w-12 h-12 rounded-full bg-secondary-container border-2 border-primary-container flex items-center justify-center">
+                          <span className="text-secondary font-bold text-lg">
                             {user.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
                       <div>
-                        <p className="font-semibold text-gray-900">{user.name} {user.last_name}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <p className="font-semibold text-white">{user.name} {user.last_name}</p>
+                        <p className="text-sm text-white/60">{user.email}</p>
                       </div>
                     </div>
                   </div>
 
-                  <Link
-                    href={ROUTES.SEARCH}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Buscar Viajes
-                  </Link>
-                  <Link
-                    href={ROUTES.ABOUT}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Acerca de
-                  </Link>
-                  <Link
-                    href={ROUTES.HELP}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Centro de Ayuda
-                  </Link>
-                  <Link
-                    href={ROUTES.TRIPS_CREATE}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Publicar Viaje
-                  </Link>
-                  <Link
-                    href={ROUTES.BOOKINGS}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Mis Viajes
-                  </Link>
-                  <Link
-                    href={ROUTES.PROFILE}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Mi Perfil
-                  </Link>
-                  <Link
-                    href={ROUTES.SETTINGS}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Configuración
-                  </Link>
-                  <div className="border-t border-gray-200 mt-2 pt-2"></div>
-                  <button
-                    onClick={() => {
-                      closeMobileMenu()
-                      logout()
-                    }}
-                    className="w-full flex items-center space-x-2 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-left"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span>Cerrar Sesión</span>
-                  </button>
+                  {[
+                    { href: ROUTES.SEARCH, label: 'Buscar Viajes' },
+                    { href: ROUTES.ABOUT, label: 'Acerca de' },
+                    { href: ROUTES.HELP, label: 'Centro de Ayuda' },
+                    { href: ROUTES.TRIPS_CREATE, label: 'Publicar Viaje' },
+                    { href: ROUTES.BOOKINGS, label: 'Mis Viajes' },
+                    { href: ROUTES.PROFILE, label: 'Mi Perfil' },
+                    { href: ROUTES.SETTINGS, label: 'Configuración' },
+                  ].map(({ href, label }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className="px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                      onClick={closeMobileMenu}
+                    >
+                      {label}
+                    </Link>
+                  ))}
+
+                  <div className="border-t border-white/10 mt-2 pt-2">
+                    <button
+                      onClick={() => { closeMobileMenu(); logout() }}
+                      className="w-full flex items-center space-x-2 px-4 py-3 text-error hover:bg-error/10 rounded-lg transition-colors text-left"
+                    >
+                      <LogOut className="h-5 w-5" />
+                      <span>Cerrar Sesión</span>
+                    </button>
+                  </div>
                 </>
               ) : (
                 <>
-                  <Link
-                    href={ROUTES.SEARCH}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Buscar Viajes
-                  </Link>
-                  <Link
-                    href={ROUTES.ABOUT}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Acerca de
-                  </Link>
-                  <Link
-                    href={ROUTES.HELP}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Centro de Ayuda
-                  </Link>
-                  <Link
-                    href={ROUTES.TRIPS_CREATE}
-                    className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    Publicar Viaje
-                  </Link>
-                  <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
+                  {[
+                    { href: ROUTES.SEARCH, label: 'Buscar Viajes' },
+                    { href: ROUTES.ABOUT, label: 'Acerca de' },
+                    { href: ROUTES.HELP, label: 'Centro de Ayuda' },
+                    { href: ROUTES.TRIPS_CREATE, label: 'Publicar Viaje' },
+                  ].map(({ href, label }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className="px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                      onClick={closeMobileMenu}
+                    >
+                      {label}
+                    </Link>
+                  ))}
+
+                  <div className="border-t border-white/10 mt-4 pt-4 space-y-2">
                     <Link
                       href={ROUTES.LOGIN}
-                      className="block px-4 py-3 text-center text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                      className="block px-4 py-3 text-center text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors font-medium"
                       onClick={closeMobileMenu}
                     >
                       Iniciar Sesión
                     </Link>
                     <Link
                       href={ROUTES.REGISTER}
-                      className="block px-4 py-3 text-center bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors font-semibold"
+                      className="block px-4 py-3 text-center bg-primary-container text-[#00210b] hover:brightness-95 rounded-xl transition-all font-semibold"
                       onClick={closeMobileMenu}
                     >
                       Crear Cuenta

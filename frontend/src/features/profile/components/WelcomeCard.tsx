@@ -17,26 +17,28 @@ export function WelcomeCard({ user }: WelcomeCardProps) {
   const fullName = `${user.name} ${user.last_name}`
 
   return (
-    <Card variant="bordered" padding="lg">
+    <Card variant="ambient" padding="lg">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
         <div className="flex-shrink-0">
           {user.profile_picture ? (
             <img
               src={user.profile_picture}
               alt={fullName}
-              className="w-16 h-16 rounded-full border-2 border-primary-200"
+              className="w-16 h-16 rounded-full border-2 border-primary-container"
             />
           ) : (
-            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
-              <User className="h-8 w-8 text-primary-600" />
+            <div className="w-16 h-16 bg-secondary-container rounded-full flex items-center justify-center border-2 border-primary-container">
+              <span className="text-secondary font-bold text-2xl">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
             </div>
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            ¡Bienvenido, {fullName}! 👋
+          <h1 className="text-headline-sm text-on-surface">
+            ¡Bienvenido, {user.name}!
           </h1>
-          <p className="mt-1 text-gray-600">
+          <p className="mt-1 text-body-md text-on-surface-variant">
             Gestioná tu cuenta, viajes y vehículos desde aquí.
           </p>
         </div>

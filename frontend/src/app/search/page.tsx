@@ -68,16 +68,16 @@ function SearchPageContent() {
   const hasSearched = origin && destination
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface">
       {/* Header with integrated search bar */}
-      <div className="border-b border-gray-200 bg-white shadow-sm">
+      <div className="bg-anchor-dark shadow-glass">
         <div className="container mx-auto px-4 py-6">
           <div className="mb-6">
-            <h1 className="mb-2 text-3xl font-bold text-gray-900">
+            <h1 className="mb-1 text-headline-sm text-white">
               Buscar Viajes
             </h1>
-            <p className="text-gray-600">
-              Encuentra el viaje compartido perfecto para tu trayecto
+            <p className="text-body-md text-white/60">
+              Encontrá el viaje compartido perfecto para tu trayecto
             </p>
           </div>
 

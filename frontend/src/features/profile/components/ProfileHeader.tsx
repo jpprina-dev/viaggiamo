@@ -17,11 +17,11 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
           <img
             src={user.profile_picture}
             alt={fullName}
-            className="w-20 h-20 rounded-full border-4 border-primary-200"
+            className="w-20 h-20 rounded-full border-4 border-primary-container"
           />
         ) : (
-          <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center border-4 border-primary-200">
-            <span className="text-primary-700 font-bold text-3xl">
+          <div className="w-20 h-20 bg-secondary-container rounded-full flex items-center justify-center border-4 border-primary-container">
+            <span className="text-secondary font-bold text-3xl">
               {user.name.charAt(0).toUpperCase()}
             </span>
           </div>
@@ -29,8 +29,8 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
 
         {/* User Info */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{fullName}</h1>
-          <p className="text-gray-600 text-lg">@{user.username}</p>
+          <h1 className="text-headline-sm text-on-surface">{fullName}</h1>
+          <p className="text-body-lg text-on-surface-variant">@{user.username}</p>
         </div>
       </div>
 

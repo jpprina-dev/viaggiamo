@@ -12,13 +12,17 @@ import {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-surface">
+      {/* Dark hero with search */}
       <HeroSection />
+      {/* Popular trips — surface-container-low */}
       <PopularTrips />
-      <CTASection />
-      <BenefitsSection />
-      {/* <StatsSection /> TODO: feature to be included later */}
+      {/* How it works — surface-container-low */}
       <HowItWorksSection />
+      {/* Benefits — surface */}
+      <BenefitsSection />
+      {/* CTA — anchor-dark */}
+      <CTASection />
       <Footer />
     </div>
   )

@@ -1,23 +1,63 @@
+import { UserPlus, Search, MessageCircle, Car } from 'lucide-react'
+
 const steps = [
-  { number: '1', title: 'Regístrate', desc: 'Creá tu cuenta de forma gratuita en minutos' },
-  { number: '2', title: 'Buscá o Publicá', desc: 'Encontrá viajes o publicá el tuyo propio' },
-  { number: '3', title: 'Coordiná', desc: 'Comunicate con otros usuarios y acordá detalles' },
-  { number: '4', title: 'Viajá', desc: '¡Disfruta de un viaje compartido y económico!' },
+  {
+    icon: UserPlus,
+    number: '01',
+    title: 'Registrate',
+    desc: 'Creá tu cuenta de forma gratuita en minutos con email o Google.',
+  },
+  {
+    icon: Search,
+    number: '02',
+    title: 'Buscá o Publicá',
+    desc: 'Encontrá viajes disponibles o publicá tu propio trayecto.',
+  },
+  {
+    icon: MessageCircle,
+    number: '03',
+    title: 'Coordiná',
+    desc: 'Comunicate con el conductor y acordá los detalles del viaje.',
+  },
+  {
+    icon: Car,
+    number: '04',
+    title: 'Viajá',
+    desc: '¡Disfrutá de un viaje compartido, económico y seguro!',
+  },
 ]
 
 export function HowItWorksSection() {
   return (
-    <section className="py-16 bg-white">
+    <section className="bg-surface-container-low py-20 md:py-28">
       <div className="container">
-        <h2 className="text-3xl font-bold text-center mb-12">¿Cómo funciona?</h2>
-        <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="max-w-xl mb-16">
+          <p className="text-label-md text-secondary uppercase tracking-widest mb-3">
+            Simple y rápido
+          </p>
+          <h2 className="text-headline-md text-on-surface">
+            ¿Cómo funciona?
+          </h2>
+        </div>
+
+        {/* Steps grid */}
+        <div className="grid md:grid-cols-4 gap-8 md:gap-6">
           {steps.map((step, idx) => (
-            <div key={idx} className="text-center">
-              <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold shadow-lg">
-                {step.number}
+            <div key={idx} className="group">
+              {/* Icon container */}
+              <div className="w-14 h-14 rounded-xl bg-secondary-container flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                <step.icon className="h-7 w-7 text-secondary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
-              <p className="text-gray-600 text-sm">{step.desc}</p>
+
+              {/* Number + title */}
+              <div className="flex items-baseline gap-3 mb-3">
+                <span className="text-label-md text-on-surface-variant font-mono">{step.number}</span>
+                <h3 className="text-title-md text-on-surface">{step.title}</h3>
+              </div>
+
+              {/* Description */}
+              <p className="text-body-md text-on-surface-variant leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>

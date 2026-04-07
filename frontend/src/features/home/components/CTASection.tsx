@@ -1,26 +1,43 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui'
 
 export function CTASection() {
   return (
-    <section className="py-16 bg-gradient-to-br from-primary-600 to-emerald-600 text-white">
+    <section className="bg-anchor-dark bg-pin-watermark py-20 md:py-28">
       <div className="container">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Compartí tu viaje</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Publicá tu próximo viaje en Viajamos y ahorrá hasta un 100% de tus gastos al compartir con otros pasajeros.
-            Sólo necesitas un par de minutos para publicar tu trayecto.
+        <div className="max-w-2xl">
+          {/* Overline */}
+          <p className="text-label-md text-secondary-container uppercase tracking-widest mb-5">
+            Empezá hoy
           </p>
-          <Link href="/trips/create">
-            <Button
-              size="lg"
-              className="bg-white text-primary-600 hover:bg-primary-50 hover:scale-105 transition-all inline-flex items-center space-x-2 shadow-lg"
-            >
-              <span>Publicar Viaje</span>
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </Link>
+
+          {/* Headline */}
+          <h2 className="text-headline-md md:text-display-sm text-white mb-6 leading-tight">
+            ¿Listo para{' '}
+            <span className="text-primary-container">salir?</span>
+          </h2>
+
+          <p className="text-body-lg text-white/50 mb-10 max-w-lg">
+            Publicá tu próximo viaje en minutos y ahorrá hasta un 100% de los gastos al compartirlo.
+            O encontrá a alguien que ya va para donde vas vos.
+          </p>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link href="/search">
+              <Button size="lg" variant="primary" className="w-full sm:w-auto">
+                <ArrowRight className="h-5 w-5" />
+                Buscar Viajes
+              </Button>
+            </Link>
+            <Link href="/trips/create">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/20 text-white hover:bg-white/10">
+                <Plus className="h-5 w-5" />
+                Publicar Viaje
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </section>

@@ -73,8 +73,8 @@ function LoginFormWrapper() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary-container border-r-transparent"></div>
+          <p className="mt-4 text-on-surface-variant">Cargando...</p>
         </div>
       </div>
     )
@@ -93,7 +93,7 @@ function LoginFormWrapper() {
       {/* Google Sign In */}
       <div className="mb-6">
         <div className="text-center mb-4">
-          <span className="text-sm text-gray-500">Inicia sesión con Google</span>
+          <span className="text-body-md text-on-surface-variant">Inicia sesión con Google</span>
         </div>
         <div className="flex justify-center">
           <GoogleLogin
@@ -110,10 +110,10 @@ function LoginFormWrapper() {
       {/* Divider */}
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300"></div>
+          <div className="w-full border-t border-outline-variant"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">O continúa con email</span>
+          <span className="px-2 bg-surface-container-lowest text-on-surface-variant">O continúa con email</span>
         </div>
       </div>
 
@@ -128,24 +128,24 @@ function LoginFormWrapper() {
               id="remember-me"
               name="remember-me"
               type="checkbox"
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              className="h-4 w-4 text-primary accent-primary border-outline-variant rounded"
             />
-            <label htmlFor="remember-me" className="ml-2 block text-gray-900">
+            <label htmlFor="remember-me" className="ml-2 block text-on-surface text-sm">
               Recordarme
             </label>
           </div>
-          <Link href={ROUTES.FORGOT_PASSWORD} className="font-medium text-primary-600 hover:text-primary-500">
+          <Link href={ROUTES.FORGOT_PASSWORD} className="font-semibold text-primary hover:text-primary/80 text-sm transition-colors">
             ¿Olvidaste tu contraseña?
           </Link>
         </div>
 
-        <div className="text-center text-sm text-gray-600 pt-4 border-t border-gray-200">
+        <div className="text-center text-body-md text-on-surface-variant pt-4 border-t border-outline-variant/30">
           Al iniciar sesión, aceptas nuestros{' '}
-          <Link href={ROUTES.TERMS} className="text-primary-600 hover:text-primary-500">
+          <Link href={ROUTES.TERMS} className="font-semibold text-primary hover:text-primary/80 transition-colors">
             Términos de Servicio
           </Link>{' '}
           y{' '}
-          <Link href={ROUTES.PRIVACY} className="text-primary-600 hover:text-primary-500">
+          <Link href={ROUTES.PRIVACY} className="font-semibold text-primary hover:text-primary/80 transition-colors">
             Política de Privacidad
           </Link>
         </div>

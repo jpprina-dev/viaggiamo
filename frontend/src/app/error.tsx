@@ -24,11 +24,11 @@ export default function Error({
             <AlertCircle className="h-8 w-8 text-red-600" />
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-on-surface mb-2">
             Algo salió mal
           </h1>
 
-          <p className="text-gray-600 mb-6">
+          <p className="text-on-surface-variant mb-6">
             Lo sentimos, ocurrió un error inesperado. Por favor intenta nuevamente.
           </p>
 
