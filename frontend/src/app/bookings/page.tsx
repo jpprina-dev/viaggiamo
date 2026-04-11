@@ -118,7 +118,7 @@ export default function BookingsPage() {
                 </button>
               </div>
             ) : (
-              <BookingsView bookings={bookings} filter="active" />
+              <BookingsView bookings={bookings} filter="active" onBookingCancelled={() => void refetch()} />
             )}
           </>
         )}

@@ -4,7 +4,7 @@ import { graphqlClient } from '@/lib/graphql-client'
 import type { BookingStatus } from '../types'
 
 const UPDATE_BOOKING_STATUS = gql`
-  mutation UpdateBookingStatus($bookingId: Int!, $status: String!) {
+  mutation UpdateBookingStatus($bookingId: Int!, $status: BookingStatus!) {
     updateBookingStatus(bookingId: $bookingId, status: $status) {
       id
       status
