@@ -1,4 +1,5 @@
 export { LoginForm } from './LoginForm'
+export { GoogleAuthButton } from './GoogleAuthButton'
 export { RegisterForm } from './RegisterForm'
 export { AuthLayout } from './AuthLayout'
 export { EmailRegistrationForm } from './EmailRegistrationForm'

@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oauth/google'
+import { GoogleOAuthProvider, CredentialResponse } from '@react-oauth/google'
 import { login, loginWithGoogle } from '@/lib/auth'
 import { useAuth } from '@/contexts/AuthContext'
-import { AuthLayout, LoginForm } from '@/features/auth/components'
+import { AuthLayout, LoginForm, GoogleAuthButton } from '@/features/auth/components'
 import { ROUTES } from '@/config/routes'
 import type { LoginInput } from '@/types'
 
@@ -92,19 +92,12 @@ function LoginFormWrapper() {
     >
       {/* Google Sign In */}
       <div className="mb-6">
-        <div className="text-center mb-4">
-          <span className="text-body-md text-on-surface-variant">Inicia sesión con Google</span>
-        </div>
-        <div className="flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            theme="outline"
-            size="large"
-            text="signin_with"
-            width="100%"
-          />
-        </div>
+        <GoogleAuthButton
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          text="Continuar con Google"
+          disabled={isLoading}
+        />
       </div>
 
       {/* Divider */}

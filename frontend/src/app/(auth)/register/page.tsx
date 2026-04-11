@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oauth/google'
+import { GoogleOAuthProvider, CredentialResponse } from '@react-oauth/google'
 import { loginWithGoogle } from '@/lib/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   AuthLayout,
   EmailRegistrationForm,
-  CompleteRegistrationForm
+  CompleteRegistrationForm,
+  GoogleAuthButton,
 } from '@/features/auth/components'
 import { ROUTES } from '@/config/routes'
 import type { RegisterInput } from '@/types'
@@ -108,19 +109,12 @@ function RegisterFormWrapper() {
           <>
             {/* Google SSO */}
             <div className="mb-6">
-              <div className="text-center mb-4">
-                <span className="text-body-md text-on-surface-variant">Regístrate con Google</span>
-              </div>
-              <div className="flex justify-center">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  theme="outline"
-                  size="large"
-                  text="signup_with"
-                  width="100%"
-                />
-              </div>
+              <GoogleAuthButton
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                text="Continuar con Google"
+                disabled={isLoading}
+              />
             </div>
 
             {/* Divider */}
