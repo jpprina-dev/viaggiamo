@@ -32,16 +32,16 @@ class Booking(Base):
     __tablename__ = "bookings"
 
     # Add a partial unique index to prevent duplicate active bookings.
-    # Only non-cancelled bookings are considered for uniqueness.
-    # cancelled is excluded so passengers can re-submit after self-cancelling.
-    # revoked is NOT excluded, so revoked passengers cannot re-book.
+    # Only pending and accepted bookings are considered for uniqueness.
+    # cancelled, rejected, and revoked are excluded so passengers can re-book
+    # after any terminal state.
     __table_args__ = (
         Index(
             "idx_unique_active_booking",
             "trip_id",
             "passenger_id",
             unique=True,
-            postgresql_where="status != 'cancelled'",
+            postgresql_where="status NOT IN ('cancelled', 'rejected', 'revoked')",
         ),
     )
 

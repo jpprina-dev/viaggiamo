@@ -54,11 +54,18 @@ class BookingQueries:
         if not context.user:
             raise ValueError("Authentication required")
 
-        # Show all non-canceled bookings (pending, rejected, accepted, revalidated, revoked)
+        # Show only active bookings (pending, accepted). Terminal states are hidden
+        # so passengers see a clean slate and can re-book after rejection/revocation.
         result = await context.db.execute(
             select(Booking).where(
                 Booking.passenger_id == context.user.id,
-                Booking.status != Booking.STATUS_CANCELED,
+                Booking.status.notin_(
+                    [
+                        Booking.STATUS_CANCELED,
+                        Booking.STATUS_REJECTED,
+                        Booking.STATUS_REVOKED,
+                    ]
+                ),
             )
         )
         bookings = result.scalars().all()
@@ -169,7 +176,13 @@ class BookingQueries:
         result = await context.db.execute(
             select(Booking).where(
                 Booking.trip_id == trip_id,
-                Booking.status != Booking.STATUS_CANCELED,
+                Booking.status.notin_(
+                    [
+                        Booking.STATUS_CANCELED,
+                        Booking.STATUS_REJECTED,
+                        Booking.STATUS_REVOKED,
+                    ]
+                ),
             )
         )
         bookings = result.scalars().all()
@@ -435,19 +448,6 @@ class BookingMutations:
 
         if existing_booking:
             raise ValueError("You already have an active request for this trip")
-
-        # Check if passenger was revoked from this trip (cannot rejoin)
-        revoked_booking_result = await context.db.execute(
-            select(Booking).where(
-                Booking.trip_id == booking_input.trip_id,
-                Booking.passenger_id == context.user.id,
-                Booking.status == Booking.STATUS_REVOKED,
-            )
-        )
-        revoked_booking = revoked_booking_result.scalar_one_or_none()
-
-        if revoked_booking:
-            raise ValueError("You were removed from this trip and cannot rejoin")
 
         # Get trip and verify availability
         result = await context.db.execute(
