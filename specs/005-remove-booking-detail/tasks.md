@@ -95,7 +95,7 @@
 
 - [ ] T014 [P] Run `pnpm build` in `frontend/` and fix any TypeScript errors introduced by props changes in T006, T009, T010, T011, T013
 - [ ] T015 [P] Run `pnpm test` in `frontend/` and confirm total test count did not decrease relative to pre-change baseline
-- [ ] T016 [P] Audit remaining `/bookings/[id]` references found in T001 baseline and confirm none remain as live navigation links (any found must be updated or removed)
+- [ ] T016 [P] Audit remaining `/bookings/[id]` references found in T001 baseline and confirm none remain as live navigation links (any found must be updated or removed); also grep `docs/` for "booking detail" or `/bookings/[id]` references — update any affected docs page in the same PR (Constitution §V)
 - [ ] T017 Execute the three manual test scenarios from `specs/005-remove-booking-detail/quickstart.md` and confirm all pass
 
 ---
