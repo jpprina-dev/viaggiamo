@@ -76,7 +76,7 @@ export function DriverTripCard({
     <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
       {/* Main Card Content */}
       <Link
-        href={`/trips/${trip.id}`}
+        href={`/trips/${trip.id}?from=bookings`}
         className="block p-4 sm:p-5 transition-all hover:bg-gray-50"
       >
         <div className="space-y-3">

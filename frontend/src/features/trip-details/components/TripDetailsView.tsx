@@ -150,7 +150,7 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
             className="inline-flex items-center text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {returnUrl === '/bookings' ? 'Mis reservas' : 'Volver a resultados'}
+            {returnUrl === '/bookings' ? 'Mis viajes' : 'Volver a resultados'}
           </Link>
         </div>
       </div>

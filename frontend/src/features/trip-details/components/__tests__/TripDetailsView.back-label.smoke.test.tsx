@@ -67,9 +67,9 @@ const tripData = {
 import { TripDetailsView } from '../TripDetailsView'
 
 describe('TripDetailsView back label', () => {
-  it('shows "Mis reservas" when returnUrl is /bookings', () => {
+  it('shows "Mis viajes" when returnUrl is /bookings', () => {
     render(<TripDetailsView tripData={tripData} returnUrl="/bookings" />)
-    expect(screen.getByText('Mis reservas')).toBeInTheDocument()
+    expect(screen.getByText('Mis viajes')).toBeInTheDocument()
   })
 
   it('shows "Volver a resultados" when returnUrl is /search', () => {
