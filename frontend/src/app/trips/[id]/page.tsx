@@ -23,9 +23,12 @@ export default function TripPage({ params }: TripPageProps) {
   const { tripData, loading, error } = useTripDetails(tripId)
   
   // Build the return URL with search params
-  const returnUrl = searchParams.toString() 
-    ? `/search?${searchParams.toString()}`
-    : '/search'
+  const fromParam = searchParams.get('from')
+  const returnUrl = fromParam === 'bookings'
+    ? '/bookings'
+    : searchParams.toString()
+      ? `/search?${searchParams.toString()}`
+      : '/search'
 
   if (loading) {
     return (

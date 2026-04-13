@@ -67,7 +67,7 @@ export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled 
 
   return (
     <Link
-      href={`/bookings/${booking.id}`}
+      href={`/trips/${booking.trip.id}?from=bookings`}
       className="block rounded-lg border border-gray-200 bg-white p-4 sm:p-5 shadow-sm transition-all hover:shadow-md hover:border-primary-600 cursor-pointer"
     >
       <div className="space-y-3">

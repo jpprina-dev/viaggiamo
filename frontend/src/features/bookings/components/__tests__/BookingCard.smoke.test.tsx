@@ -53,6 +53,12 @@ describe('BookingCard', () => {
     expect(screen.getByText('Cancelar solicitud')).toBeInTheDocument()
   })
 
+  it('links to trip detail with ?from=bookings query param', () => {
+    render(<BookingCard booking={baseBooking} />)
+    const link = screen.getByRole('link')
+    expect(link).toHaveAttribute('href', `/trips/${baseBooking.trip.id}?from=bookings`)
+  })
+
   it('renders accepted booking without cancel button', () => {
     const accepted = { ...baseBooking, status: 'accepted' }
     render(<BookingCard booking={accepted} />)

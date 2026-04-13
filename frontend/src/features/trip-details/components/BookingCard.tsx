@@ -49,6 +49,14 @@ export function BookingCard({ booking, onCancel, cancelLoading }: BookingCardPro
         </div>
       </div>
 
+      {/* Notes */}
+      {booking.notes && (
+        <div className="rounded-md bg-blue-50 p-3" data-testid="booking-notes">
+          <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">Notas</p>
+          <p className="text-sm text-blue-900">{booking.notes}</p>
+        </div>
+      )}
+
       {/* Cancel Button */}
       {canCancel && (
         <button
@@ -57,7 +65,11 @@ export function BookingCard({ booking, onCancel, cancelLoading }: BookingCardPro
           className="w-full rounded-lg bg-red-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400 flex items-center justify-center"
         >
           <X className="mr-2 h-5 w-5" />
-          {cancelLoading ? 'Cancelando...' : 'Cancelar Reserva'}
+          {cancelLoading
+            ? 'Cancelando...'
+            : booking.status === 'pending'
+              ? 'Cancelar solicitud'
+              : 'Cancelar Reserva'}
         </button>
       )}
 
