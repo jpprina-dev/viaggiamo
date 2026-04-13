@@ -17,7 +17,7 @@
 
 **Purpose**: Understand the full scope of references to the booking detail route before making changes.
 
-- [ ] T001 Grep `frontend/src/` for all occurrences of `/bookings/` (link hrefs, hardcoded strings, tests) and record the full list — this is the audit baseline for Phase 4 cleanup
+- [X] T001 Grep `frontend/src/` for all occurrences of `/bookings/` (link hrefs, hardcoded strings, tests) and record the full list — this is the audit baseline for Phase 4 cleanup
 
 ---
 
@@ -31,14 +31,14 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation (Constitution §II)**
 
-- [ ] T002 [US1] Update href assertion in `features/bookings/components/__tests__/BookingCard.smoke.test.tsx` to expect `/trips/[tripId]?from=bookings` — confirm test FAILS on current code before proceeding to T003
-- [ ] T003 [P] [US1] Add/update smoke test in `features/trip-details/components/__tests__/` (create file if absent) asserting back button renders "Mis reservas" when `returnUrl='/bookings'` — confirm test FAILS before proceeding to T005
+- [X] T002 [US1] Update href assertion in `features/bookings/components/__tests__/BookingCard.smoke.test.tsx` to expect `/trips/[tripId]?from=bookings` — confirm test FAILS on current code before proceeding to T003
+- [X] T003 [P] [US1] Add/update smoke test in `features/trip-details/components/__tests__/` (create file if absent) asserting back button renders "Mis reservas" when `returnUrl='/bookings'` — confirm test FAILS before proceeding to T005
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Update `<Link href>` in `features/bookings/components/BookingCard.tsx` from `/bookings/${booking.id}` to `/trips/${booking.trip.id}?from=bookings` (makes T002 pass)
-- [ ] T005 [P] [US1] Read `from` query param in `app/trips/[id]/page.tsx`; when `from === 'bookings'` set `returnUrl = '/bookings'`, otherwise keep existing search-params logic
-- [ ] T006 [P] [US1] Make back button label dynamic in `features/trip-details/components/TripDetailsView.tsx`: show "Mis reservas" when `returnUrl === '/bookings'`, otherwise keep "Volver a resultados" (makes T003 pass)
+- [X] T004 [US1] Update `<Link href>` in `features/bookings/components/BookingCard.tsx` from `/bookings/${booking.id}` to `/trips/${booking.trip.id}?from=bookings` (makes T002 pass)
+- [X] T005 [P] [US1] Read `from` query param in `app/trips/[id]/page.tsx`; when `from === 'bookings'` set `returnUrl = '/bookings'`, otherwise keep existing search-params logic
+- [X] T006 [P] [US1] Make back button label dynamic in `features/trip-details/components/TripDetailsView.tsx`: show "Mis reservas" when `returnUrl === '/bookings'`, otherwise keep "Volver a resultados" (makes T003 pass)
 
 **Checkpoint**: User Story 1 is fully functional. All booking card clicks navigate to the correct trip detail page with working back navigation.
 
@@ -54,14 +54,14 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation (Constitution §II)**
 
-- [ ] T007 [US2] Extend smoke test for `features/trip-details/components/BookingCard.tsx` in its `__tests__/` directory (create if absent): assert (a) notes section renders when `notes` prop is non-empty, (b) cancel label is "Cancelar solicitud" for `status='pending'` and "Cancelar Reserva" for `status='accepted'` — confirm tests FAIL before proceeding to T008/T009
+- [X] T007 [US2] Extend smoke test for `features/trip-details/components/BookingCard.tsx` in its `__tests__/` directory (create if absent): assert (a) notes section renders when `notes` prop is non-empty, (b) cancel label is "Cancelar solicitud" for `status='pending'` and "Cancelar Reserva" for `status='accepted'` — confirm tests FAIL before proceeding to T008/T009
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Verify `notes` field is included in the GraphQL query in `features/trip-details/hooks/useMyBookingForTrip.ts`; add it to the query if missing
-- [ ] T009 [US2] Add `notes?: string | null` prop to `features/trip-details/components/BookingCard.tsx` and render a notes section below booking details when the value is non-empty (makes T007.a pass)
-- [ ] T010 [US2] Differentiate cancel label by status in `features/trip-details/components/BookingCard.tsx`: show "Cancelar solicitud" when `booking.status === 'pending'` and "Cancelar Reserva" when `booking.status === 'accepted'` (makes T007.b pass)
-- [ ] T011 [US2] Pass `booking.notes` to `<BookingCard>` in `features/trip-details/components/TripDetailsView.tsx`
+- [X] T008 [US2] Verify `notes` field is included in the GraphQL query in `features/trip-details/hooks/useMyBookingForTrip.ts`; add it to the query if missing
+- [X] T009 [US2] Add `notes?: string | null` prop to `features/trip-details/components/BookingCard.tsx` and render a notes section below booking details when the value is non-empty (makes T007.a pass)
+- [X] T010 [US2] Differentiate cancel label by status in `features/trip-details/components/BookingCard.tsx`: show "Cancelar solicitud" when `booking.status === 'pending'` and "Cancelar Reserva" when `booking.status === 'accepted'` (makes T007.b pass)
+- [X] T011 [US2] Pass `booking.notes` to `<BookingCard>` in `features/trip-details/components/TripDetailsView.tsx`
 
 **Checkpoint**: User Story 2 is fully functional. All booking detail information and actions are available directly on the trip detail page.
 
@@ -77,13 +77,13 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation (Constitution §II)**
 
-- [ ] T012 [US3] Rewrite `app/(protected)/bookings/[id]/__tests__/page.smoke.test.tsx` to test the redirect component: (a) renders a loading skeleton while booking is loading, (b) calls `router.replace('/trips/[tripId]')` after booking resolves, (c) calls `router.replace('/bookings')` when booking is not found or access is denied
+- [X] T012 [US3] Rewrite `app/(protected)/bookings/[id]/__tests__/page.smoke.test.tsx` to test the redirect component: (a) renders a loading skeleton while booking is loading, (b) calls `router.replace('/trips/[tripId]')` after booking resolves, (c) calls `router.replace('/bookings')` when booking is not found or access is denied
 
 **⛔ STOP — Constitution Gate**: Run `pnpm test` and confirm T012 tests FAIL before writing any implementation code. Do NOT proceed to T013 until failure is confirmed.
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Replace `app/(protected)/bookings/[id]/page.tsx` with a redirect component that: (1) calls `useBookingDetail(bookingId)`, (2) on success calls `router.replace('/trips/${booking.trip.id}')`, (3) shows loading skeleton while fetching, (4) falls back to `router.replace('/bookings')` when `accessDenied` is true or `!booking` after loading completes. Ensure `useBookingDetail`'s polling interval is not active after redirect (component unmounts — verify cleanup).
+- [X] T013 [US3] Replace `app/(protected)/bookings/[id]/page.tsx` with a redirect component that: (1) calls `useBookingDetail(bookingId)`, (2) on success calls `router.replace('/trips/${booking.trip.id}')`, (3) shows loading skeleton while fetching, (4) falls back to `router.replace('/bookings')` when `accessDenied` is true or `!booking` after loading completes. Ensure `useBookingDetail`'s polling interval is not active after redirect (component unmounts — verify cleanup).
 
 **Checkpoint**: User Story 3 is fully functional. Old booking detail URLs redirect correctly; no broken pages exist.
 
@@ -93,9 +93,9 @@
 
 **Purpose**: Type safety verification, test coverage validation, and final cleanup.
 
-- [ ] T014 [P] Run `pnpm build` in `frontend/` and fix any TypeScript errors introduced by props changes in T006, T009, T010, T011, T013
-- [ ] T015 [P] Run `pnpm test` in `frontend/` and confirm total test count did not decrease relative to pre-change baseline
-- [ ] T016 [P] Audit remaining `/bookings/[id]` references found in T001 baseline and confirm none remain as live navigation links (any found must be updated or removed); also grep `docs/` for "booking detail" or `/bookings/[id]` references — update any affected docs page in the same PR (Constitution §V)
+- [X] T014 [P] Run `pnpm build` in `frontend/` and fix any TypeScript errors introduced by props changes in T006, T009, T010, T011, T013
+- [X] T015 [P] Run `pnpm test` in `frontend/` and confirm total test count did not decrease relative to pre-change baseline
+- [X] T016 [P] Audit remaining `/bookings/[id]` references found in T001 baseline and confirm none remain as live navigation links (any found must be updated or removed); also grep `docs/` for "booking detail" or `/bookings/[id]` references — update any affected docs page in the same PR (Constitution §V)
 - [ ] T017 Execute the three manual test scenarios from `specs/005-remove-booking-detail/quickstart.md` and confirm all pass
 
 ---
