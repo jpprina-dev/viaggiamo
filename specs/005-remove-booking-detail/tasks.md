@@ -38,7 +38,7 @@
 
 - [X] T004 [US1] Update `<Link href>` in `features/bookings/components/BookingCard.tsx` from `/bookings/${booking.id}` to `/trips/${booking.trip.id}?from=bookings` (makes T002 pass)
 - [X] T005 [P] [US1] Read `from` query param in `app/trips/[id]/page.tsx`; when `from === 'bookings'` set `returnUrl = '/bookings'`, otherwise keep existing search-params logic
-- [X] T006 [P] [US1] Make back button label dynamic in `features/trip-details/components/TripDetailsView.tsx`: show "Mis reservas" when `returnUrl === '/bookings'`, otherwise keep "Volver a resultados" (makes T003 pass)
+- [X] T006 [P] [US1] Make back button label dynamic in `features/trip-details/components/TripDetailsView.tsx`: show "Mis viajes" when `returnUrl === '/bookings'`, otherwise keep "Volver a resultados" (makes T003 pass)
 
 **Checkpoint**: User Story 1 is fully functional. All booking card clicks navigate to the correct trip detail page with working back navigation.
 
