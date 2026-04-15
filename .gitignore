@@ -112,6 +112,7 @@ logs/
 tmp/
 temp/
 
-# spec kit
-.specify/
-specs/
+# Claude
+.claude/
+claude.md
+CLAUDE.md

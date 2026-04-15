@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
   const protectedPaths = [
     '/profile',
     '/settings',
-    '/bookings',
+    '/bookings',       // also covers /bookings/[id] (booking detail page)
     '/dashboard',
     '/trips/create',
     '/vehicles',

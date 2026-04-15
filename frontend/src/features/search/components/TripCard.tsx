@@ -1,5 +1,5 @@
 /**
- * Trip result card component
+ * Trip result card component — Ruta Gaucha design system
  */
 
 'use client'
@@ -9,7 +9,7 @@ import { es } from 'date-fns/locale'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { Star, CarFront, Users, Car } from 'lucide-react'
+import { Star, CarFront, Users, MapPin, Car } from 'lucide-react'
 import type { TripSearchResult } from '../types'
 
 interface TripCardProps {
@@ -26,93 +26,99 @@ export function TripCard({ result }: TripCardProps) {
   const formattedTime = format(departureDate, 'HH:mm')
 
   const seatRatio = trip.availableSeats / trip.totalSeats
-  const seatColor =
-    seatRatio > 0.5 ? 'text-green-600' : seatRatio > 0 ? 'text-orange-600' : 'text-red-600'
+  const seatBadge =
+    seatRatio > 0.5
+      ? 'bg-secondary-container text-secondary'
+      : seatRatio > 0
+      ? 'bg-tertiary-container text-tertiary'
+      : 'bg-error-container text-error'
 
   const isOwnTrip = user && driver.id === user.id
 
   return (
     <Link
       href={`/trips/${trip.id}?${searchParams.toString()}`}
-      className="block rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-primary-600 cursor-pointer"
+      className="block bg-surface-container-lowest rounded-lg p-5 shadow-ambient hover:shadow-ambient-lg hover:-translate-y-0.5 transition-all cursor-pointer"
     >
-      {/* Two-line layout */}
-      <div className="space-y-3">
-        
-        {/* First line: Route, Time, and Price */}
-        <div className="flex items-center justify-between gap-4">
+      <div className="space-y-4">
+        {/* Route + Price row */}
+        <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-gray-900">{trip.origin}</h3>
-              <span className="text-gray-400">→</span>
-              <h3 className="text-lg font-semibold text-gray-900">{trip.destination}</h3>
-              {isOwnTrip && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                  <Car className="w-3 h-3" />
-                  Mi Viaje
-                </span>
-              )}
+            {/* Route visualizer */}
+            <div className="flex items-start gap-3 mb-2">
+              <div className="flex flex-col items-center pt-0.5">
+                <MapPin className="h-4 w-4 text-secondary flex-shrink-0" />
+                <div className="route-line my-0.5" />
+                <MapPin className="h-4 w-4 text-primary-container flex-shrink-0" />
+              </div>
+              <div className="flex flex-col gap-3.5">
+                <span className="text-title-sm text-on-surface">{trip.origin}</span>
+                <span className="text-title-sm text-on-surface">{trip.destination}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>{formattedDate}</span>
-              <span>•</span>
-              <span>{formattedTime}</span>
-            </div>
+            <p className="text-body-md text-on-surface-variant mt-1">
+              {formattedDate} · {formattedTime}
+            </p>
           </div>
 
           {/* Price */}
-          <div>
-            <p className="text-3xl font-bold text-primary-600">
+          <div className="text-right flex-shrink-0">
+            <p className="text-headline-sm text-on-surface">
               ${Number(trip.pricePerSeat).toLocaleString()}
             </p>
+            <p className="text-label-md text-on-surface-variant">por persona</p>
           </div>
         </div>
 
-        {/* Second line: Driver info on left, Vehicle and Seats on right */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          {/* Driver with rating */}
-          <div className="flex items-center gap-2">
+        {/* Driver + meta row */}
+        <div className="flex items-center justify-between pt-3 border-t border-surface-container-high">
+          {/* Driver */}
+          <div className="flex items-center gap-2.5">
             {driver.profilePicture ? (
               <img
                 src={driver.profilePicture}
                 alt={driver.name}
-                className="h-9 w-9 rounded-full object-cover"
+                className="h-9 w-9 rounded-full object-cover border-2 border-primary-container"
               />
             ) : (
-              <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-600">{driver.name.charAt(0)}</span>
+              <div className="h-9 w-9 rounded-full bg-secondary-container flex items-center justify-center">
+                <span className="text-sm font-bold text-secondary">
+                  {driver.name.charAt(0)}
+                </span>
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-bold text-gray-900">{driver.name}</p>
-              {driver.averageRating !== null && driver.averageRating !== undefined && (
-                <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-semibold text-gray-600">{driver.averageRating.toFixed(1)}</span>
-                </div>
+            <div className="flex flex-col">
+              <span className="text-title-sm text-on-surface flex items-center gap-1.5">
+                {driver.name}
+                {isOwnTrip && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-secondary-container text-secondary">
+                    <Car className="w-3 h-3" />
+                    Mi Viaje
+                  </span>
+                )}
+              </span>
+              {driver.averageRating != null && (
+                <span className="flex items-center gap-1 text-label-md text-on-surface-variant">
+                  <Star className="w-3 h-3 text-tertiary" />
+                  {driver.averageRating.toFixed(1)}
+                </span>
               )}
             </div>
           </div>
 
-          {/* Vehicle and Seats */}
+          {/* Vehicle + Seats */}
           <div className="flex items-center gap-3">
-            {/* Vehicle */}
-            <div className="hidden sm:flex sm:items-center sm:gap-1.5">
-              <CarFront className="w-4 h-4 text-gray-500" />
-              <p className="text-sm text-gray-600">{vehicle.make} {vehicle.model}</p>
+            <div className="hidden sm:flex items-center gap-1.5 text-on-surface-variant">
+              <CarFront className="w-4 h-4" />
+              <span className="text-body-md">{vehicle.make} {vehicle.model}</span>
             </div>
-            
-            {/* Seats */}
-            <div className="flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-gray-500" />
-              <span className={`text-sm font-medium ${seatColor}`}>
-                {trip.availableSeats}/{trip.totalSeats}
-              </span>
-            </div>
+            <span className={`flex items-center gap-1 text-label-md font-semibold px-2.5 py-1 rounded-full ${seatBadge}`}>
+              <Users className="w-3 h-3" />
+              {trip.availableSeats}
+            </span>
           </div>
         </div>
       </div>
     </Link>
   )
 }
-

@@ -20,7 +20,6 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.booking import Booking
-    from app.models.rating import Rating
     from app.models.user import User
     from app.models.vehicle import Vehicle
 
@@ -56,6 +55,3 @@ class Trip(Base):
     driver: Mapped["User"] = relationship("User", back_populates="trips")
     vehicle: Mapped["Vehicle"] = relationship("Vehicle")
     bookings: Mapped[list["Booking"]] = relationship("Booking", back_populates="trip")
-    ratings: Mapped[list["Rating"]] = relationship(
-        "Rating", back_populates="trip", cascade="all, delete-orphan"
-    )

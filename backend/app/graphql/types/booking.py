@@ -7,9 +7,29 @@ from typing import TYPE_CHECKING, Annotated
 import strawberry
 from sqlalchemy import select
 
+from app.models.booking import BookingStatus as BookingStatusEnum
+from app.models.booking_audit_log import ActorRole as ActorRoleEnum
+
 if TYPE_CHECKING:
     from app.graphql.types.trip import TripType
     from app.graphql.types.user import UserType
+
+# Strawberry enum types exposed in the GraphQL schema
+BookingStatus = strawberry.enum(BookingStatusEnum, name="BookingStatus")
+ActorRole = strawberry.enum(ActorRoleEnum, name="ActorRole")
+
+
+@strawberry.type
+class BookingAuditLogType:
+    """GraphQL type for an audit log entry."""
+
+    id: int
+    booking_id: int
+    from_status: str
+    to_status: str
+    actor_id: int
+    actor_role: ActorRoleEnum
+    created_at: datetime
 
 
 @strawberry.type
@@ -21,7 +41,7 @@ class BookingType:
     passenger_id: int
     seats_requested: int
     total_price: Decimal
-    status: str
+    status: str  # pending, accepted, rejected, cancelled, revoked
     notes: str | None = None
     booking_time: datetime
     created_at: datetime
@@ -96,6 +116,14 @@ class BookingType:
         )
 
 
+@strawberry.type
+class DriverTripHistoryType:
+    """A driver's inactive trip with its accepted passengers."""
+
+    trip: Annotated["TripType", strawberry.lazy("app.graphql.types.trip")]
+    passengers: list[Annotated["UserType", strawberry.lazy("app.graphql.types.user")]]
+
+
 @strawberry.input
 class BookingCreateInput:
     """Input type for booking creation."""
@@ -107,8 +135,11 @@ class BookingCreateInput:
 
 @strawberry.input
 class BookingUpdateInput:
-    """Input type for booking updates."""
+    """Input type for booking updates.
+
+    Deprecated: use ``updateBookingStatus`` mutation for status changes.
+    """
 
     seats_requested: int | None = None
-    status: str | None = None
+    status: str | None = None  # Deprecated — use updateBookingStatus instead
     notes: str | None = None

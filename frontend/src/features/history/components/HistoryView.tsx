@@ -1,58 +1,77 @@
 /**
- * HistoryView - Displays unified history of completed bookings and trips
+ * HistoryView - Displays booking history for passengers and trip history for drivers
  */
 
 'use client'
 
-import { useMemo } from 'react'
-import { useMyBookings } from '@/features/bookings/hooks'
+import { useCallback, useEffect, useState } from 'react'
 import { BookingCard } from '@/features/bookings/components'
-import { useMyTrips, DriverTripCard } from '@/features/driver-trips'
 import { Loader2, Clock } from 'lucide-react'
-import type { HistoryItem } from '../types'
+import { gql } from 'graphql-request'
+import { graphqlClient } from '@/lib/graphql-client'
+import { useMyBookingHistory } from '../hooks/useMyBookingHistory'
+import { useMyDriverTripHistory } from '../hooks/useMyDriverTripHistory'
+import { DriverHistoryCard } from './DriverHistoryCard'
+import { RatingPrompt } from '@/features/ratings/components/RatingPrompt'
+import type { Rating } from '@/features/ratings/types'
+
+const MY_RATINGS_QUERY = gql`
+  query MyRatings {
+    myRatings {
+      id
+      bookingId
+      raterId
+      rateeId
+      score
+      comment
+    }
+  }
+`
 
 export function HistoryView() {
-  const { bookings, loading: bookingsLoading, error, refetch } = useMyBookings()
-  const { trips, loading: tripsLoading, error: tripsError } = useMyTrips()
+  const {
+    bookings: passengerHistory,
+    loading: bookingsLoading,
+    error: bookingsError,
+    refetch: refetchBookings,
+  } = useMyBookingHistory()
 
-  // Create unified history list
-  const unifiedHistory = useMemo<HistoryItem[]>(() => {
-    // Filter completed bookings
-    const completedBookings = bookings
-      .filter((booking) => booking.status === 'completed')
-      .map((booking) => ({
-        type: 'booking' as const,
-        departureTime: new Date(booking.trip.departureTime),
-        data: booking,
-      }))
+  const {
+    trips: driverHistory,
+    loading: tripsLoading,
+    error: tripsError,
+    refetch: refetchTrips,
+  } = useMyDriverTripHistory()
 
-    // Filter completed trips
-    const now = new Date()
-    const completedTrips = trips
-      .filter((trip) => trip.isCompleted || new Date(trip.departureTime) < now)
-      .map((trip) => ({
-        type: 'trip' as const,
-        departureTime: new Date(trip.departureTime),
-        data: trip,
-      }))
+  // Fetch user's existing ratings to determine existingRating per booking
+  const [ratings, setRatings] = useState<Rating[]>([])
+  const fetchRatings = useCallback(async () => {
+    try {
+      const res = await graphqlClient.request<{ myRatings: Rating[] }>(MY_RATINGS_QUERY)
+      setRatings(res.myRatings)
+    } catch {
+      // non-critical — ratings prompt still works without this
+    }
+  }, [])
+  useEffect(() => { fetchRatings() }, [fetchRatings])
 
-    // Combine and sort by departure time (most recent first)
-    return [...completedBookings, ...completedTrips].sort(
-      (a, b) => b.departureTime.getTime() - a.departureTime.getTime()
-    )
-  }, [bookings, trips])
+  const getRatingForBooking = (bookingId: number): number | null => {
+    const r = ratings.find((r) => r.bookingId === bookingId)
+    return r ? r.score : null
+  }
 
   // Error state
-  if (error || tripsError) {
+  if (bookingsError || tripsError) {
     return (
       <div className="rounded-lg bg-red-50 p-6 text-center">
         <p className="text-red-800 mb-4">
-          Error al cargar tu historial: {error?.message || tripsError?.message}
+          Error al cargar tu historial:{' '}
+          {bookingsError?.message || tripsError?.message}
         </p>
         <button
           onClick={() => {
-            refetch()
-            window.location.reload()
+            refetchBookings()
+            refetchTrips()
           }}
           className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
         >
@@ -72,8 +91,10 @@ export function HistoryView() {
     )
   }
 
+  const isEmpty = passengerHistory.length === 0 && driverHistory.length === 0
+
   // Empty state
-  if (unifiedHistory.length === 0) {
+  if (isEmpty) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
         <Clock className="h-20 w-20 text-gray-400 mb-4" />
@@ -87,25 +108,48 @@ export function HistoryView() {
     )
   }
 
-  // History list
   return (
-    <div className="space-y-4">
-      {unifiedHistory.map((item) =>
-        item.type === 'booking' ? (
-          <BookingCard
-            key={`booking-${item.data.id}`}
-            booking={item.data}
-            showRoleIcon={true}
-          />
-        ) : (
-          <DriverTripCard
-            key={`trip-${item.data.id}`}
-            trip={item.data}
-            showRoleIcon={true}
-          />
-        )
+    <div className="space-y-6">
+      {/* Passenger booking history */}
+      {passengerHistory.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">
+            Mis viajes como pasajero
+          </h2>
+          <div className="space-y-4">
+            {passengerHistory.map((booking) => (
+              <div key={`booking-${booking.id}`} className="space-y-2">
+                <BookingCard booking={booking} showRoleIcon />
+                <div className="pl-4">
+                  <RatingPrompt
+                    bookingId={booking.id}
+                    rateeId={booking.trip.driver.id}
+                    rateeName={`${booking.trip.driver.name} ${booking.trip.driver.lastName}`}
+                    existingRating={getRatingForBooking(booking.id)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Driver trip history */}
+      {driverHistory.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">
+            Mis viajes como conductor
+          </h2>
+          <div className="space-y-4">
+            {driverHistory.map((tripHistory) => (
+              <DriverHistoryCard
+                key={`trip-${tripHistory.trip.id}`}
+                tripHistory={tripHistory}
+              />
+            ))}
+          </div>
+        </section>
       )}
     </div>
   )
 }
-

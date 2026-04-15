@@ -1,6 +1,6 @@
 """Trip-related queries and mutations."""
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import strawberry
 from sqlalchemy import func, select
@@ -8,6 +8,7 @@ from strawberry.types import Info
 
 from app.core.search_ranking import calculate_trip_relevance
 from app.graphql.context import Context
+from app.graphql.resolvers.booking import _notify_passenger_status_change
 from app.graphql.types import (
     TripCreateInput,
     TripSearchInput,
@@ -17,6 +18,8 @@ from app.graphql.types import (
     UserType,
     VehicleType,
 )
+from app.models.booking import Booking
+from app.models.request_decision_event import RequestDecisionEvent
 from app.models.trip import Trip
 from app.models.user import User
 from app.models.vehicle import Vehicle
@@ -393,6 +396,61 @@ class TripQueries:
         return [row[0] for row in result.all()]
 
 
+async def _auto_reject_pending_bookings(context: Context, trip: Trip) -> None:
+    """FR-011: Auto-reject all pending bookings when trip is completed."""
+    result = await context.db.execute(
+        select(Booking).where(
+            Booking.trip_id == trip.id,
+            Booking.status == Booking.STATUS_PENDING,
+        )
+    )
+    pending_bookings = result.scalars().all()
+
+    for booking in pending_bookings:
+        booking.status = Booking.STATUS_REJECTED
+        event = RequestDecisionEvent(
+            booking_id=booking.id,
+            actor_user_id=context.user.id,
+            previous_status=Booking.STATUS_PENDING,
+            new_status=Booking.STATUS_REJECTED,
+            decided_at=datetime.now(),
+            seat_delta=0,
+        )
+        context.db.add(event)
+        await _notify_passenger_status_change(booking)
+
+
+async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None:
+    """FR-010: Cancel all accepted/pending bookings when trip is deactivated."""
+    result = await context.db.execute(
+        select(Booking).where(
+            Booking.trip_id == trip.id,
+            Booking.status.in_(
+                [
+                    Booking.STATUS_ACCEPTED,
+                    Booking.STATUS_PENDING,
+                ]
+            ),
+        )
+    )
+    bookings = result.scalars().all()
+
+    for booking in bookings:
+        previous_status = booking.status
+        booking.status = Booking.STATUS_REVOKED
+        booking.cancellation_time = datetime.now()
+        event = RequestDecisionEvent(
+            booking_id=booking.id,
+            actor_user_id=context.user.id,
+            previous_status=previous_status,
+            new_status=Booking.STATUS_REVOKED,
+            decided_at=datetime.now(),
+            seat_delta=0,
+        )
+        context.db.add(event)
+        await _notify_passenger_status_change(booking)
+
+
 @strawberry.type
 class TripMutations:
     """Trip-related mutations."""
@@ -445,6 +503,8 @@ class TripMutations:
         db_trip.total_seats = trip_input.total_seats
         db_trip.price_per_seat = trip_input.price_per_seat
         db_trip.description = trip_input.description
+        db_trip.is_active = True
+        db_trip.is_completed = False
         db_trip.trip_legal_compliance_ack = trip_input.trip_legal_compliance_ack
         db_trip.trip_preferences = trip_input.trip_preferences
 
@@ -542,6 +602,14 @@ class TripMutations:
         if trip_input.trip_preferences is not None:
             trip.trip_preferences = trip_input.trip_preferences
 
+        # FR-011: Auto-reject pending bookings when trip is completed
+        if trip_input.is_completed is True:
+            await _auto_reject_pending_bookings(context, trip)
+
+        # FR-010: Cancel all bookings when trip is deactivated
+        if trip_input.is_active is False:
+            await _cancel_bookings_on_deactivation(context, trip)
+
         await context.db.commit()
         await context.db.refresh(trip)
 
@@ -592,6 +660,7 @@ class TripMutations:
             raise ValueError("Not authorized to delete this trip")
 
         trip.is_active = False
+        await _cancel_bookings_on_deactivation(context, trip)
         await context.db.commit()
 
         return True

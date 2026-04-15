@@ -27,11 +27,11 @@ export default function ProtectedError({
             <AlertCircle className="h-8 w-8 text-red-600" />
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-on-surface mb-2">
             Error en la aplicación
           </h1>
 
-          <p className="text-gray-600 mb-6">
+          <p className="text-on-surface-variant mb-6">
             Ocurrió un error al cargar esta página protegida.
           </p>
 

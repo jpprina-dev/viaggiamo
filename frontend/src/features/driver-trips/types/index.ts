@@ -17,9 +17,6 @@ export interface BookingWithPassenger {
   status: string
   bookingTime: string
   notes?: string
-  cancelledBy?: 'passenger' | 'driver' | 'system' | null
-  cancellationReason?: string
-  cancellationTime?: string
   passenger: PassengerInfo
 }
 
@@ -46,8 +43,9 @@ export interface TripWithBookings {
 export interface BookingStats {
   total: number
   pending: number
-  confirmed: number
+  accepted: number
+  rejected: number
   cancelled: number
-  completed: number
+  revoked: number
 }
 

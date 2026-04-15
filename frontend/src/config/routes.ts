@@ -32,7 +32,6 @@ export const ROUTES = {
 
   // Booking routes (user's seat requests)
   BOOKINGS: '/bookings',
-  BOOKING_DETAIL: (id: string | number) => `/bookings/${id}`,
 } as const
 
 /**

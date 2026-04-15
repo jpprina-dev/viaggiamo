@@ -10,22 +10,18 @@ class RatingType:
     """GraphQL Rating type."""
 
     id: int
-    trip_id: int
+    booking_id: int
     rater_id: int
-    rated_user_id: int
-    role: str
-    rating: int
+    ratee_id: int
+    score: int
     comment: str | None = None
     created_at: datetime
-    updated_at: datetime
 
 
 @strawberry.input
-class RatingCreateInput:
-    """Input type for rating creation."""
+class SubmitRatingInput:
+    """Input type for submitting a rating."""
 
-    trip_id: int
-    rated_user_id: int
-    role: str  # 'driver' or 'passenger'
-    rating: int  # 1-5
+    booking_id: int
+    score: int  # 1-5
     comment: str | None = None

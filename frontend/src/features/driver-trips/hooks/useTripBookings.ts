@@ -16,9 +16,6 @@ const TRIP_BOOKINGS = gql`
       status
       bookingTime
       notes
-      cancelledBy
-      cancellationReason
-      cancellationTime
       passenger {
         id
         name

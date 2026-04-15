@@ -5,25 +5,28 @@ import { FooterLink } from './FooterLink'
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-12">
+    <footer className="bg-anchor-dark text-white py-16">
       <div className="container">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
+        <div className="grid md:grid-cols-4 gap-10 mb-12">
+          {/* Brand */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <Image
                 src="/icon0.svg"
                 alt="Viajamos logo"
-                width={24}
-                height={24}
-                className="h-6 w-6 brightness-0 invert"
+                width={28}
+                height={28}
+                className="h-7 w-7 brightness-0 invert"
               />
-              <span className="text-xl font-bold">Viajamos</span>
+              <span className="text-xl font-bold text-primary-container">Viajamos</span>
             </div>
-            <p className="text-gray-400 text-sm">
+            <p className="text-white/50 text-sm leading-relaxed">
               La plataforma de carpooling que conecta viajeros y reduce costos de transporte.
             </p>
-            <p className="text-gray-500 text-sm mt-4">contacto@viajamos.com</p>
-            <p className="text-gray-500 text-sm">+54 9 11 2862 0965</p>
+            <div className="mt-5 space-y-1">
+              <p className="text-white/40 text-sm">contacto@viajamos.com</p>
+              <p className="text-white/40 text-sm">+54 9 11 2862 0965</p>
+            </div>
           </div>
 
           <FooterSection title="Producto">
@@ -44,7 +47,7 @@ export default function Footer() {
           </FooterSection>
         </div>
 
-        <div className="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
+        <div className="border-t border-white/10 pt-8 text-center text-white/30 text-sm">
           <p>&copy; 2025 Viajamos. Todos los derechos reservados.</p>
         </div>
       </div>

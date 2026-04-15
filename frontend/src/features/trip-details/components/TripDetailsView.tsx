@@ -44,13 +44,17 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
   const isOwnTrip = Boolean(user && driver.id === user.id)
   
   // Fetch trip bookings if this is the user's own trip
-  const { bookings: tripBookings, loading: tripBookingsLoading } = useTripBookings(trip.id, isOwnTrip)
+  const {
+    bookings: tripBookings,
+    loading: tripBookingsLoading,
+    refetch: refetchTripBookings,
+  } = useTripBookings(trip.id, isOwnTrip)
 
   const seatRatio = trip.availableSeats / trip.totalSeats
   const seatColor =
     seatRatio > 0.5 ? 'text-green-600' : seatRatio > 0 ? 'text-orange-600' : 'text-red-600'
 
-  const isBookingDisabled = 
+  const isBookingDisabled = Boolean(
     isOwnTrip ||
     trip.availableSeats === 0 || 
     !trip.isActive || 
@@ -58,8 +62,9 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
     bookingLoading || 
     bookingQueryLoading ||
     blockCheckLoading ||
-    isBlocked ||
+    isBlocked === true ||
     (booking && booking.status !== 'cancelled')
+  )
 
   const handleBooking = async (seatsRequested: number, notes: string) => {
     if (!user) {
@@ -76,7 +81,7 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
 
     // Check if user already has a booking (client-side validation)
     if (booking && booking.status !== 'cancelled') {
-      toast.error('Ya tienes una reserva activa para este viaje')
+      toast.error('Ya tienes una solicitud activa para este viaje')
       return
     }
 
@@ -93,7 +98,7 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
         notes: notes.trim() || undefined
       })
 
-      toast.success('¡Reserva creada exitosamente!')
+      toast.success('¡Solicitud enviada exitosamente!')
       
       // Refetch booking to show the booking card
       await refetchBooking()
@@ -105,8 +110,8 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
       // Handle specific error messages from backend
       const errorMessage = error instanceof Error ? error.message : 'Error al crear la reserva'
       
-      if (errorMessage.includes('already have an active booking')) {
-        toast.error('Ya tienes una reserva activa para este viaje')
+      if (errorMessage.includes('already have an active request')) {
+        toast.error('Ya tienes una solicitud activa para este viaje')
         // Refetch to sync state
         await refetchBooking()
       } else {
@@ -145,7 +150,7 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
             className="inline-flex items-center text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver a resultados
+            {returnUrl === '/bookings' ? 'Mis viajes' : 'Volver a resultados'}
           </Link>
         </div>
       </div>
@@ -200,7 +205,11 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
               {/* Show Requests List if this is the user's own trip */}
               {isOwnTrip ? (
                 <div className="space-y-4">
-                  <TripRequestsList bookings={tripBookings} loading={tripBookingsLoading} />
+                  <TripRequestsList
+                    bookings={tripBookings}
+                    loading={tripBookingsLoading}
+                    onStatusChanged={refetchTripBookings}
+                  />
                 </div>
               ) : (
                 <>

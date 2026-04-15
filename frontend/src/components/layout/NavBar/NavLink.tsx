@@ -12,10 +12,10 @@ export function NavLink({ href, pathname, children }: NavLinkProps) {
   return (
     <Link
       href={href}
-      className={`font-medium transition-colors ${
+      className={`font-medium transition-colors text-sm ${
         isActive
-          ? 'text-primary-600 font-semibold'
-          : 'text-gray-600 hover:text-primary-600'
+          ? 'text-primary-container font-semibold'
+          : 'text-white/70 hover:text-primary-container'
       }`}
     >
       {children}

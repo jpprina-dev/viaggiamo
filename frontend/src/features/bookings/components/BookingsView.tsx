@@ -13,37 +13,23 @@ import Link from 'next/link'
 interface BookingsViewProps {
   bookings: BookingWithTrip[]
   filter?: 'active' | 'completed' | 'all'
+  onBookingCancelled?: (bookingId: number) => void
 }
 
-export function BookingsView({ bookings, filter = 'all' }: BookingsViewProps) {
-  // Filter bookings to show only: confirmed, pending, and cancelled by driver
+const ACTIVE_STATUSES = new Set(['pending', 'accepted'])
+
+export function BookingsView({ bookings, filter = 'all', onBookingCancelled }: BookingsViewProps) {
+  // Filter bookings — API already excludes 'canceled'; show all returned bookings by default
+
   const filteredBookings = useMemo(() => {
-    let filtered = bookings.filter((b) => {
-      // Include confirmed and pending bookings
-      if (b.status === 'confirmed' || b.status === 'pending') {
-        return true
-      }
-      // Include cancelled bookings only if cancelled by driver
-      if (b.status === 'cancelled' && b.cancelledBy === 'driver') {
-        return true
-      }
-      // Include completed bookings if filter is 'completed' or 'all'
-      if (b.status === 'completed' && (filter === 'completed' || filter === 'all')) {
-        return true
-      }
-      return false
-    })
-
-    // Apply additional filter for active/completed
-    if (filter === 'active') {
-      // Only show confirmed and pending (exclude completed)
-      filtered = filtered.filter((b) => b.status === 'confirmed' || b.status === 'pending' || (b.status === 'cancelled' && b.cancelledBy === 'driver'))
-    } else if (filter === 'completed') {
-      // Only show completed
-      filtered = filtered.filter((b) => b.status === 'completed')
+    if (filter === 'completed') {
+      return bookings.filter((b) => b.status === 'completed')
     }
-
-    return filtered
+    if (filter === 'active') {
+      return bookings.filter((b) => ACTIVE_STATUSES.has(b.status) && b.trip.isActive === true)
+    }
+    // 'all' — return all bookings (API already filters by active; defensive no-op)
+    return bookings
   }, [bookings, filter])
 
   if (filteredBookings.length === 0) {
@@ -67,7 +53,7 @@ export function BookingsView({ bookings, filter = 'all' }: BookingsViewProps) {
   return (
     <div className="space-y-4">
       {filteredBookings.map((booking) => (
-        <BookingCard key={booking.id} booking={booking} />
+        <BookingCard key={booking.id} booking={booking} onBookingCancelled={onBookingCancelled} />
       ))}
     </div>
   )

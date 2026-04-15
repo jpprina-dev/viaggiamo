@@ -106,7 +106,7 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
       {/* Unified Trips List */}
       <div className="space-y-4">
         {sortedTrips.map((trip) => (
-          <DriverTripCard key={trip.id} trip={trip} />
+          <DriverTripCard key={trip.id} trip={trip} enableRequestActions />
         ))}
       </div>
 

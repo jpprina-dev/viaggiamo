@@ -25,12 +25,12 @@ export function StepPreferences({
   watch,
   setValue,
 }: StepPreferencesProps) {
-  const selectedPreferences = watch('tripPreferences') || []
+  const selectedPreferences = (watch('tripPreferences') ?? []) as TripPreference[]
 
   const togglePreference = (preference: TripPreference) => {
     const current = selectedPreferences
     const newPreferences = current.includes(preference)
-      ? current.filter((p: TripPreference) => p !== preference)
+      ? current.filter((p) => p !== preference)
       : [...current, preference]
     setValue('tripPreferences', newPreferences, { shouldValidate: true })
   }

@@ -1,60 +1,114 @@
 import Link from 'next/link'
-import { Card, Button } from '@/components/ui'
+import { Button } from '@/components/ui'
+import { MapPin, Clock, ArrowRight } from 'lucide-react'
 
 const mockTrips = [
-  { from: 'Buenos Aires', to: 'Mar del Plata', price: '25.000', time: '4h 12m', driver: 'Gustavo Adolfo', rating: '4.9' },
-  { from: 'Buenos Aires', to: 'Pinamar', price: '19.000', time: '4h', driver: 'Mathias Ezequiel', rating: '4.8' },
-  { from: 'Mar del Plata', to: 'Monte Grande', price: '21.500', time: '4h 11m', driver: 'Alejandro Javier', rating: '4.9' },
+  {
+    from: 'Buenos Aires',
+    to: 'Mar del Plata',
+    price: '25.000',
+    time: '4h 12m',
+    driver: 'Gustavo A.',
+    rating: '4.9',
+    seats: 2,
+  },
+  {
+    from: 'Buenos Aires',
+    to: 'Pinamar',
+    price: '19.000',
+    time: '4h',
+    driver: 'Mathias E.',
+    rating: '4.8',
+    seats: 3,
+  },
+  {
+    from: 'Mar del Plata',
+    to: 'Monte Grande',
+    price: '21.500',
+    time: '4h 11m',
+    driver: 'Alejandro J.',
+    rating: '4.9',
+    seats: 1,
+  },
 ]
 
 export function PopularTrips() {
   return (
-    <section className="py-16 bg-white">
+    <section className="bg-surface-container-low py-20 md:py-28">
       <div className="container">
-        <h2 className="text-3xl font-bold text-center mb-12">Encontrá tu próximo viaje</h2>
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4">
+          <div>
+            <p className="text-label-md text-primary uppercase tracking-widest mb-3">
+              Populares ahora
+            </p>
+            <h2 className="text-headline-md text-on-surface">
+              Encontrá tu próximo viaje
+            </h2>
+          </div>
+          <Link href="/search">
+            <Button variant="ghost" size="sm" className="gap-1 text-primary">
+              Ver todos <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+
+        {/* Cards */}
         <div className="grid md:grid-cols-3 gap-6">
           {mockTrips.map((trip, idx) => (
-            <Card key={idx} hoverable variant="bordered">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                    <span className="text-primary-700 font-bold text-lg">{trip.driver.charAt(0)}</span>
+            <div
+              key={idx}
+              className="bg-surface-container-lowest rounded-lg p-6 shadow-ambient hover:shadow-ambient-lg hover:-translate-y-0.5 transition-all cursor-pointer"
+            >
+              {/* Driver row */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
+                    <span className="text-secondary font-bold text-sm">
+                      {trip.driver.charAt(0)}
+                    </span>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{trip.driver}</p>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-yellow-500">★</span>
-                      <span className="text-sm text-gray-600">{trip.rating}</span>
+                    <p className="text-title-sm text-on-surface">{trip.driver}</p>
+                    <div className="flex items-center gap-1">
+                      <span className="text-tertiary text-xs">★</span>
+                      <span className="text-label-md text-on-surface-variant">{trip.rating}</span>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-primary-600">${trip.price}</p>
+                  <p className="text-headline-sm text-on-surface">${trip.price}</p>
+                  <p className="text-label-md text-on-surface-variant">por persona</p>
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Salida</span>
-                  <span className="font-medium text-gray-900">{trip.from}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Destino</span>
-                  <span className="font-medium text-gray-900">{trip.to}</span>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                  <span className="text-sm text-gray-500">Duración</span>
-                  <span className="font-medium text-gray-900">{trip.time}</span>
+
+              {/* Route visualizer */}
+              <div className="mb-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex flex-col items-center pt-1">
+                    <MapPin className="h-4 w-4 text-secondary flex-shrink-0" />
+                    <div className="route-line my-1" />
+                    <MapPin className="h-4 w-4 text-primary-container flex-shrink-0" />
+                  </div>
+                  <div className="flex flex-col justify-between gap-4 flex-1">
+                    <p className="text-title-sm text-on-surface">{trip.from}</p>
+                    <p className="text-title-sm text-on-surface">{trip.to}</p>
+                  </div>
                 </div>
               </div>
-            </Card>
+
+              {/* Meta */}
+              <div className="flex items-center justify-between pt-4 border-t border-surface-container-high">
+                <div className="flex items-center gap-1.5 text-on-surface-variant">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-body-md">{trip.time}</span>
+                </div>
+                <span className="text-label-md text-secondary bg-secondary-container px-3 py-1 rounded-full">
+                  {trip.seats} {trip.seats === 1 ? 'lugar' : 'lugares'}
+                </span>
+              </div>
+            </div>
           ))}
-        </div>
-        <div className="text-center mt-8">
-          <Link href="/trips">
-            <Button variant="outline" size="lg">
-              Ver más viajes
-            </Button>
-          </Link>
         </div>
       </div>
     </section>

@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oauth/google'
+import { GoogleOAuthProvider, CredentialResponse } from '@react-oauth/google'
 import { loginWithGoogle } from '@/lib/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   AuthLayout,
   EmailRegistrationForm,
-  CompleteRegistrationForm
+  CompleteRegistrationForm,
+  GoogleAuthButton,
 } from '@/features/auth/components'
 import { ROUTES } from '@/config/routes'
 import type { RegisterInput } from '@/types'
@@ -86,7 +87,7 @@ function RegisterFormWrapper() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary-container border-r-transparent"></div>
           <p className="mt-4 text-gray-600">Cargando...</p>
         </div>
       </div>
@@ -108,28 +109,21 @@ function RegisterFormWrapper() {
           <>
             {/* Google SSO */}
             <div className="mb-6">
-              <div className="text-center mb-4">
-                <span className="text-sm text-gray-500">Regístrate con Google</span>
-              </div>
-              <div className="flex justify-center">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  theme="outline"
-                  size="large"
-                  text="signup_with"
-                  width="100%"
-                />
-              </div>
+              <GoogleAuthButton
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                text="Continuar con Google"
+                disabled={isLoading}
+              />
             </div>
 
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className="w-full border-t border-outline-variant"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">O continúa con email</span>
+                <span className="px-2 bg-surface-container-lowest text-on-surface-variant">O continúa con email</span>
               </div>
             </div>
 

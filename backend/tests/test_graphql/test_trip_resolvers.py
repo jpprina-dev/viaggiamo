@@ -394,6 +394,66 @@ class TestTripMutations:
             assert result.vehicle_id == 1
             assert result.trip_legal_compliance_ack is True
 
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_create_trip_defaults_to_active_state_contract(self):
+        """Contract: newly created trips are active and not completed."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_vehicle = MagicMock(spec=Vehicle)
+        mock_vehicle.user_id = 1
+        mock_vehicle.is_active = True
+
+        mock_vehicle_result = MagicMock()
+        mock_vehicle_result.scalar_one_or_none.return_value = mock_vehicle
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(return_value=mock_vehicle_result)
+        mock_context.db.add = MagicMock()
+        mock_context.db.commit = AsyncMock()
+        mock_context.db.refresh = AsyncMock()
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        trip_input = TripCreateInput(
+            origin="Bogota",
+            destination="Medellin",
+            departure_time="2026-03-03T10:00:00Z",
+            vehicle_id=1,
+            total_seats=3,
+            price_per_seat=40.00,
+            trip_legal_compliance_ack=True,
+        )
+
+        mutations = TripMutations()
+        with patch("app.graphql.resolvers.trip.Trip") as mock_trip_class:
+            mock_trip_instance = MagicMock()
+            mock_trip_instance.id = 101
+            mock_trip_instance.driver_id = 1
+            mock_trip_instance.vehicle_id = 1
+            mock_trip_instance.origin = "Bogota"
+            mock_trip_instance.destination = "Medellin"
+            mock_trip_instance.departure_time = "2026-03-03T10:00:00Z"
+            mock_trip_instance.available_seats = 3
+            mock_trip_instance.total_seats = 3
+            mock_trip_instance.price_per_seat = 40.00
+            mock_trip_instance.description = None
+            mock_trip_instance.is_active = True
+            mock_trip_instance.is_completed = False
+            mock_trip_instance.trip_legal_compliance_ack = True
+            mock_trip_instance.created_at = "2026-03-02T00:00:00Z"
+            mock_trip_instance.updated_at = "2026-03-02T00:00:00Z"
+            mock_trip_class.return_value = mock_trip_instance
+
+            result = await mutations.create_trip(mock_info, trip_input)
+
+            assert result.is_active is True
+            assert result.is_completed is False
+
     @pytest.mark.asyncio
     async def test_update_trip_validates_vehicle_ownership(self):
         """Test that updateTrip validates vehicle ownership when changing vehicle."""

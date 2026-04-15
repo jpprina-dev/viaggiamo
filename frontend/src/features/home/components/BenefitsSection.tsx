@@ -1,36 +1,62 @@
-import { TrendingDown, Users, Shield } from 'lucide-react'
+import { ShieldCheck, TrendingDown, Users, Star } from 'lucide-react'
 
 const benefits = [
   {
     icon: TrendingDown,
-    title: 'Ahorrá Dinero',
-    description: 'Compartí los gastos del viaje y ahorrá hasta un 70% en tus traslados de ciudad a ciudad.',
+    title: 'Ahorrá hasta un 70%',
+    description:
+      'Compartí los gastos del viaje con otros pasajeros y pagá solo tu parte.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Viajeros verificados',
+    description:
+      'Todos los perfiles tienen verificación de identidad y calificaciones reales.',
   },
   {
     icon: Users,
-    title: 'Conocé Gente',
-    description: 'Viajá con personas interesantes, hacé nuevas amistades y comparte experiencias.',
+    title: 'Chat previo al viaje',
+    description:
+      'Coordiná los detalles directamente con el conductor antes de salir.',
   },
   {
-    icon: Shield,
-    title: 'Viajá Seguro',
-    description: 'Perfiles verificados, sistema de calificaciones y soporte 24/7 para tu tranquilidad.',
+    icon: Star,
+    title: 'Sin comisiones ocultas',
+    description:
+      'El precio que ves es lo que pagás. Transparencia total en cada viaje.',
   },
 ]
 
 export function BenefitsSection() {
   return (
-    <section className="py-16 bg-white">
+    <section className="bg-surface py-20 md:py-28">
       <div className="container">
-        <h2 className="text-3xl font-bold text-center mb-12">¿Por qué elegir Viajamos?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
+        {/* Header */}
+        <div className="max-w-xl mb-16">
+          <p className="text-label-md text-tertiary uppercase tracking-widest mb-3">
+            Por qué elegirnos
+          </p>
+          <h2 className="text-headline-md text-on-surface">
+            Viajar diferente tiene sus ventajas
+          </h2>
+        </div>
+
+        {/* Benefits grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {benefits.map((benefit, idx) => (
-            <div key={idx} className="text-center">
-              <div className="bg-primary-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <benefit.icon className="h-10 w-10 text-primary-600" />
+            <div
+              key={idx}
+              className="bg-surface-container-lowest rounded-lg p-6 shadow-ambient hover:shadow-ambient-lg hover:-translate-y-0.5 transition-all"
+            >
+              {/* Icon */}
+              <div className="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center mb-5">
+                <benefit.icon className="h-6 w-6 text-secondary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">{benefit.title}</h3>
-              <p className="text-gray-600">{benefit.description}</p>
+
+              <h3 className="text-title-md text-on-surface mb-2">{benefit.title}</h3>
+              <p className="text-body-md text-on-surface-variant leading-relaxed">
+                {benefit.description}
+              </p>
             </div>
           ))}
         </div>

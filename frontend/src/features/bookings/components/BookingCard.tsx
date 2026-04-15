@@ -7,38 +7,58 @@
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
-import { Calendar, User, MapPin, AlertCircle, Briefcase } from 'lucide-react'
+import { Calendar, User, AlertCircle, Briefcase, X } from 'lucide-react'
 import type { BookingWithTrip } from '../types'
+import { useCancelBooking } from '../hooks/useCancelBooking'
 
 interface BookingCardProps {
   booking: BookingWithTrip
   showRoleIcon?: boolean
+  onBookingCancelled?: (bookingId: number) => void
 }
 
 const statusConfig = {
-  confirmed: {
-    label: 'Confirmada',
-    color: 'bg-green-100 text-green-800',
-  },
   pending: {
     label: 'Pendiente',
     color: 'bg-yellow-100 text-yellow-800',
+  },
+  accepted: {
+    label: 'Aceptada',
+    color: 'bg-green-100 text-green-800',
+  },
+  rejected: {
+    label: 'Rechazada',
+    color: 'bg-red-100 text-red-800',
+  },
+  cancelled: {
+    label: 'Cancelada',
+    color: 'bg-gray-100 text-gray-800',
+  },
+  revoked: {
+    label: 'Revocada',
+    color: 'bg-orange-100 text-orange-800',
   },
   completed: {
     label: 'Completada',
     color: 'bg-gray-100 text-gray-800',
   },
-  cancelled: {
-    label: 'Cancelada',
-    color: 'bg-red-100 text-red-800',
-  },
 }
 
-export function BookingCard({ booking, showRoleIcon = false }: BookingCardProps) {
+export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled }: BookingCardProps) {
   const { trip } = booking
   const departureDate = new Date(trip.departureTime)
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
   const formattedTime = format(departureDate, 'HH:mm')
+  const { cancelBooking, loading: cancelling } = useCancelBooking()
+
+  const handleCancel = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const success = await cancelBooking(booking.id)
+    if (success && onBookingCancelled) {
+      onBookingCancelled(booking.id)
+    }
+  }
 
   const statusInfo = statusConfig[booking.status as keyof typeof statusConfig] || {
     label: booking.status,
@@ -47,7 +67,7 @@ export function BookingCard({ booking, showRoleIcon = false }: BookingCardProps)
 
   return (
     <Link
-      href={`/trips/${trip.id}`}
+      href={`/trips/${booking.trip.id}?from=bookings`}
       className="block rounded-lg border border-gray-200 bg-white p-4 sm:p-5 shadow-sm transition-all hover:shadow-md hover:border-primary-600 cursor-pointer"
     >
       <div className="space-y-3">
@@ -85,15 +105,12 @@ export function BookingCard({ booking, showRoleIcon = false }: BookingCardProps)
           </div>
         </div>
 
-        {/* Cancellation Reason (if cancelled by driver) */}
-        {booking.status === 'cancelled' && booking.cancelledBy === 'driver' && booking.cancellationReason && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
+        {/* Revoked by driver notice */}
+        {booking.status === 'revoked' && (
+          <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
             <div className="flex gap-2">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-red-900">Cancelada por el conductor</p>
-                <p className="text-sm text-red-700 mt-1">{booking.cancellationReason}</p>
-              </div>
+              <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm font-medium text-orange-900">El conductor ha revocado tu solicitud</p>
             </div>
           </div>
         )}
@@ -133,6 +150,21 @@ export function BookingCard({ booking, showRoleIcon = false }: BookingCardProps)
             </div>
           </div>
         </div>
+
+        {/* Cancel button for pending bookings */}
+        {booking.status === 'pending' && (
+          <div className="border-t border-gray-100 pt-3">
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={cancelling}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50"
+            >
+              <X className="w-4 h-4" />
+              {cancelling ? 'Cancelando...' : 'Cancelar solicitud'}
+            </button>
+          </div>
+        )}
       </div>
     </Link>
   )

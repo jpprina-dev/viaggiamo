@@ -2,11 +2,15 @@
 
 from app.graphql.types.auth import AuthToken, LoginInput, OAuthLoginInput
 from app.graphql.types.booking import (
+    ActorRole,
+    BookingAuditLogType,
     BookingCreateInput,
+    BookingStatus,
     BookingType,
     BookingUpdateInput,
+    DriverTripHistoryType,
 )
-from app.graphql.types.rating import RatingCreateInput, RatingType
+from app.graphql.types.rating import RatingType, SubmitRatingInput
 from app.graphql.types.trip import (
     TripCreateInput,
     TripSearchInput,
@@ -40,11 +44,15 @@ __all__ = [
     "BookingType",
     "BookingCreateInput",
     "BookingUpdateInput",
+    "DriverTripHistoryType",
+    "BookingStatus",
+    "ActorRole",
+    "BookingAuditLogType",
     # Vehicle
     "VehicleType",
     "VehicleCreateInput",
     "VehicleUpdateInput",
     # Rating
     "RatingType",
-    "RatingCreateInput",
+    "SubmitRatingInput",
 ]

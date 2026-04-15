@@ -8,11 +8,11 @@ export default function ProtectedNotFound() {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-emerald-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center">
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h1 className="text-8xl font-bold text-primary-600 mb-4">404</h1>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-8xl font-bold text-primary mb-4">404</h1>
+          <h2 className="text-2xl font-bold text-on-surface mb-2">
             Página no encontrada
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-on-surface-variant mb-6">
             Esta sección no está disponible actualmente.
           </p>
 

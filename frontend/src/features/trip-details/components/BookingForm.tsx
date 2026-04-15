@@ -137,7 +137,7 @@ export function BookingForm({
         disabled={isBookingDisabled}
         className="w-full rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-gray-400"
       >
-        {bookingLoading ? 'Procesando...' : '¿Viajamos?'}
+        {bookingLoading ? 'Procesando solicitud...' : 'Enviar solicitud'}
       </button>
 
       {!user && (
@@ -153,6 +153,14 @@ export function BookingForm({
           </p>
           <p className="text-center text-xs text-red-700 mt-1">
             El conductor canceló una reserva anterior. Por favor, contacta al conductor para más información.
+          </p>
+        </div>
+      )}
+
+      {trip.availableSeats === 0 && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p className="text-center text-sm font-medium text-amber-800">
+            El viaje está completo por ahora.
           </p>
         </div>
       )}

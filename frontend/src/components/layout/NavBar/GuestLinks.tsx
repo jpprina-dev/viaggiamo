@@ -19,11 +19,14 @@ export function GuestLinks({ pathname }: GuestLinksProps) {
       </NavLink>
       <Link
         href="/login"
-        className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+        className="text-white/70 hover:text-primary-container font-medium transition-colors text-sm"
       >
         Iniciar Sesión
       </Link>
-      <Link href="/register" className="btn btn-primary px-6">
+      <Link
+        href="/register"
+        className="bg-primary-container text-[#00210b] hover:brightness-95 font-semibold px-5 py-2 rounded-xl transition-all text-sm"
+      >
         Crear Cuenta
       </Link>
     </>
