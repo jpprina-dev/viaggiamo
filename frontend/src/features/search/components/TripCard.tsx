@@ -25,9 +25,9 @@ export function TripCard({ result }: TripCardProps) {
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
   const formattedTime = format(departureDate, 'HH:mm')
 
-  const seatRatio = trip.availableSeats / trip.totalSeats
+  const seatRatio = trip.availableSeats
   const seatBadge =
-    seatRatio > 0.5
+    seatRatio > 1
       ? 'bg-secondary-container text-secondary'
       : seatRatio > 0
       ? 'bg-tertiary-container text-tertiary'
