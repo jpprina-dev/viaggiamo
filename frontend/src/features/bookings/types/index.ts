@@ -130,12 +130,4 @@ export interface BookingWithTrip {
   trip: TripInfo
 }
 
-export interface BookingsByStatus {
-  pending: BookingWithTrip[]
-  accepted: BookingWithTrip[]
-  rejected: BookingWithTrip[]
-  cancelled: BookingWithTrip[]
-  revoked: BookingWithTrip[]
-  completed: BookingWithTrip[]
-}
 
