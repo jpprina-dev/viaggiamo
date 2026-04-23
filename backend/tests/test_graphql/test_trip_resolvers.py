@@ -316,6 +316,7 @@ class TestTripMutations:
         mock_vehicle = MagicMock(spec=Vehicle)
         mock_vehicle.user_id = 1
         mock_vehicle.is_active = True
+        mock_vehicle.seats = 5
 
         # Mock created trip
         mock_trip = MagicMock(spec=Trip)
@@ -404,6 +405,7 @@ class TestTripMutations:
         mock_vehicle = MagicMock(spec=Vehicle)
         mock_vehicle.user_id = 1
         mock_vehicle.is_active = True
+        mock_vehicle.seats = 4
 
         mock_vehicle_result = MagicMock()
         mock_vehicle_result.scalar_one_or_none.return_value = mock_vehicle

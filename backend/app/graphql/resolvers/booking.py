@@ -586,7 +586,7 @@ class BookingMutations:
 
             previous_status = booking.status
             booking.status = next_status  # type: ignore[assignment]  # legacy path accepts raw strings
-            trip.available_seats += delta
+            trip.available_seats += delta * booking.seats_requested
 
             event = RequestDecisionEvent(
                 booking_id=booking.id,
@@ -660,7 +660,7 @@ class BookingMutations:
             raise ValueError("Booking not found")
 
         trip_result = await context.db.execute(
-            select(Trip).where(Trip.id == booking.trip_id)
+            select(Trip).where(Trip.id == booking.trip_id).with_for_update()
         )
         trip = trip_result.scalar_one_or_none()
 
@@ -677,6 +677,17 @@ class BookingMutations:
 
         # Validate transition — raises domain exception on failure
         BookingStateMachine.validate(from_status, target_status, actor_role)
+
+        # Adjust available seats based on transition
+        delta = seat_delta_for_transition(str(from_status), str(target_status))
+        if delta != 0:
+            if trip is None:
+                raise ValueError("Trip not found")
+            trip.available_seats += delta * booking.seats_requested
+            if trip.available_seats > trip.total_seats:
+                raise ValueError("Available seats cannot exceed total seats")
+            if trip.available_seats < 0:
+                raise ValueError("No seats available")
 
         # Atomic write: update status + insert audit log
         booking.status = target_status

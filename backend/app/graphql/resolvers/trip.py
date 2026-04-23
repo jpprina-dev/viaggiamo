@@ -9,6 +9,7 @@ from strawberry.types import Info
 from app.core.search_ranking import calculate_trip_relevance
 from app.graphql.context import Context
 from app.graphql.resolvers.booking import _notify_passenger_status_change
+from app.graphql.resolvers.booking_request_rules import seat_delta_for_transition
 from app.graphql.types import (
     TripCreateInput,
     TripSearchInput,
@@ -437,6 +438,8 @@ async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None
 
     for booking in bookings:
         previous_status = booking.status
+        delta = seat_delta_for_transition(previous_status, Booking.STATUS_REVOKED)
+        trip.available_seats += delta * booking.seats_requested
         booking.status = Booking.STATUS_REVOKED
         booking.cancellation_time = datetime.now()
         event = RequestDecisionEvent(
@@ -445,7 +448,7 @@ async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None
             previous_status=previous_status,
             new_status=Booking.STATUS_REVOKED,
             decided_at=datetime.now(),
-            seat_delta=0,
+            seat_delta=delta,
         )
         context.db.add(event)
         await _notify_passenger_status_change(booking)
@@ -492,6 +495,14 @@ class TripMutations:
 
         if not vehicle.is_active:
             raise ValueError("Vehicle is not active")
+
+        if trip_input.total_seats < 1:
+            raise ValueError("Trip must have at least 1 passenger seat")
+
+        if trip_input.total_seats > vehicle.seats - 1:
+            raise ValueError(
+                "Trip seats cannot exceed vehicle capacity minus the driver's seat"
+            )
 
         db_trip = Trip()
         db_trip.driver_id = context.user.id
