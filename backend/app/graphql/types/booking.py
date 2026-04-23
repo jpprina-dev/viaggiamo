@@ -13,6 +13,7 @@ from app.models.booking_audit_log import ActorRole as ActorRoleEnum
 if TYPE_CHECKING:
     from app.graphql.types.trip import TripType
     from app.graphql.types.user import UserType
+    from app.models.booking import Booking
 
 # Strawberry enum types exposed in the GraphQL schema
 BookingStatus = strawberry.enum(BookingStatusEnum, name="BookingStatus")
@@ -57,63 +58,43 @@ class BookingType:
         self, info: strawberry.Info
     ) -> Annotated["TripType", strawberry.lazy("app.graphql.types.trip")]:
         """Get the trip associated with this booking."""
-        from app.graphql.types.trip import TripType
+        from app.graphql.types.trip import to_trip_type
         from app.models.trip import Trip
 
         db = info.context.db
         result = await db.execute(select(Trip).where(Trip.id == self.trip_id))
-        trip = result.scalar_one()
-
-        return TripType(
-            id=trip.id,
-            driver_id=trip.driver_id,
-            vehicle_id=trip.vehicle_id,
-            origin=trip.origin,
-            destination=trip.destination,
-            departure_time=trip.departure_time,
-            available_seats=trip.available_seats,
-            total_seats=trip.total_seats,
-            price_per_seat=trip.price_per_seat,
-            description=trip.description,
-            is_active=trip.is_active,
-            is_completed=trip.is_completed,
-            trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
-            trip_preferences=trip.trip_preferences,
-            created_at=trip.created_at,
-            updated_at=trip.updated_at,
-        )
+        return to_trip_type(result.scalar_one())
 
     @strawberry.field
     async def passenger(
         self, info: strawberry.Info
     ) -> Annotated["UserType", strawberry.lazy("app.graphql.types.user")]:
         """Get the passenger (user) associated with this booking."""
-        from app.graphql.types.user import UserType
+        from app.graphql.types.user import to_user_type
         from app.models.user import User
 
         db = info.context.db
         result = await db.execute(select(User).where(User.id == self.passenger_id))
-        user = result.scalar_one()
+        return to_user_type(result.scalar_one())
 
-        return UserType(
-            id=user.id,
-            email=user.email,
-            username=user.username,
-            name=user.name,
-            last_name=user.last_name,
-            status=user.status,
-            email_verified=user.email_verified,
-            phone=user.phone,
-            phone_verified=user.phone_verified,
-            profile_picture=user.profile_picture,
-            profile_short_bio=user.profile_short_bio,
-            identification=user.identification,
-            identification_type=user.identification_type,
-            auth_provider=user.auth_provider,
-            trip_preferences=user.trip_preferences,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-        )
+
+def to_booking_type(booking: "Booking") -> BookingType:
+    """Map a SQLAlchemy Booking to the GraphQL BookingType."""
+    return BookingType(
+        id=booking.id,
+        trip_id=booking.trip_id,
+        passenger_id=booking.passenger_id,
+        seats_requested=booking.seats_requested,
+        total_price=booking.total_price,
+        status=booking.status,
+        notes=booking.notes,
+        booking_time=booking.booking_time,
+        created_at=booking.created_at,
+        updated_at=booking.updated_at,
+        cancelled_by=booking.cancelled_by,
+        cancellation_reason=booking.cancellation_reason,
+        cancellation_time=booking.cancellation_time,
+    )
 
 
 @strawberry.type

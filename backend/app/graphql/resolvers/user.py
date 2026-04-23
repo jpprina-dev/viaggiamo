@@ -7,6 +7,7 @@ from strawberry.types import Info
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.types import UserType, UserUpdateInput
+from app.graphql.types.user import to_user_type
 from app.models.user import User
 
 
@@ -26,25 +27,7 @@ class UserQueries:
         if not context.user:
             return None
 
-        return UserType(
-            id=context.user.id,
-            email=context.user.email,
-            username=context.user.username,
-            name=context.user.name,
-            last_name=context.user.last_name,
-            status=context.user.status,
-            email_verified=context.user.email_verified,
-            phone=context.user.phone,
-            phone_verified=context.user.phone_verified,
-            profile_picture=context.user.profile_picture,
-            profile_short_bio=context.user.profile_short_bio,
-            identification=context.user.identification,
-            identification_type=context.user.identification_type,
-            auth_provider=context.user.auth_provider,
-            trip_preferences=context.user.trip_preferences,
-            created_at=context.user.created_at,
-            updated_at=context.user.updated_at,
-        )
+        return to_user_type(context.user)
 
     @strawberry.field
     async def user(self, info: Info[Context, None], user_id: int) -> UserType | None:
@@ -64,25 +47,7 @@ class UserQueries:
         if not user:
             return None
 
-        return UserType(
-            id=user.id,
-            email=user.email,
-            username=user.username,
-            name=user.name,
-            last_name=user.last_name,
-            status=user.status,
-            email_verified=user.email_verified,
-            phone=user.phone,
-            phone_verified=user.phone_verified,
-            profile_picture=user.profile_picture,
-            profile_short_bio=user.profile_short_bio,
-            identification=user.identification,
-            identification_type=user.identification_type,
-            auth_provider=user.auth_provider,
-            trip_preferences=user.trip_preferences,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-        )
+        return to_user_type(user)
 
 
 @strawberry.type
@@ -131,22 +96,4 @@ class UserMutations:
         await context.db.commit()
         await context.db.refresh(user)
 
-        return UserType(
-            id=user.id,
-            email=user.email,
-            username=user.username,
-            name=user.name,
-            last_name=user.last_name,
-            status=user.status,
-            email_verified=user.email_verified,
-            phone=user.phone,
-            phone_verified=user.phone_verified,
-            profile_picture=user.profile_picture,
-            profile_short_bio=user.profile_short_bio,
-            identification=user.identification,
-            identification_type=user.identification_type,
-            auth_provider=user.auth_provider,
-            trip_preferences=user.trip_preferences,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-        )
+        return to_user_type(user)

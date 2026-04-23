@@ -18,9 +18,11 @@ from app.graphql.types import (
     TripSearchResultType,
     TripType,
     TripUpdateInput,
-    UserType,
     VehicleType,
 )
+from app.graphql.types.trip import to_trip_type
+from app.graphql.types.user import to_user_type
+from app.graphql.types.vehicle import to_vehicle_type
 from app.models.booking import Booking
 from app.models.request_decision_event import RequestDecisionEvent
 from app.models.trip import Trip
@@ -65,27 +67,7 @@ class TripQueries:
         result = await context.db.execute(query)
         trips = result.scalars().all()
 
-        return [
-            TripType(
-                id=trip.id,
-                driver_id=trip.driver_id,
-                vehicle_id=trip.vehicle_id,
-                origin=trip.origin,
-                destination=trip.destination,
-                departure_time=trip.departure_time,
-                available_seats=trip.available_seats,
-                total_seats=trip.total_seats,
-                price_per_seat=trip.price_per_seat,
-                description=trip.description,
-                is_active=trip.is_active,
-                is_completed=trip.is_completed,
-                trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
-                trip_preferences=trip.trip_preferences,
-                created_at=trip.created_at,
-                updated_at=trip.updated_at,
-            )
-            for trip in trips
-        ]
+        return [to_trip_type(trip) for trip in trips]
 
     @strawberry.field
     async def trip(self, info: Info[Context, None], trip_id: int) -> TripType | None:
@@ -105,24 +87,7 @@ class TripQueries:
         if not trip:
             return None
 
-        return TripType(
-            id=trip.id,
-            driver_id=trip.driver_id,
-            vehicle_id=trip.vehicle_id,
-            origin=trip.origin,
-            destination=trip.destination,
-            departure_time=trip.departure_time,
-            available_seats=trip.available_seats,
-            total_seats=trip.total_seats,
-            price_per_seat=trip.price_per_seat,
-            description=trip.description,
-            is_active=trip.is_active,
-            is_completed=trip.is_completed,
-            trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
-            trip_preferences=trip.trip_preferences,
-            created_at=trip.created_at,
-            updated_at=trip.updated_at,
-        )
+        return to_trip_type(trip)
 
     @strawberry.field
     async def my_trips(self, info: Info[Context, None]) -> list[TripType]:
@@ -141,27 +106,7 @@ class TripQueries:
         result = await context.db.execute(select(Trip).where(Trip.driver_id == user.id))
         trips = result.scalars().all()
 
-        return [
-            TripType(
-                id=trip.id,
-                driver_id=trip.driver_id,
-                vehicle_id=trip.vehicle_id,
-                origin=trip.origin,
-                destination=trip.destination,
-                departure_time=trip.departure_time,
-                available_seats=trip.available_seats,
-                total_seats=trip.total_seats,
-                price_per_seat=trip.price_per_seat,
-                description=trip.description,
-                is_active=trip.is_active,
-                is_completed=trip.is_completed,
-                trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
-                trip_preferences=trip.trip_preferences,
-                created_at=trip.created_at,
-                updated_at=trip.updated_at,
-            )
-            for trip in trips
-        ]
+        return [to_trip_type(trip) for trip in trips]
 
     @strawberry.field
     async def trip_vehicle(
@@ -192,20 +137,7 @@ class TripQueries:
         if not vehicle:
             return None
 
-        return VehicleType(
-            id=vehicle.id,
-            user_id=vehicle.user_id,
-            make=vehicle.make,
-            model=vehicle.model,
-            year=vehicle.year,
-            color=vehicle.color,
-            license_plate=vehicle.license_plate,
-            seats=vehicle.seats,
-            is_active=vehicle.is_active,
-            vehicle_legal_compliance_ack=vehicle.vehicle_legal_compliance_ack,
-            created_at=vehicle.created_at,
-            updated_at=vehicle.updated_at,
-        )
+        return to_vehicle_type(vehicle)
 
     @strawberry.field
     async def search_trips(
@@ -275,59 +207,9 @@ class TripQueries:
 
         return [
             TripSearchResultType(
-                trip=TripType(
-                    id=item["trip"].id,
-                    driver_id=item["trip"].driver_id,
-                    vehicle_id=item["trip"].vehicle_id,
-                    origin=item["trip"].origin,
-                    destination=item["trip"].destination,
-                    departure_time=item["trip"].departure_time,
-                    available_seats=item["trip"].available_seats,
-                    total_seats=item["trip"].total_seats,
-                    price_per_seat=item["trip"].price_per_seat,
-                    description=item["trip"].description,
-                    is_active=item["trip"].is_active,
-                    is_completed=item["trip"].is_completed,
-                    trip_legal_compliance_ack=item["trip"].trip_legal_compliance_ack,
-                    trip_preferences=item["trip"].trip_preferences,
-                    created_at=item["trip"].created_at,
-                    updated_at=item["trip"].updated_at,
-                ),
-                driver=UserType(
-                    id=item["driver"].id,
-                    email=item["driver"].email,
-                    username=item["driver"].username,
-                    name=item["driver"].name,
-                    last_name=item["driver"].last_name,
-                    status=item["driver"].status,
-                    email_verified=item["driver"].email_verified,
-                    phone=item["driver"].phone,
-                    phone_verified=item["driver"].phone_verified,
-                    profile_picture=item["driver"].profile_picture,
-                    profile_short_bio=item["driver"].profile_short_bio,
-                    identification=item["driver"].identification,
-                    identification_type=item["driver"].identification_type,
-                    auth_provider=item["driver"].auth_provider,
-                    trip_preferences=item["driver"].trip_preferences,
-                    created_at=item["driver"].created_at,
-                    updated_at=item["driver"].updated_at,
-                ),
-                vehicle=VehicleType(
-                    id=item["vehicle"].id,
-                    user_id=item["vehicle"].user_id,
-                    make=item["vehicle"].make,
-                    model=item["vehicle"].model,
-                    year=item["vehicle"].year,
-                    color=item["vehicle"].color,
-                    license_plate=item["vehicle"].license_plate,
-                    seats=item["vehicle"].seats,
-                    is_active=item["vehicle"].is_active,
-                    vehicle_legal_compliance_ack=item[
-                        "vehicle"
-                    ].vehicle_legal_compliance_ack,
-                    created_at=item["vehicle"].created_at,
-                    updated_at=item["vehicle"].updated_at,
-                ),
+                trip=to_trip_type(item["trip"]),
+                driver=to_user_type(item["driver"]),
+                vehicle=to_vehicle_type(item["vehicle"]),
                 relevance_score=item["score"],
             )
             for item in paginated
@@ -521,24 +403,7 @@ class TripMutations:
         await context.db.commit()
         await context.db.refresh(db_trip)
 
-        return TripType(
-            id=db_trip.id,
-            driver_id=db_trip.driver_id,
-            vehicle_id=db_trip.vehicle_id,
-            origin=db_trip.origin,
-            destination=db_trip.destination,
-            departure_time=db_trip.departure_time,
-            available_seats=db_trip.available_seats,
-            total_seats=db_trip.total_seats,
-            price_per_seat=db_trip.price_per_seat,
-            description=db_trip.description,
-            is_active=db_trip.is_active,
-            is_completed=db_trip.is_completed,
-            trip_legal_compliance_ack=db_trip.trip_legal_compliance_ack,
-            trip_preferences=db_trip.trip_preferences,
-            created_at=db_trip.created_at,
-            updated_at=db_trip.updated_at,
-        )
+        return to_trip_type(db_trip)
 
     @strawberry.mutation
     async def update_trip(
@@ -621,24 +486,7 @@ class TripMutations:
         await context.db.commit()
         await context.db.refresh(trip)
 
-        return TripType(
-            id=trip.id,
-            driver_id=trip.driver_id,
-            vehicle_id=trip.vehicle_id,
-            origin=trip.origin,
-            destination=trip.destination,
-            departure_time=trip.departure_time,
-            available_seats=trip.available_seats,
-            total_seats=trip.total_seats,
-            price_per_seat=trip.price_per_seat,
-            description=trip.description,
-            is_active=trip.is_active,
-            is_completed=trip.is_completed,
-            trip_legal_compliance_ack=trip.trip_legal_compliance_ack,
-            trip_preferences=trip.trip_preferences,
-            created_at=trip.created_at,
-            updated_at=trip.updated_at,
-        )
+        return to_trip_type(trip)
 
     @strawberry.mutation
     async def delete_trip(self, info: Info[Context, None], trip_id: int) -> bool:

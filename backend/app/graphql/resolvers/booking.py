@@ -28,9 +28,10 @@ from app.graphql.types import (
     BookingType,
     BookingUpdateInput,
     DriverTripHistoryType,
-    TripType,
-    UserType,
 )
+from app.graphql.types.booking import to_booking_type
+from app.graphql.types.trip import to_trip_type
+from app.graphql.types.user import to_user_type
 from app.models.booking import Booking
 from app.models.booking import BookingStatus as BookingStatusEnum
 from app.models.booking_audit_log import ActorRole, BookingAuditLog
@@ -73,24 +74,7 @@ class BookingQueries:
         )
         bookings = result.scalars().all()
 
-        return [
-            BookingType(
-                id=booking.id,
-                trip_id=booking.trip_id,
-                passenger_id=booking.passenger_id,
-                seats_requested=booking.seats_requested,
-                total_price=booking.total_price,
-                status=booking.status,
-                notes=booking.notes,
-                booking_time=booking.booking_time,
-                created_at=booking.created_at,
-                updated_at=booking.updated_at,
-                cancelled_by=booking.cancelled_by,
-                cancellation_reason=booking.cancellation_reason,
-                cancellation_time=booking.cancellation_time,
-            )
-            for booking in bookings
-        ]
+        return [to_booking_type(booking) for booking in bookings]
 
     @strawberry.field
     async def booking(
@@ -129,21 +113,7 @@ class BookingQueries:
             if not trip or trip.driver_id != user.id:
                 raise ForbiddenError("Not authorized to view this booking")
 
-        return BookingType(
-            id=booking.id,
-            trip_id=booking.trip_id,
-            passenger_id=booking.passenger_id,
-            seats_requested=booking.seats_requested,
-            total_price=booking.total_price,
-            status=booking.status,
-            notes=booking.notes,
-            booking_time=booking.booking_time,
-            created_at=booking.created_at,
-            updated_at=booking.updated_at,
-            cancelled_by=booking.cancelled_by,
-            cancellation_reason=booking.cancellation_reason,
-            cancellation_time=booking.cancellation_time,
-        )
+        return to_booking_type(booking)
 
     @strawberry.field
     async def trip_bookings(
@@ -188,24 +158,7 @@ class BookingQueries:
         )
         bookings = result.scalars().all()
 
-        return [
-            BookingType(
-                id=booking.id,
-                trip_id=booking.trip_id,
-                passenger_id=booking.passenger_id,
-                seats_requested=booking.seats_requested,
-                total_price=booking.total_price,
-                status=booking.status,
-                notes=booking.notes,
-                booking_time=booking.booking_time,
-                created_at=booking.created_at,
-                updated_at=booking.updated_at,
-                cancelled_by=booking.cancelled_by,
-                cancellation_reason=booking.cancellation_reason,
-                cancellation_time=booking.cancellation_time,
-            )
-            for booking in bookings
-        ]
+        return [to_booking_type(booking) for booking in bookings]
 
     @strawberry.field
     async def has_driver_cancelled_booking(
@@ -256,24 +209,7 @@ class BookingQueries:
         )
         bookings = result.scalars().all()
 
-        return [
-            BookingType(
-                id=b.id,
-                trip_id=b.trip_id,
-                passenger_id=b.passenger_id,
-                seats_requested=b.seats_requested,
-                total_price=b.total_price,
-                status=b.status,
-                notes=b.notes,
-                booking_time=b.booking_time,
-                created_at=b.created_at,
-                updated_at=b.updated_at,
-                cancelled_by=b.cancelled_by,
-                cancellation_reason=b.cancellation_reason,
-                cancellation_time=b.cancellation_time,
-            )
-            for b in bookings
-        ]
+        return [to_booking_type(b) for b in bookings]
 
     @strawberry.field
     async def booking_audit_log(
@@ -357,46 +293,8 @@ class BookingQueries:
 
         return [
             DriverTripHistoryType(
-                trip=TripType(
-                    id=t.id,
-                    driver_id=t.driver_id,
-                    vehicle_id=t.vehicle_id,
-                    origin=t.origin,
-                    destination=t.destination,
-                    departure_time=t.departure_time,
-                    available_seats=t.available_seats,
-                    total_seats=t.total_seats,
-                    price_per_seat=t.price_per_seat,
-                    description=t.description,
-                    is_active=t.is_active,
-                    is_completed=t.is_completed,
-                    trip_legal_compliance_ack=t.trip_legal_compliance_ack,
-                    trip_preferences=t.trip_preferences,
-                    created_at=t.created_at,
-                    updated_at=t.updated_at,
-                ),
-                passengers=[
-                    UserType(
-                        id=b.passenger.id,
-                        email=b.passenger.email,
-                        username=b.passenger.username,
-                        name=b.passenger.name,
-                        last_name=b.passenger.last_name,
-                        status=b.passenger.status,
-                        email_verified=b.passenger.email_verified,
-                        phone=b.passenger.phone,
-                        phone_verified=b.passenger.phone_verified,
-                        profile_picture=b.passenger.profile_picture,
-                        profile_short_bio=b.passenger.profile_short_bio,
-                        identification=b.passenger.identification,
-                        identification_type=b.passenger.identification_type,
-                        auth_provider=b.passenger.auth_provider,
-                        trip_preferences=b.passenger.trip_preferences,
-                        created_at=b.passenger.created_at,
-                        updated_at=b.passenger.updated_at,
-                    )
-                    for b in t.bookings
-                ],
+                trip=to_trip_type(t),
+                passengers=[to_user_type(b.passenger) for b in t.bookings],
             )
             for t in trips
         ]
@@ -493,21 +391,7 @@ class BookingMutations:
                 "You already have an active request for this trip"
             ) from e
 
-        return BookingType(
-            id=db_booking.id,
-            trip_id=db_booking.trip_id,
-            passenger_id=db_booking.passenger_id,
-            seats_requested=db_booking.seats_requested,
-            total_price=db_booking.total_price,
-            status=db_booking.status,
-            notes=db_booking.notes,
-            booking_time=db_booking.booking_time,
-            created_at=db_booking.created_at,
-            updated_at=db_booking.updated_at,
-            cancelled_by=db_booking.cancelled_by,
-            cancellation_reason=db_booking.cancellation_reason,
-            cancellation_time=db_booking.cancellation_time,
-        )
+        return to_booking_type(db_booking)
 
     @strawberry.mutation
     async def update_booking(
@@ -605,21 +489,7 @@ class BookingMutations:
         await context.db.commit()
         await context.db.refresh(booking)
 
-        return BookingType(
-            id=booking.id,
-            trip_id=booking.trip_id,
-            passenger_id=booking.passenger_id,
-            seats_requested=booking.seats_requested,
-            total_price=booking.total_price,
-            status=booking.status,
-            notes=booking.notes,
-            booking_time=booking.booking_time,
-            created_at=booking.created_at,
-            updated_at=booking.updated_at,
-            cancelled_by=booking.cancelled_by,
-            cancellation_reason=booking.cancellation_reason,
-            cancellation_time=booking.cancellation_time,
-        )
+        return to_booking_type(booking)
 
     @strawberry.mutation
     async def update_booking_status(
@@ -700,21 +570,7 @@ class BookingMutations:
         await context.db.commit()
         await context.db.refresh(booking)
 
-        return BookingType(
-            id=booking.id,
-            trip_id=booking.trip_id,
-            passenger_id=booking.passenger_id,
-            seats_requested=booking.seats_requested,
-            total_price=booking.total_price,
-            status=booking.status,
-            notes=booking.notes,
-            booking_time=booking.booking_time,
-            created_at=booking.created_at,
-            updated_at=booking.updated_at,
-            cancelled_by=booking.cancelled_by,
-            cancellation_reason=booking.cancellation_reason,
-            cancellation_time=booking.cancellation_time,
-        )
+        return to_booking_type(booking)
 
     @strawberry.mutation
     async def cancel_booking(self, info: Info[Context, None], booking_id: int) -> bool:
