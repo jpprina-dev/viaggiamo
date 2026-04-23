@@ -1,17 +1,18 @@
-"""Shared validation helpers for booking request status transitions."""
+"""Shared validation helpers for the legacy 6-status booking request flow.
+
+These helpers cover the deprecated ``revalidated`` status that
+``BookingStateMachine`` does not know about and are still used by
+``update_booking`` / ``cancel_booking`` and a couple of legacy tests.
+
+For the modern 5-status flow (``updateBookingStatus`` mutation), prefer
+:class:`app.services.booking_state_machine.BookingStateMachine`.
+"""
 
 from datetime import UTC, datetime
 
 from app.models.booking import Booking
 from app.models.trip import Trip
 
-# Valid transitions for the 6-status state machine:
-# pending → accepted | rejected | canceled
-# rejected → revalidated
-# accepted → revoked | canceled
-# revalidated → revoked | canceled
-# revoked → (terminal)
-# canceled → (terminal)
 VALID_TRANSITIONS: dict[str, set[str]] = {
     Booking.STATUS_PENDING: {
         Booking.STATUS_ACCEPTED,
@@ -46,12 +47,7 @@ def validate_status_transition(current_status: str, next_status: str) -> bool:
 
 
 def seat_delta_for_transition(current_status: str, next_status: str) -> int:
-    """Return seat delta to apply on trip.available_seats.
-
-    Seat-holding statuses: accepted, revalidated.
-    - Transitioning INTO a seat-holding status costs a seat (-1).
-    - Transitioning OUT OF a seat-holding status returns a seat (+1).
-    """
+    """Return seat delta to apply on ``trip.available_seats`` for the legacy flow."""
     seat_holding = {Booking.STATUS_ACCEPTED, Booking.STATUS_REVALIDATED}
     currently_holds = current_status in seat_holding
     will_hold = next_status in seat_holding

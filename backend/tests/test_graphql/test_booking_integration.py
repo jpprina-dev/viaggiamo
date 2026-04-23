@@ -27,12 +27,17 @@ def _build_info_with_context(context: Context) -> Info[Context, None]:
 
 
 def _trip(
-    *, seats: int = 2, is_active: bool = True, departure_delta_hours: int = 2
+    *,
+    seats: int = 2,
+    total_seats: int | None = None,
+    is_active: bool = True,
+    departure_delta_hours: int = 2,
 ) -> Trip:
     trip = MagicMock(spec=Trip)
     trip.id = 11
     trip.driver_id = 77
     trip.available_seats = seats
+    trip.total_seats = total_seats if total_seats is not None else seats
     trip.is_active = is_active
     trip.departure_time = datetime.now(UTC) + timedelta(hours=departure_delta_hours)
     return trip

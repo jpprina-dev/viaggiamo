@@ -11,7 +11,6 @@ from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.graphql.resolvers.booking import _notify_passenger_status_change
-from app.graphql.resolvers.booking_request_rules import seat_delta_for_transition
 from app.graphql.types import (
     TripCreateInput,
     TripSearchInput,
@@ -28,6 +27,7 @@ from app.models.request_decision_event import RequestDecisionEvent
 from app.models.trip import Trip
 from app.models.user import User
 from app.models.vehicle import Vehicle
+from app.services.booking_state_machine import BookingStateMachine
 
 
 @strawberry.type
@@ -319,8 +319,9 @@ async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None
 
     for booking in bookings:
         previous_status = booking.status
-        delta = seat_delta_for_transition(previous_status, Booking.STATUS_REVOKED)
-        trip.available_seats += delta * booking.seats_requested
+        delta = BookingStateMachine.apply_seat_delta(
+            trip, booking, str(previous_status), str(Booking.STATUS_REVOKED)
+        )
         booking.status = Booking.STATUS_REVOKED
         booking.cancellation_time = datetime.now()
         event = RequestDecisionEvent(

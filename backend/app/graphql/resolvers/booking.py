@@ -456,6 +456,9 @@ class BookingMutations:
 
             next_status = booking_input.status
 
+            # Legacy path — still supports the deprecated 'revalidated' status
+            # which is not part of BookingStateMachine. New callers should use
+            # ``updateBookingStatus`` mutation instead.
             if not validate_status_transition(booking.status, next_status):
                 raise ValidationError("Invalid request status transition")
 
@@ -468,7 +471,7 @@ class BookingMutations:
                 raise ValidationError("Cannot accept request: no seats available")
 
             previous_status = booking.status
-            booking.status = next_status  # type: ignore[assignment]  # legacy path accepts raw strings
+            booking.status = next_status  # type: ignore[assignment]
             trip.available_seats += delta * booking.seats_requested
 
             event = RequestDecisionEvent(
@@ -546,16 +549,12 @@ class BookingMutations:
         # Validate transition — raises domain exception on failure
         BookingStateMachine.validate(from_status, target_status, actor_role)
 
-        # Adjust available seats based on transition
-        delta = seat_delta_for_transition(str(from_status), str(target_status))
-        if delta != 0:
-            if trip is None:
-                raise NotFoundError("Trip not found")
-            trip.available_seats += delta * booking.seats_requested
-            if trip.available_seats > trip.total_seats:
-                raise ValidationError("Available seats cannot exceed total seats")
-            if trip.available_seats < 0:
-                raise ValidationError("No seats available")
+        # Adjust available seats — guards bounds internally
+        if trip is None:
+            raise NotFoundError("Trip not found")
+        BookingStateMachine.apply_seat_delta(
+            trip, booking, str(from_status), str(target_status)
+        )
 
         # Atomic write: update status + insert audit log
         booking.status = target_status
