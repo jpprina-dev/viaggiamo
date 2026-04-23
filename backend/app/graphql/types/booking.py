@@ -5,7 +5,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Annotated
 
 import strawberry
-from sqlalchemy import select
 
 from app.models.booking import BookingStatus as BookingStatusEnum
 from app.models.booking_audit_log import ActorRole as ActorRoleEnum
@@ -57,25 +56,25 @@ class BookingType:
     async def trip(
         self, info: strawberry.Info
     ) -> Annotated["TripType", strawberry.lazy("app.graphql.types.trip")]:
-        """Get the trip associated with this booking."""
+        """Get the trip associated with this booking (batched via DataLoader)."""
         from app.graphql.types.trip import to_trip_type
-        from app.models.trip import Trip
 
-        db = info.context.db
-        result = await db.execute(select(Trip).where(Trip.id == self.trip_id))
-        return to_trip_type(result.scalar_one())
+        trip = await info.context.trip_loader.load(self.trip_id)
+        assert trip is not None, f"Trip {self.trip_id} missing for booking {self.id}"
+        return to_trip_type(trip)
 
     @strawberry.field
     async def passenger(
         self, info: strawberry.Info
     ) -> Annotated["UserType", strawberry.lazy("app.graphql.types.user")]:
-        """Get the passenger (user) associated with this booking."""
+        """Get the passenger associated with this booking (batched via DataLoader)."""
         from app.graphql.types.user import to_user_type
-        from app.models.user import User
 
-        db = info.context.db
-        result = await db.execute(select(User).where(User.id == self.passenger_id))
-        return to_user_type(result.scalar_one())
+        user = await info.context.user_loader.load(self.passenger_id)
+        assert user is not None, (
+            f"User {self.passenger_id} missing for booking {self.id}"
+        )
+        return to_user_type(user)
 
 
 def to_booking_type(booking: "Booking") -> BookingType:
