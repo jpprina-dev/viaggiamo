@@ -9,6 +9,7 @@ from strawberry.types import Info
 from app.core.search_ranking import calculate_trip_relevance
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
+from app.graphql.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.graphql.resolvers.booking import _notify_passenger_status_change
 from app.graphql.resolvers.booking_request_rules import seat_delta_for_transition
 from app.graphql.types import (
@@ -476,7 +477,7 @@ class TripMutations:
         user = require_auth(context)
 
         if not trip_input.trip_legal_compliance_ack:
-            raise ValueError("Legal compliance acknowledgment is required")
+            raise ValidationError("Legal compliance acknowledgment is required")
 
         # Validate vehicle exists and belongs to user
         result = await context.db.execute(
@@ -485,19 +486,19 @@ class TripMutations:
         vehicle = result.scalar_one_or_none()
 
         if not vehicle:
-            raise ValueError("Vehicle not found")
+            raise NotFoundError("Vehicle not found")
 
         if vehicle.user_id != user.id:
-            raise ValueError("Not authorized to use this vehicle")
+            raise ForbiddenError("Not authorized to use this vehicle")
 
         if not vehicle.is_active:
-            raise ValueError("Vehicle is not active")
+            raise ValidationError("Vehicle is not active")
 
         if trip_input.total_seats < 1:
-            raise ValueError("Trip must have at least 1 passenger seat")
+            raise ValidationError("Trip must have at least 1 passenger seat")
 
         if trip_input.total_seats > vehicle.seats - 1:
-            raise ValueError(
+            raise ValidationError(
                 "Trip seats cannot exceed vehicle capacity minus the driver's seat"
             )
 
@@ -566,7 +567,7 @@ class TripMutations:
             return None
 
         if trip.driver_id != user.id:
-            raise ValueError("Not authorized to update this trip")
+            raise ForbiddenError("Not authorized to update this trip")
 
         # Update fields if provided
         if trip_input.origin is not None:
@@ -583,13 +584,13 @@ class TripMutations:
             vehicle = result.scalar_one_or_none()
 
             if not vehicle:
-                raise ValueError("Vehicle not found")
+                raise NotFoundError("Vehicle not found")
 
             if vehicle.user_id != user.id:
-                raise ValueError("Not authorized to use this vehicle")
+                raise ForbiddenError("Not authorized to use this vehicle")
 
             if not vehicle.is_active:
-                raise ValueError("Vehicle is not active")
+                raise ValidationError("Vehicle is not active")
 
             trip.vehicle_id = trip_input.vehicle_id
         if trip_input.available_seats is not None:
@@ -660,10 +661,10 @@ class TripMutations:
         trip = result.scalar_one_or_none()
 
         if not trip:
-            raise ValueError("Trip not found")
+            raise NotFoundError("Trip not found")
 
         if trip.driver_id != user.id:
-            raise ValueError("Not authorized to delete this trip")
+            raise ForbiddenError("Not authorized to delete this trip")
 
         trip.is_active = False
         await _cancel_bookings_on_deactivation(context, trip)
