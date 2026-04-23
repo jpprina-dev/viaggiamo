@@ -4,6 +4,7 @@ import strawberry
 from sqlalchemy import select
 from strawberry.types import Info
 
+from app.core.datetime_utils import utcnow
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.exceptions import ForbiddenError, NotFoundError, ValidationError
@@ -33,7 +34,7 @@ class VehicleQueries:
         result = await context.db.execute(
             select(Vehicle).where(
                 Vehicle.user_id == user.id,
-                Vehicle.is_active == True,  # noqa: E712
+                Vehicle.is_active.is_(True),
             )
         )
         vehicles = result.scalars().all()
@@ -90,6 +91,12 @@ class VehicleMutations:
 
         if not vehicle_input.vehicle_legal_compliance_ack:
             raise ValidationError("Legal compliance acknowledgment is required")
+        if vehicle_input.seats < 1:
+            raise ValidationError("Vehicle must have at least 1 seat")
+        if not (1900 <= vehicle_input.year <= utcnow().year + 1):
+            raise ValidationError("Vehicle year is out of range")
+        if not vehicle_input.license_plate.strip():
+            raise ValidationError("License plate cannot be empty")
 
         db_vehicle = Vehicle()
         db_vehicle.user_id = user.id

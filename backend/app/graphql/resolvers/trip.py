@@ -1,11 +1,12 @@
 """Trip-related queries and mutations."""
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import strawberry
 from sqlalchemy import func, select
 from strawberry.types import Info
 
+from app.core.datetime_utils import utcnow
 from app.core.search_ranking import calculate_trip_relevance
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
@@ -56,7 +57,7 @@ class TripQueries:
             List[TripType]: List of trips matching the filters
         """
         context = info.context
-        query = select(Trip).where(Trip.is_active == True)  # noqa: E712
+        query = select(Trip).where(Trip.is_active.is_(True))
 
         if origin:
             query = query.where(Trip.origin.ilike(f"%{origin}%"))
@@ -162,8 +163,8 @@ class TripQueries:
             .join(User, Trip.driver_id == User.id)
             .join(Vehicle, Trip.vehicle_id == Vehicle.id)
             .where(
-                Trip.is_active == True,  # noqa: E712
-                Trip.is_completed == False,  # noqa: E712
+                Trip.is_active.is_(True),
+                Trip.is_completed.is_(False),
                 Trip.available_seats >= search.min_seats,
                 # Fuzzy match using similarity (threshold 0.3)
                 func.similarity(Trip.origin, search.origin) > 0.3,
@@ -236,7 +237,7 @@ class TripQueries:
         query = (
             select(Trip.origin, func.count(Trip.id))
             .where(
-                Trip.is_active == True,  # noqa: E712
+                Trip.is_active.is_(True),
                 Trip.origin.ilike(f"{prefix}%"),
             )
             .group_by(Trip.origin)
@@ -267,7 +268,7 @@ class TripQueries:
         query = (
             select(Trip.destination, func.count(Trip.id))
             .where(
-                Trip.is_active == True,  # noqa: E712
+                Trip.is_active.is_(True),
                 Trip.destination.ilike(f"{prefix}%"),
             )
             .group_by(Trip.destination)
@@ -295,7 +296,7 @@ async def _auto_reject_pending_bookings(context: Context, trip: Trip) -> None:
             actor_user_id=context.user.id,
             previous_status=Booking.STATUS_PENDING,
             new_status=Booking.STATUS_REJECTED,
-            decided_at=datetime.now(),
+            decided_at=utcnow(),
             seat_delta=0,
         )
         context.db.add(event)
@@ -323,13 +324,13 @@ async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None
             trip, booking, str(previous_status), str(Booking.STATUS_REVOKED)
         )
         booking.status = Booking.STATUS_REVOKED
-        booking.cancellation_time = datetime.now()
+        booking.cancellation_time = utcnow()
         event = RequestDecisionEvent(
             booking_id=booking.id,
             actor_user_id=context.user.id,
             previous_status=previous_status,
             new_status=Booking.STATUS_REVOKED,
-            decided_at=datetime.now(),
+            decided_at=utcnow(),
             seat_delta=delta,
         )
         context.db.add(event)
@@ -384,6 +385,9 @@ class TripMutations:
             raise ValidationError(
                 "Trip seats cannot exceed vehicle capacity minus the driver's seat"
             )
+
+        if trip_input.price_per_seat <= 0:
+            raise ValidationError("Price per seat must be greater than 0")
 
         db_trip = Trip()
         db_trip.driver_id = user.id

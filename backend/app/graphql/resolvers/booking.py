@@ -1,13 +1,12 @@
 """Booking-related queries and mutations."""
 
-from datetime import datetime
-
 import strawberry
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 from strawberry.types import Info
 
+from app.core.datetime_utils import utcnow
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.exceptions import (
@@ -203,7 +202,7 @@ class BookingQueries:
             .where(
                 Booking.passenger_id == user.id,
                 Booking.status == Booking.STATUS_ACCEPTED,
-                Trip.is_active == False,  # noqa: E712
+                Trip.is_active.is_(False),
             )
             .options(selectinload(Booking.trip).selectinload(Trip.driver))
         )
@@ -281,7 +280,7 @@ class BookingQueries:
             select(Trip)
             .where(
                 Trip.driver_id == user.id,
-                Trip.is_active == False,  # noqa: E712
+                Trip.is_active.is_(False),
             )
             .options(
                 selectinload(
@@ -377,7 +376,7 @@ class BookingMutations:
         db_booking.total_price = total_price
         db_booking.status = Booking.STATUS_PENDING
         db_booking.notes = booking_input.notes
-        db_booking.booking_time = datetime.now()
+        db_booking.booking_time = utcnow()
 
         context.db.add(db_booking)
 
@@ -479,7 +478,7 @@ class BookingMutations:
                 actor_user_id=user.id,
                 previous_status=previous_status,
                 new_status=next_status,
-                decided_at=datetime.now(),
+                decided_at=utcnow(),
                 seat_delta=delta,
             )
             context.db.add(event)
@@ -622,14 +621,14 @@ class BookingMutations:
 
         previous_status = booking.status
         booking.status = Booking.STATUS_CANCELED
-        booking.cancellation_time = datetime.now()
+        booking.cancellation_time = utcnow()
 
         event = RequestDecisionEvent(
             booking_id=booking.id,
             actor_user_id=user.id,
             previous_status=previous_status,
             new_status=Booking.STATUS_CANCELED,
-            decided_at=datetime.now(),
+            decided_at=utcnow(),
             seat_delta=delta,
         )
         context.db.add(event)
