@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 from strawberry.types import Info
 
 from app.core.search_ranking import calculate_trip_relevance
+from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.resolvers.booking import _notify_passenger_status_change
 from app.graphql.resolvers.booking_request_rules import seat_delta_for_transition
@@ -134,12 +135,9 @@ class TripQueries:
             ValueError: If user is not authenticated
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
-        result = await context.db.execute(
-            select(Trip).where(Trip.driver_id == context.user.id)
-        )
+        result = await context.db.execute(select(Trip).where(Trip.driver_id == user.id))
         trips = result.scalars().all()
 
         return [
@@ -475,8 +473,7 @@ class TripMutations:
             ValueError: If user is not authenticated
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         if not trip_input.trip_legal_compliance_ack:
             raise ValueError("Legal compliance acknowledgment is required")
@@ -490,7 +487,7 @@ class TripMutations:
         if not vehicle:
             raise ValueError("Vehicle not found")
 
-        if vehicle.user_id != context.user.id:
+        if vehicle.user_id != user.id:
             raise ValueError("Not authorized to use this vehicle")
 
         if not vehicle.is_active:
@@ -505,7 +502,7 @@ class TripMutations:
             )
 
         db_trip = Trip()
-        db_trip.driver_id = context.user.id
+        db_trip.driver_id = user.id
         db_trip.vehicle_id = trip_input.vehicle_id
         db_trip.origin = trip_input.origin
         db_trip.destination = trip_input.destination
@@ -560,8 +557,7 @@ class TripMutations:
             ValueError: If user is not authenticated or not the trip owner
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(select(Trip).where(Trip.id == trip_id))
         trip = result.scalar_one_or_none()
@@ -569,7 +565,7 @@ class TripMutations:
         if not trip:
             return None
 
-        if trip.driver_id != context.user.id:
+        if trip.driver_id != user.id:
             raise ValueError("Not authorized to update this trip")
 
         # Update fields if provided
@@ -589,7 +585,7 @@ class TripMutations:
             if not vehicle:
                 raise ValueError("Vehicle not found")
 
-            if vehicle.user_id != context.user.id:
+            if vehicle.user_id != user.id:
                 raise ValueError("Not authorized to use this vehicle")
 
             if not vehicle.is_active:
@@ -658,8 +654,7 @@ class TripMutations:
             ValueError: If user is not authenticated, not the trip owner, or trip not found
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(select(Trip).where(Trip.id == trip_id))
         trip = result.scalar_one_or_none()
@@ -667,7 +662,7 @@ class TripMutations:
         if not trip:
             raise ValueError("Trip not found")
 
-        if trip.driver_id != context.user.id:
+        if trip.driver_id != user.id:
             raise ValueError("Not authorized to delete this trip")
 
         trip.is_active = False

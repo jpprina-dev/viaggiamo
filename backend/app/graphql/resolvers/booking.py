@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 from strawberry.types import Info
 
+from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.exceptions import (
     BookingPermissionError,
@@ -51,14 +52,13 @@ class BookingQueries:
             ValueError: If user is not authenticated
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         # Show only active bookings (pending, accepted). Terminal states are hidden
         # so passengers see a clean slate and can re-book after rejection/revocation.
         result = await context.db.execute(
             select(Booking).where(
-                Booking.passenger_id == context.user.id,
+                Booking.passenger_id == user.id,
                 Booking.status.notin_(
                     [
                         Booking.STATUS_CANCELED,
@@ -106,8 +106,7 @@ class BookingQueries:
             ValueError: If user is not authenticated or not authorized to view
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
             select(Booking).where(Booking.id == booking_id)
@@ -118,13 +117,13 @@ class BookingQueries:
             return None
 
         # Only allow passenger or driver to view booking
-        if booking.passenger_id != context.user.id:
+        if booking.passenger_id != user.id:
             # Check if user is the driver
             trip_result = await context.db.execute(
                 select(Trip).where(Trip.id == booking.trip_id)
             )
             trip = trip_result.scalar_one_or_none()
-            if not trip or trip.driver_id != context.user.id:
+            if not trip or trip.driver_id != user.id:
                 raise ValueError("Not authorized to view this booking")
 
         return BookingType(
@@ -160,8 +159,7 @@ class BookingQueries:
             ValueError: If user is not authenticated or not the trip driver
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         # Verify user is the driver
         trip_result = await context.db.execute(select(Trip).where(Trip.id == trip_id))
@@ -170,7 +168,7 @@ class BookingQueries:
         if not trip:
             raise ValueError("Trip not found")
 
-        if trip.driver_id != context.user.id:
+        if trip.driver_id != user.id:
             raise ValueError("Only the trip driver can view all bookings")
 
         result = await context.db.execute(
@@ -224,13 +222,12 @@ class BookingQueries:
             ValueError: If user is not authenticated
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
             select(Booking).where(
                 Booking.trip_id == trip_id,
-                Booking.passenger_id == context.user.id,
+                Booking.passenger_id == user.id,
                 Booking.status == Booking.STATUS_REVOKED,
             )
         )
@@ -242,14 +239,13 @@ class BookingQueries:
     async def my_booking_history(self, info: Info[Context, None]) -> list[BookingType]:
         """Get passenger's accepted bookings for inactive trips (History tab)."""
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
             select(Booking)
             .join(Trip, Booking.trip_id == Trip.id)
             .where(
-                Booking.passenger_id == context.user.id,
+                Booking.passenger_id == user.id,
                 Booking.status == Booking.STATUS_ACCEPTED,
                 Trip.is_active == False,  # noqa: E712
             )
@@ -294,8 +290,7 @@ class BookingQueries:
             ValueError: If not authenticated, booking not found, or not authorized.
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         booking_result = await context.db.execute(
             select(Booking).where(Booking.id == booking_id)
@@ -309,8 +304,8 @@ class BookingQueries:
         )
         trip = trip_result.scalar_one_or_none()
 
-        is_passenger = booking.passenger_id == context.user.id
-        is_driver = trip and trip.driver_id == context.user.id
+        is_passenger = booking.passenger_id == user.id
+        is_driver = trip and trip.driver_id == user.id
 
         if not (is_passenger or is_driver):
             raise ValueError("Not authorized to view this booking's audit log")
@@ -341,13 +336,12 @@ class BookingQueries:
     ) -> list[DriverTripHistoryType]:
         """Get driver's inactive trips with accepted passengers (History tab)."""
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
             select(Trip)
             .where(
-                Trip.driver_id == context.user.id,
+                Trip.driver_id == user.id,
                 Trip.is_active == False,  # noqa: E712
             )
             .options(
@@ -433,14 +427,13 @@ class BookingMutations:
                        or user already has an active booking for this trip
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         # Block re-request only if there is an active (non-terminal) booking
         existing_booking_result = await context.db.execute(
             select(Booking).where(
                 Booking.trip_id == booking_input.trip_id,
-                Booking.passenger_id == context.user.id,
+                Booking.passenger_id == user.id,
                 Booking.status.in_([Booking.STATUS_PENDING, Booking.STATUS_ACCEPTED]),
             )
         )
@@ -470,7 +463,7 @@ class BookingMutations:
         ):
             raise ValueError("Trip is full")
 
-        if trip.driver_id == context.user.id:
+        if trip.driver_id == user.id:
             raise ValueError("Cannot book your own trip")
 
         # Calculate total price
@@ -478,7 +471,7 @@ class BookingMutations:
 
         db_booking = Booking()
         db_booking.trip_id = booking_input.trip_id
-        db_booking.passenger_id = context.user.id
+        db_booking.passenger_id = user.id
         db_booking.seats_requested = booking_input.seats_requested
         db_booking.total_price = total_price
         db_booking.status = Booking.STATUS_PENDING
@@ -532,8 +525,7 @@ class BookingMutations:
             ValueError: If user is not authenticated or not authorized
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
             select(Booking).where(Booking.id == booking_id)
@@ -544,13 +536,13 @@ class BookingMutations:
             return None
 
         # Check authorization - passenger or driver can update
-        is_passenger = booking.passenger_id == context.user.id
+        is_passenger = booking.passenger_id == user.id
 
         trip_result = await context.db.execute(
             select(Trip).where(Trip.id == booking.trip_id)
         )
         trip = trip_result.scalar_one_or_none()
-        is_driver = trip and trip.driver_id == context.user.id
+        is_driver = trip and trip.driver_id == user.id
 
         if not (is_passenger or is_driver):
             raise ValueError("Not authorized to update this booking")
@@ -590,7 +582,7 @@ class BookingMutations:
 
             event = RequestDecisionEvent(
                 booking_id=booking.id,
-                actor_user_id=context.user.id,
+                actor_user_id=user.id,
                 previous_status=previous_status,
                 new_status=next_status,
                 decided_at=datetime.now(),
@@ -648,8 +640,7 @@ class BookingMutations:
             BookingTransitionError: If the transition is not in the allowed set (UNPROCESSABLE).
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         # SELECT FOR UPDATE — first-request-wins concurrency
         booking_result = await context.db.execute(
@@ -665,9 +656,9 @@ class BookingMutations:
         trip = trip_result.scalar_one_or_none()
 
         # Determine actor role
-        if booking.passenger_id == context.user.id:
+        if booking.passenger_id == user.id:
             actor_role = ActorRole.passenger
-        elif trip and trip.driver_id == context.user.id:
+        elif trip and trip.driver_id == user.id:
             actor_role = ActorRole.driver
         else:
             raise BookingPermissionError("You are not a participant of this booking.")
@@ -695,7 +686,7 @@ class BookingMutations:
         audit_log.booking_id = booking.id
         audit_log.from_status = str(from_status)
         audit_log.to_status = str(target_status)
-        audit_log.actor_id = context.user.id
+        audit_log.actor_id = user.id
         audit_log.actor_role = actor_role
         context.db.add(audit_log)
 
@@ -736,8 +727,7 @@ class BookingMutations:
             ValueError: If user is not authenticated, not authorized, or transition invalid
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
             select(Booking).where(Booking.id == booking_id)
@@ -747,7 +737,7 @@ class BookingMutations:
         if not booking:
             raise ValueError("Booking not found")
 
-        if booking.passenger_id != context.user.id:
+        if booking.passenger_id != user.id:
             raise ValueError("Not authorized to cancel this booking")
 
         if not validate_status_transition(booking.status, Booking.STATUS_CANCELED):
@@ -774,7 +764,7 @@ class BookingMutations:
 
         event = RequestDecisionEvent(
             booking_id=booking.id,
-            actor_user_id=context.user.id,
+            actor_user_id=user.id,
             previous_status=previous_status,
             new_status=Booking.STATUS_CANCELED,
             decided_at=datetime.now(),

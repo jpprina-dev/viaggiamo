@@ -4,6 +4,7 @@ import strawberry
 from sqlalchemy import select
 from strawberry.types import Info
 
+from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.types import UserType, UserUpdateInput
 from app.models.user import User
@@ -105,10 +106,7 @@ class UserMutations:
             ValueError: If user is not authenticated
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
-
-        user = context.user
+        user = require_auth(context)
 
         # Update fields if provided
         if user_input.username is not None:

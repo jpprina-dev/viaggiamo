@@ -6,6 +6,7 @@ import pytest
 from strawberry.types import Info
 
 from app.graphql.context import Context
+from app.graphql.exceptions import AuthenticationError
 from app.graphql.resolvers.vehicle import VehicleMutations, VehicleQueries
 from app.graphql.types.vehicle import VehicleCreateInput, VehicleUpdateInput
 from app.models.user import User
@@ -45,7 +46,7 @@ class TestVehicleQueries:
 
         queries = VehicleQueries()
 
-        with pytest.raises(ValueError, match="Authentication required"):
+        with pytest.raises(AuthenticationError, match="Authentication required"):
             await queries.my_vehicles(mock_info)
 
     @pytest.mark.asyncio
@@ -256,7 +257,7 @@ class TestVehicleMutations:
 
         mutations = VehicleMutations()
 
-        with pytest.raises(ValueError, match="Authentication required"):
+        with pytest.raises(AuthenticationError, match="Authentication required"):
             await mutations.create_vehicle(mock_info, vehicle_input)
 
     @pytest.mark.asyncio
@@ -426,7 +427,7 @@ class TestVehicleMutations:
 
         mutations = VehicleMutations()
 
-        with pytest.raises(ValueError, match="Authentication required"):
+        with pytest.raises(AuthenticationError, match="Authentication required"):
             await mutations.update_vehicle(
                 mock_info, vehicle_id=1, vehicle_input=vehicle_input
             )
@@ -530,7 +531,7 @@ class TestVehicleMutations:
 
         mutations = VehicleMutations()
 
-        with pytest.raises(ValueError, match="Authentication required"):
+        with pytest.raises(AuthenticationError, match="Authentication required"):
             await mutations.delete_vehicle(mock_info, vehicle_id=1)
 
     @pytest.mark.asyncio

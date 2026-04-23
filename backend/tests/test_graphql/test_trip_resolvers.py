@@ -6,6 +6,7 @@ import pytest
 from strawberry.types import Info
 
 from app.graphql.context import Context
+from app.graphql.exceptions import AuthenticationError
 from app.graphql.resolvers.trip import TripMutations, TripQueries
 from app.graphql.types.trip import TripCreateInput, TripUpdateInput
 from app.models.trip import Trip
@@ -157,7 +158,7 @@ class TestTripMutations:
 
         mutations = TripMutations()
 
-        with pytest.raises(ValueError, match="Authentication required"):
+        with pytest.raises(AuthenticationError, match="Authentication required"):
             await mutations.create_trip(mock_info, trip_input)
 
     @pytest.mark.asyncio

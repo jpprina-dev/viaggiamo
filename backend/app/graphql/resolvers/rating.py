@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from strawberry.types import Info
 
+from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.types.rating import RatingType
 from app.models.booking import Booking
@@ -20,11 +21,10 @@ class RatingQueries:
     async def my_ratings(self, info: Info[Context, None]) -> list[RatingType]:
         """Return all ratings submitted by the current user."""
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
-            select(Rating).where(Rating.rater_id == context.user.id)
+            select(Rating).where(Rating.rater_id == user.id)
         )
         ratings = result.scalars().all()
         return [
@@ -53,8 +53,7 @@ class RatingMutations:
     ) -> RatingType:
         """Submit a rating for the other party in a booking."""
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         if score < 1 or score > 5:
             raise ValueError("Score must be between 1 and 5")
@@ -75,8 +74,8 @@ class RatingMutations:
         if not trip:
             raise ValueError("Trip not found")
 
-        is_passenger = booking.passenger_id == context.user.id
-        is_driver = trip.driver_id == context.user.id
+        is_passenger = booking.passenger_id == user.id
+        is_driver = trip.driver_id == user.id
 
         if not is_passenger and not is_driver:
             raise ValueError("FORBIDDEN")
@@ -92,7 +91,7 @@ class RatingMutations:
 
         rating = Rating(
             booking_id=booking_id,
-            rater_id=context.user.id,
+            rater_id=user.id,
             ratee_id=ratee_id,
             score=score,
             comment=comment,

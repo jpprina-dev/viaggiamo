@@ -1,12 +1,25 @@
 """Authentication utilities for GraphQL."""
 
+from typing import TYPE_CHECKING
+
 import jwt
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.graphql.exceptions import AuthenticationError
 from app.models.user import User
+
+if TYPE_CHECKING:
+    from app.graphql.context import Context
+
+
+def require_auth(context: "Context") -> User:
+    """Return the authenticated user or raise AuthenticationError."""
+    if context.user is None:
+        raise AuthenticationError("Authentication required")
+    return context.user
 
 
 async def get_current_user_from_token(token: str, db: AsyncSession) -> User | None:
