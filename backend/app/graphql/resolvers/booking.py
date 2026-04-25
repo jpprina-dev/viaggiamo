@@ -17,8 +17,6 @@ from app.graphql.exceptions import (
 )
 from app.graphql.resolvers.booking_request_rules import (
     is_trip_open_for_request_management,
-    seat_delta_for_transition,
-    validate_status_transition,
 )
 from app.graphql.types import (
     BookingAuditLogType,
@@ -299,12 +297,6 @@ class BookingQueries:
         ]
 
 
-async def _notify_passenger_status_change(booking: Booking) -> None:
-    """Dispatch passenger notification for request status changes."""
-    # Placeholder for existing notification channel integration.
-    _ = booking
-
-
 @strawberry.type
 class BookingMutations:
     """Booking-related mutations."""
@@ -453,37 +445,32 @@ class BookingMutations:
             if not is_trip_open_for_request_management(trip):
                 raise ValidationError("Trip request window is closed")
 
-            next_status = booking_input.status
+            try:
+                target_status = BookingStatusEnum(booking_input.status)
+            except ValueError as e:
+                raise ValidationError(
+                    f"Status '{booking_input.status}' is not valid"
+                ) from e
 
-            # Legacy path — still supports the deprecated 'revalidated' status
-            # which is not part of BookingStateMachine. New callers should use
-            # ``updateBookingStatus`` mutation instead.
-            if not validate_status_transition(booking.status, next_status):
-                raise ValidationError("Invalid request status transition")
-
-            delta = seat_delta_for_transition(booking.status, next_status)
-            if delta < 0 and trip.available_seats < abs(delta):
-                if next_status == Booking.STATUS_REVALIDATED:
-                    raise ValidationError(
-                        "Cannot revalidate request: no seats available"
-                    )
-                raise ValidationError("Cannot accept request: no seats available")
+            BookingStateMachine.validate(
+                booking.status, target_status, ActorRole.driver
+            )
+            delta = BookingStateMachine.apply_seat_delta(
+                trip, booking, str(booking.status), str(target_status)
+            )
 
             previous_status = booking.status
-            booking.status = next_status  # type: ignore[assignment]
-            trip.available_seats += delta * booking.seats_requested
+            booking.status = target_status
 
             event = RequestDecisionEvent(
                 booking_id=booking.id,
                 actor_user_id=user.id,
                 previous_status=previous_status,
-                new_status=next_status,
+                new_status=target_status,
                 decided_at=utcnow(),
                 seat_delta=delta,
             )
             context.db.add(event)
-
-            await _notify_passenger_status_change(booking)
 
         if booking_input.notes is not None:
             booking.notes = booking_input.notes
@@ -575,8 +562,8 @@ class BookingMutations:
         """
         Cancel a booking (passenger-initiated).
 
-        Allowed from: pending, accepted, revalidated.
-        Seat delta is applied via seat_delta_for_transition.
+        Allowed from: pending, accepted. Seat accounting is handled by
+        ``BookingStateMachine.apply_seat_delta``.
 
         Args:
             booking_id: The booking ID to cancel
@@ -601,8 +588,9 @@ class BookingMutations:
         if booking.passenger_id != user.id:
             raise ForbiddenError("Not authorized to cancel this booking")
 
-        if not validate_status_transition(booking.status, Booking.STATUS_CANCELED):
-            raise ValidationError("Invalid request status transition")
+        BookingStateMachine.validate(
+            booking.status, BookingStatusEnum.cancelled, ActorRole.passenger
+        )
 
         # Restore seats when leaving a seat-holding status
         trip_result = await context.db.execute(
@@ -616,25 +604,24 @@ class BookingMutations:
         if not is_trip_open_for_request_management(trip):
             raise ValidationError("Trip request window is closed")
 
-        delta = seat_delta_for_transition(booking.status, Booking.STATUS_CANCELED)
-        trip.available_seats += delta * booking.seats_requested
+        delta = BookingStateMachine.apply_seat_delta(
+            trip, booking, str(booking.status), str(BookingStatusEnum.cancelled)
+        )
 
         previous_status = booking.status
-        booking.status = Booking.STATUS_CANCELED
+        booking.status = BookingStatusEnum.cancelled
         booking.cancellation_time = utcnow()
 
         event = RequestDecisionEvent(
             booking_id=booking.id,
             actor_user_id=user.id,
             previous_status=previous_status,
-            new_status=Booking.STATUS_CANCELED,
+            new_status=BookingStatusEnum.cancelled,
             decided_at=utcnow(),
             seat_delta=delta,
         )
         context.db.add(event)
 
         await context.db.commit()
-
-        await _notify_passenger_status_change(booking)
 
         return True

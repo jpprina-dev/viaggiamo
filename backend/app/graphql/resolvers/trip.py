@@ -11,7 +11,6 @@ from app.core.search_ranking import calculate_trip_relevance
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.exceptions import ForbiddenError, NotFoundError, ValidationError
-from app.graphql.resolvers.booking import _notify_passenger_status_change
 from app.graphql.types import (
     TripCreateInput,
     TripSearchInput,
@@ -300,7 +299,6 @@ async def _auto_reject_pending_bookings(context: Context, trip: Trip) -> None:
             seat_delta=0,
         )
         context.db.add(event)
-        await _notify_passenger_status_change(booking)
 
 
 async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None:
@@ -334,7 +332,6 @@ async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None
             seat_delta=delta,
         )
         context.db.add(event)
-        await _notify_passenger_status_change(booking)
 
 
 @strawberry.type

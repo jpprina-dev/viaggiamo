@@ -311,36 +311,6 @@ def test_booking_update_input_accepts_revoked_status() -> None:
 
 
 @pytest.mark.unit
-def test_booking_update_input_accepts_revalidated_status() -> None:
-    """BookingUpdateInput can hold the 'revalidated' status string."""
-    from app.graphql.types.booking import BookingUpdateInput
-    from app.models.booking import Booking
-
-    bui = BookingUpdateInput(status=Booking.STATUS_REVALIDATED)
-    assert bui.status == "revalidated"
-
-
-@pytest.mark.unit
-def test_cancel_booking_rejects_terminal_status() -> None:
-    """validate_status_transition returns False for canceled/revoked → anything."""
-    from app.graphql.resolvers.booking_request_rules import validate_status_transition
-    from app.models.booking import Booking
-
-    for terminal in (Booking.STATUS_CANCELED, Booking.STATUS_REVOKED):
-        for target in (
-            Booking.STATUS_PENDING,
-            Booking.STATUS_ACCEPTED,
-            Booking.STATUS_REJECTED,
-            Booking.STATUS_REVALIDATED,
-            Booking.STATUS_REVOKED,
-            Booking.STATUS_CANCELED,
-        ):
-            assert not validate_status_transition(terminal, target), (
-                f"Expected {terminal}→{target} blocked"
-            )
-
-
-@pytest.mark.unit
 def test_trip_bookings_schema_has_no_was_reset_from_rejected() -> None:
     """BookingType must NOT expose wasResetFromRejected after the re-implementation."""
     from app.graphql.types.booking import BookingType

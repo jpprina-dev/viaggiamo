@@ -41,7 +41,7 @@ class BookingStateMachine:
 
     # Statuses that hold a seat on the trip. Transitioning into one consumes a
     # seat (-1); transitioning out releases it (+1).
-    SEAT_HOLDING: frozenset[str] = frozenset({Booking.STATUS_ACCEPTED, "revalidated"})
+    SEAT_HOLDING: frozenset[str] = frozenset({Booking.STATUS_ACCEPTED})
 
     @classmethod
     def validate(
