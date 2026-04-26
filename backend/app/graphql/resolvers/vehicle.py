@@ -8,6 +8,7 @@ from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.graphql.types import VehicleCreateInput, VehicleType, VehicleUpdateInput
+from app.graphql.types.vehicle import to_vehicle_type
 from app.models.vehicle import Vehicle
 
 
@@ -37,23 +38,7 @@ class VehicleQueries:
         )
         vehicles = result.scalars().all()
 
-        return [
-            VehicleType(
-                id=vehicle.id,
-                user_id=vehicle.user_id,
-                make=vehicle.make,
-                model=vehicle.model,
-                year=vehicle.year,
-                color=vehicle.color,
-                license_plate=vehicle.license_plate,
-                seats=vehicle.seats,
-                is_active=vehicle.is_active,
-                vehicle_legal_compliance_ack=vehicle.vehicle_legal_compliance_ack,
-                created_at=vehicle.created_at,
-                updated_at=vehicle.updated_at,
-            )
-            for vehicle in vehicles
-        ]
+        return [to_vehicle_type(vehicle) for vehicle in vehicles]
 
     @strawberry.field
     async def vehicle(
@@ -77,20 +62,7 @@ class VehicleQueries:
         if not vehicle:
             return None
 
-        return VehicleType(
-            id=vehicle.id,
-            user_id=vehicle.user_id,
-            make=vehicle.make,
-            model=vehicle.model,
-            year=vehicle.year,
-            color=vehicle.color,
-            license_plate=vehicle.license_plate,
-            seats=vehicle.seats,
-            is_active=vehicle.is_active,
-            vehicle_legal_compliance_ack=vehicle.vehicle_legal_compliance_ack,
-            created_at=vehicle.created_at,
-            updated_at=vehicle.updated_at,
-        )
+        return to_vehicle_type(vehicle)
 
 
 @strawberry.type
@@ -136,20 +108,7 @@ class VehicleMutations:
         await context.db.commit()
         await context.db.refresh(db_vehicle)
 
-        return VehicleType(
-            id=db_vehicle.id,
-            user_id=db_vehicle.user_id,
-            make=db_vehicle.make,
-            model=db_vehicle.model,
-            year=db_vehicle.year,
-            color=db_vehicle.color,
-            license_plate=db_vehicle.license_plate,
-            seats=db_vehicle.seats,
-            is_active=db_vehicle.is_active,
-            vehicle_legal_compliance_ack=db_vehicle.vehicle_legal_compliance_ack,
-            created_at=db_vehicle.created_at,
-            updated_at=db_vehicle.updated_at,
-        )
+        return to_vehicle_type(db_vehicle)
 
     @strawberry.mutation
     async def update_vehicle(
@@ -208,20 +167,7 @@ class VehicleMutations:
         await context.db.commit()
         await context.db.refresh(vehicle)
 
-        return VehicleType(
-            id=vehicle.id,
-            user_id=vehicle.user_id,
-            make=vehicle.make,
-            model=vehicle.model,
-            year=vehicle.year,
-            color=vehicle.color,
-            license_plate=vehicle.license_plate,
-            seats=vehicle.seats,
-            is_active=vehicle.is_active,
-            vehicle_legal_compliance_ack=vehicle.vehicle_legal_compliance_ack,
-            created_at=vehicle.created_at,
-            updated_at=vehicle.updated_at,
-        )
+        return to_vehicle_type(vehicle)
 
     @strawberry.mutation
     async def delete_vehicle(self, info: Info[Context, None], vehicle_id: int) -> bool:

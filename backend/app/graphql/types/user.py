@@ -1,12 +1,16 @@
 """User-related GraphQL types."""
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import strawberry
 from sqlalchemy import func, select
 from strawberry.scalars import JSON
 
 from app.models.rating import Rating
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 @strawberry.type
@@ -45,6 +49,29 @@ class UserType:
         avg = result.scalar()
 
         return float(avg) if avg is not None else None
+
+
+def to_user_type(user: "User") -> UserType:
+    """Map a SQLAlchemy User to the GraphQL UserType."""
+    return UserType(
+        id=user.id,
+        email=user.email,
+        username=user.username,
+        name=user.name,
+        last_name=user.last_name,
+        status=user.status,
+        email_verified=user.email_verified,
+        phone=user.phone,
+        phone_verified=user.phone_verified,
+        profile_picture=user.profile_picture,
+        profile_short_bio=user.profile_short_bio,
+        identification=user.identification,
+        identification_type=user.identification_type,
+        auth_provider=user.auth_provider,
+        trip_preferences=user.trip_preferences,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+    )
 
 
 @strawberry.input
