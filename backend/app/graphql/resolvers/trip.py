@@ -502,6 +502,14 @@ class TripMutations:
                 "Trip seats cannot exceed vehicle capacity minus the driver's seat"
             )
 
+        if trip_input.total_seats < 1:
+            raise ValueError("Trip must have at least 1 passenger seat")
+
+        if trip_input.total_seats > vehicle.seats - 1:
+            raise ValueError(
+                "Trip seats cannot exceed vehicle capacity minus the driver's seat"
+            )
+
         db_trip = Trip()
         db_trip.driver_id = user.id
         db_trip.vehicle_id = trip_input.vehicle_id
