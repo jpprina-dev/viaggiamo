@@ -6,6 +6,7 @@ from strawberry.types import Info
 
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
+from app.graphql.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.graphql.types import VehicleCreateInput, VehicleType, VehicleUpdateInput
 from app.models.vehicle import Vehicle
 
@@ -116,7 +117,7 @@ class VehicleMutations:
         user = require_auth(context)
 
         if not vehicle_input.vehicle_legal_compliance_ack:
-            raise ValueError("Legal compliance acknowledgment is required")
+            raise ValidationError("Legal compliance acknowledgment is required")
 
         db_vehicle = Vehicle()
         db_vehicle.user_id = user.id
@@ -182,7 +183,7 @@ class VehicleMutations:
             return None
 
         if vehicle.user_id != user.id:
-            raise ValueError("Not authorized to update this vehicle")
+            raise ForbiddenError("Not authorized to update this vehicle")
 
         # Update fields if provided
         if vehicle_input.make is not None:
@@ -247,10 +248,10 @@ class VehicleMutations:
         vehicle = result.scalar_one_or_none()
 
         if not vehicle:
-            raise ValueError("Vehicle not found")
+            raise NotFoundError("Vehicle not found")
 
         if vehicle.user_id != user.id:
-            raise ValueError("Not authorized to delete this vehicle")
+            raise ForbiddenError("Not authorized to delete this vehicle")
 
         # Check if vehicle has any trips
         trip_result = await context.db.execute(

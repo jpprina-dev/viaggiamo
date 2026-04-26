@@ -7,6 +7,7 @@ from strawberry.types import Info
 
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
+from app.graphql.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.graphql.types.rating import RatingType
 from app.models.booking import Booking
 from app.models.rating import Rating
@@ -56,7 +57,7 @@ class RatingMutations:
         user = require_auth(context)
 
         if score < 1 or score > 5:
-            raise ValueError("Score must be between 1 and 5")
+            raise ValidationError("Score must be between 1 and 5")
 
         # Fetch the booking
         result = await context.db.execute(
@@ -64,7 +65,7 @@ class RatingMutations:
         )
         booking = result.scalar_one_or_none()
         if not booking:
-            raise ValueError("Booking not found")
+            raise NotFoundError("Booking not found")
 
         # Determine role and ratee
         trip_result = await context.db.execute(
@@ -72,19 +73,19 @@ class RatingMutations:
         )
         trip = trip_result.scalar_one_or_none()
         if not trip:
-            raise ValueError("Trip not found")
+            raise NotFoundError("Trip not found")
 
         is_passenger = booking.passenger_id == user.id
         is_driver = trip.driver_id == user.id
 
         if not is_passenger and not is_driver:
-            raise ValueError("FORBIDDEN")
+            raise ForbiddenError("FORBIDDEN")
 
         # Must be in a terminal/completed state
         is_terminal = booking.status in TERMINAL_STATUSES
         is_completed = trip.is_completed
         if not is_terminal and not is_completed:
-            raise ValueError("UNPROCESSABLE")
+            raise ValidationError("UNPROCESSABLE")
 
         # Determine ratee
         ratee_id = trip.driver_id if is_passenger else booking.passenger_id
@@ -102,7 +103,7 @@ class RatingMutations:
             await context.db.flush()
         except IntegrityError as err:
             await context.db.rollback()
-            raise ValueError("ALREADY_RATED") from err
+            raise ValidationError("ALREADY_RATED") from err
 
         await context.db.commit()
         await context.db.refresh(rating)

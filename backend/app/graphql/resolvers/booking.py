@@ -12,6 +12,9 @@ from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.exceptions import (
     BookingPermissionError,
+    ForbiddenError,
+    NotFoundError,
+    ValidationError,
 )
 from app.graphql.resolvers.booking_request_rules import (
     is_trip_open_for_request_management,
@@ -124,7 +127,7 @@ class BookingQueries:
             )
             trip = trip_result.scalar_one_or_none()
             if not trip or trip.driver_id != user.id:
-                raise ValueError("Not authorized to view this booking")
+                raise ForbiddenError("Not authorized to view this booking")
 
         return BookingType(
             id=booking.id,
@@ -166,10 +169,10 @@ class BookingQueries:
         trip = trip_result.scalar_one_or_none()
 
         if not trip:
-            raise ValueError("Trip not found")
+            raise NotFoundError("Trip not found")
 
         if trip.driver_id != user.id:
-            raise ValueError("Only the trip driver can view all bookings")
+            raise ForbiddenError("Only the trip driver can view all bookings")
 
         result = await context.db.execute(
             select(Booking).where(
@@ -297,7 +300,7 @@ class BookingQueries:
         )
         booking = booking_result.scalar_one_or_none()
         if not booking:
-            raise ValueError("Booking not found")
+            raise NotFoundError("Booking not found")
 
         trip_result = await context.db.execute(
             select(Trip).where(Trip.id == booking.trip_id)
@@ -308,7 +311,7 @@ class BookingQueries:
         is_driver = trip and trip.driver_id == user.id
 
         if not (is_passenger or is_driver):
-            raise ValueError("Not authorized to view this booking's audit log")
+            raise ForbiddenError("Not authorized to view this booking's audit log")
 
         logs_result = await context.db.execute(
             select(BookingAuditLog)
@@ -440,7 +443,7 @@ class BookingMutations:
         existing_booking = existing_booking_result.scalar_one_or_none()
 
         if existing_booking:
-            raise ValueError("You already have an active request for this trip")
+            raise ValidationError("You already have an active request for this trip")
 
         # Get trip and verify availability
         result = await context.db.execute(
@@ -449,22 +452,22 @@ class BookingMutations:
         trip = result.scalar_one_or_none()
 
         if not trip:
-            raise ValueError("Trip not found")
+            raise NotFoundError("Trip not found")
 
         if not trip.is_active:
-            raise ValueError("Trip is not active")
+            raise ValidationError("Trip is not active")
 
         if not is_trip_open_for_request_management(trip):
-            raise ValueError("Trip request window is closed")
+            raise ValidationError("Trip request window is closed")
 
         if (
             trip.available_seats <= 0
             or trip.available_seats < booking_input.seats_requested
         ):
-            raise ValueError("Trip is full")
+            raise ValidationError("Trip is full")
 
         if trip.driver_id == user.id:
-            raise ValueError("Cannot book your own trip")
+            raise ValidationError("Cannot book your own trip")
 
         # Calculate total price
         total_price = trip.price_per_seat * booking_input.seats_requested
@@ -486,7 +489,9 @@ class BookingMutations:
         except IntegrityError as e:
             # Handle database constraint violations (e.g., duplicate booking)
             await context.db.rollback()
-            raise ValueError("You already have an active request for this trip") from e
+            raise ValidationError(
+                "You already have an active request for this trip"
+            ) from e
 
         return BookingType(
             id=db_booking.id,
@@ -545,36 +550,38 @@ class BookingMutations:
         is_driver = trip and trip.driver_id == user.id
 
         if not (is_passenger or is_driver):
-            raise ValueError("Not authorized to update this booking")
+            raise ForbiddenError("Not authorized to update this booking")
 
         # Update fields if provided
         if booking_input.seats_requested is not None:
             if not is_passenger:
-                raise ValueError("Only passenger can change seat count")
-            raise ValueError(
+                raise ForbiddenError("Only passenger can change seat count")
+            raise ValidationError(
                 "Seat count update is not supported in request-management flow"
             )
 
         if booking_input.status is not None:
             # Only driver can change status via update_booking
             if not is_driver:
-                raise ValueError("Only driver can change booking status")
+                raise ForbiddenError("Only driver can change booking status")
 
             if not trip:
-                raise ValueError("Trip not found")
+                raise NotFoundError("Trip not found")
             if not is_trip_open_for_request_management(trip):
-                raise ValueError("Trip request window is closed")
+                raise ValidationError("Trip request window is closed")
 
             next_status = booking_input.status
 
             if not validate_status_transition(booking.status, next_status):
-                raise ValueError("Invalid request status transition")
+                raise ValidationError("Invalid request status transition")
 
             delta = seat_delta_for_transition(booking.status, next_status)
             if delta < 0 and trip.available_seats < abs(delta):
                 if next_status == Booking.STATUS_REVALIDATED:
-                    raise ValueError("Cannot revalidate request: no seats available")
-                raise ValueError("Cannot accept request: no seats available")
+                    raise ValidationError(
+                        "Cannot revalidate request: no seats available"
+                    )
+                raise ValidationError("Cannot accept request: no seats available")
 
             previous_status = booking.status
             booking.status = next_status  # type: ignore[assignment]  # legacy path accepts raw strings
@@ -648,7 +655,7 @@ class BookingMutations:
         )
         booking = booking_result.scalar_one_or_none()
         if not booking:
-            raise ValueError("Booking not found")
+            raise NotFoundError("Booking not found")
 
         trip_result = await context.db.execute(
             select(Trip).where(Trip.id == booking.trip_id).with_for_update()
@@ -673,12 +680,12 @@ class BookingMutations:
         delta = seat_delta_for_transition(str(from_status), str(target_status))
         if delta != 0:
             if trip is None:
-                raise ValueError("Trip not found")
+                raise NotFoundError("Trip not found")
             trip.available_seats += delta * booking.seats_requested
             if trip.available_seats > trip.total_seats:
-                raise ValueError("Available seats cannot exceed total seats")
+                raise ValidationError("Available seats cannot exceed total seats")
             if trip.available_seats < 0:
-                raise ValueError("No seats available")
+                raise ValidationError("No seats available")
 
         # Atomic write: update status + insert audit log
         booking.status = target_status
@@ -735,13 +742,13 @@ class BookingMutations:
         booking = result.scalar_one_or_none()
 
         if not booking:
-            raise ValueError("Booking not found")
+            raise NotFoundError("Booking not found")
 
         if booking.passenger_id != user.id:
-            raise ValueError("Not authorized to cancel this booking")
+            raise ForbiddenError("Not authorized to cancel this booking")
 
         if not validate_status_transition(booking.status, Booking.STATUS_CANCELED):
-            raise ValueError("Invalid request status transition")
+            raise ValidationError("Invalid request status transition")
 
         # Restore seats when leaving a seat-holding status
         trip_result = await context.db.execute(
@@ -750,10 +757,10 @@ class BookingMutations:
         trip = trip_result.scalar_one_or_none()
 
         if not trip:
-            raise ValueError("Trip not found")
+            raise NotFoundError("Trip not found")
 
         if not is_trip_open_for_request_management(trip):
-            raise ValueError("Trip request window is closed")
+            raise ValidationError("Trip request window is closed")
 
         delta = seat_delta_for_transition(booking.status, Booking.STATUS_CANCELED)
         trip.available_seats += delta * booking.seats_requested
