@@ -5,7 +5,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Annotated
 
 import strawberry
-from sqlalchemy import select
 from strawberry.scalars import JSON
 
 if TYPE_CHECKING:
@@ -39,13 +38,12 @@ class TripType:
     async def driver(
         self, info: strawberry.Info
     ) -> Annotated["UserType", strawberry.lazy("app.graphql.types.user")]:
-        """Get the driver (user) associated with this trip."""
+        """Get the driver associated with this trip (batched via DataLoader)."""
         from app.graphql.types.user import to_user_type
-        from app.models.user import User
 
-        db = info.context.db
-        result = await db.execute(select(User).where(User.id == self.driver_id))
-        return to_user_type(result.scalar_one())
+        user = await info.context.user_loader.load(self.driver_id)
+        assert user is not None, f"Driver {self.driver_id} missing for trip {self.id}"
+        return to_user_type(user)
 
 
 def to_trip_type(trip: "Trip") -> TripType:
