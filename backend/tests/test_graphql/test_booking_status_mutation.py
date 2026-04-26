@@ -8,6 +8,7 @@ from strawberry.types import Info
 
 from app.graphql.context import Context
 from app.graphql.exceptions import (
+    AuthenticationError,
     BookingPermissionError,
     BookingStateConflictError,
     BookingTransitionError,
@@ -166,7 +167,7 @@ async def test_unauthenticated_user_raises_value_error() -> None:
     ctx.user = None
 
     mutation = BookingMutations()
-    with pytest.raises(ValueError, match="Authentication required"):
+    with pytest.raises(AuthenticationError, match="Authentication required"):
         await mutation.update_booking_status(
             _build_info(ctx), booking_id=44, status=BookingStatus.accepted
         )

@@ -4,6 +4,7 @@ import strawberry
 from sqlalchemy import select
 from strawberry.types import Info
 
+from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.types import VehicleCreateInput, VehicleType, VehicleUpdateInput
 from app.models.vehicle import Vehicle
@@ -25,12 +26,11 @@ class VehicleQueries:
             ValueError: If user is not authenticated
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
             select(Vehicle).where(
-                Vehicle.user_id == context.user.id,
+                Vehicle.user_id == user.id,
                 Vehicle.is_active == True,  # noqa: E712
             )
         )
@@ -113,14 +113,13 @@ class VehicleMutations:
             ValueError: If user is not authenticated or legal compliance not acknowledged
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         if not vehicle_input.vehicle_legal_compliance_ack:
             raise ValueError("Legal compliance acknowledgment is required")
 
         db_vehicle = Vehicle()
-        db_vehicle.user_id = context.user.id
+        db_vehicle.user_id = user.id
         db_vehicle.make = vehicle_input.make
         db_vehicle.model = vehicle_input.model
         db_vehicle.year = vehicle_input.year
@@ -172,8 +171,7 @@ class VehicleMutations:
             ValueError: If user is not authenticated or not the vehicle owner
         """
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
             select(Vehicle).where(Vehicle.id == vehicle_id)
@@ -183,7 +181,7 @@ class VehicleMutations:
         if not vehicle:
             return None
 
-        if vehicle.user_id != context.user.id:
+        if vehicle.user_id != user.id:
             raise ValueError("Not authorized to update this vehicle")
 
         # Update fields if provided
@@ -241,8 +239,7 @@ class VehicleMutations:
         from app.models.trip import Trip
 
         context = info.context
-        if not context.user:
-            raise ValueError("Authentication required")
+        user = require_auth(context)
 
         result = await context.db.execute(
             select(Vehicle).where(Vehicle.id == vehicle_id)
@@ -252,7 +249,7 @@ class VehicleMutations:
         if not vehicle:
             raise ValueError("Vehicle not found")
 
-        if vehicle.user_id != context.user.id:
+        if vehicle.user_id != user.id:
             raise ValueError("Not authorized to delete this vehicle")
 
         # Check if vehicle has any trips

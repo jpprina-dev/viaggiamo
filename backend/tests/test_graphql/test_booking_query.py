@@ -14,6 +14,7 @@ import pytest
 from strawberry.types import Info
 
 from app.graphql.context import Context
+from app.graphql.exceptions import AuthenticationError
 from app.graphql.resolvers.booking import BookingQueries
 from app.models.booking import Booking
 from app.models.trip import Trip
@@ -71,7 +72,7 @@ async def test_booking_query_unauthenticated() -> None:
     info = _build_info(context)
 
     queries = BookingQueries()
-    with pytest.raises(ValueError, match="Authentication required"):
+    with pytest.raises(AuthenticationError, match="Authentication required"):
         await queries.booking(info, booking_id=44)
 
 

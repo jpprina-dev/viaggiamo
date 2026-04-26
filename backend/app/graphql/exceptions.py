@@ -1,4 +1,10 @@
-"""Domain exceptions for the booking state machine."""
+"""Domain exceptions for the GraphQL layer."""
+
+
+class AuthenticationError(Exception):
+    """Raised when an unauthenticated request hits a resolver that requires auth (401)."""
+
+    code = "UNAUTHENTICATED"
 
 
 class BookingStateConflictError(Exception):
