@@ -122,13 +122,11 @@ class TestSchemaLegacy:
 
         no_existing = MagicMock()
         no_existing.scalar_one_or_none.return_value = None
-        no_cancelled = MagicMock()
-        no_cancelled.scalar_one_or_none.return_value = None
         trip_result = MagicMock()
         trip_result.scalar_one_or_none.return_value = trip
 
         db = MagicMock()
-        db.execute = AsyncMock(side_effect=[no_existing, no_cancelled, trip_result])
+        db.execute = AsyncMock(side_effect=[no_existing, trip_result])
         db.add = MagicMock()
         db.commit = AsyncMock()
         db.refresh = AsyncMock()
@@ -165,13 +163,11 @@ class TestSchemaLegacy:
 
         no_existing = MagicMock()
         no_existing.scalar_one_or_none.return_value = None
-        no_cancelled = MagicMock()
-        no_cancelled.scalar_one_or_none.return_value = None
         trip_result = MagicMock()
         trip_result.scalar_one_or_none.return_value = trip
 
         db = MagicMock()
-        db.execute = AsyncMock(side_effect=[no_existing, no_cancelled, trip_result])
+        db.execute = AsyncMock(side_effect=[no_existing, trip_result])
         db.add = MagicMock()
         db.commit = AsyncMock()
         db.refresh = AsyncMock()

@@ -79,17 +79,13 @@ async def test_create_booking_keeps_seats_unchanged_for_pending_request() -> Non
 
     existing_result = MagicMock()
     existing_result.scalar_one_or_none.return_value = None
-    revoked_result = MagicMock()
-    revoked_result.scalar_one_or_none.return_value = None
     trip_result = MagicMock()
     trip_result.scalar_one_or_none.return_value = trip
 
     context = MagicMock(spec=Context)
     context.user = user
     context.db = MagicMock()
-    context.db.execute = AsyncMock(
-        side_effect=[existing_result, revoked_result, trip_result]
-    )
+    context.db.execute = AsyncMock(side_effect=[existing_result, trip_result])
     context.db.add = MagicMock()
     context.db.commit = AsyncMock()
     context.db.refresh = AsyncMock()
@@ -116,17 +112,13 @@ async def test_create_booking_rejects_when_trip_full() -> None:
 
     existing_result = MagicMock()
     existing_result.scalar_one_or_none.return_value = None
-    revoked_result = MagicMock()
-    revoked_result.scalar_one_or_none.return_value = None
     trip_result = MagicMock()
     trip_result.scalar_one_or_none.return_value = trip
 
     context = MagicMock(spec=Context)
     context.user = user
     context.db = MagicMock()
-    context.db.execute = AsyncMock(
-        side_effect=[existing_result, revoked_result, trip_result]
-    )
+    context.db.execute = AsyncMock(side_effect=[existing_result, trip_result])
     info = _build_info_with_context(context)
 
     mutation = BookingMutations()
@@ -165,35 +157,6 @@ async def test_create_booking_rejected_request_still_blocks_new_request() -> Non
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_create_booking_blocked_when_passenger_is_revoked() -> None:
-    """Passenger revoked by driver cannot re-submit a booking request."""
-    user = MagicMock(spec=User)
-    user.id = 22
-
-    # No active booking (revoked is excluded from uniqueness), but revoked record exists
-    no_active = MagicMock()
-    no_active.scalar_one_or_none.return_value = None
-    revoked_booking = _booking(status=Booking.STATUS_REVOKED)
-    revoked_result = MagicMock()
-    revoked_result.scalar_one_or_none.return_value = revoked_booking
-
-    context = MagicMock(spec=Context)
-    context.user = user
-    context.db = MagicMock()
-    context.db.execute = AsyncMock(side_effect=[no_active, revoked_result])
-
-    info = _build_info_with_context(context)
-    mutation = BookingMutations()
-
-    with pytest.raises(ValueError, match="removed from this trip"):
-        await mutation.create_booking(
-            info,
-            BookingCreateInput(trip_id=11, seats_requested=1, notes=None),
-        )
-
-
-@pytest.mark.integration
-@pytest.mark.asyncio
 async def test_create_booking_allowed_after_passenger_canceled_own_request() -> None:
     """Passenger who self-canceled CAN re-submit (canceled excluded from uniqueness)."""
     user = MagicMock(spec=User)
@@ -202,18 +165,16 @@ async def test_create_booking_allowed_after_passenger_canceled_own_request() -> 
     trip = _trip(seats=2)
     trip.price_per_seat = 50
 
-    # No active booking (canceled is excluded), no revoked record
+    # No active booking (canceled is excluded from uniqueness)
     no_active = MagicMock()
     no_active.scalar_one_or_none.return_value = None
-    no_revoked = MagicMock()
-    no_revoked.scalar_one_or_none.return_value = None
     trip_result = MagicMock()
     trip_result.scalar_one_or_none.return_value = trip
 
     context = MagicMock(spec=Context)
     context.user = user
     context.db = MagicMock()
-    context.db.execute = AsyncMock(side_effect=[no_active, no_revoked, trip_result])
+    context.db.execute = AsyncMock(side_effect=[no_active, trip_result])
     context.db.add = MagicMock()
     context.db.commit = AsyncMock()
     context.db.refresh = AsyncMock()
