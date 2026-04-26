@@ -31,10 +31,12 @@ def _user(user_id: int) -> User:
     return u
 
 
-def _trip(driver_id: int) -> Trip:
+def _trip(driver_id: int, total_seats: int = 3, available_seats: int = 2) -> Trip:
     t = MagicMock(spec=Trip)
     t.id = 11
     t.driver_id = driver_id
+    t.total_seats = total_seats
+    t.available_seats = available_seats
     return t
 
 

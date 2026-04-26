@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import (
     JSON,
     Boolean,
+    CheckConstraint,
     DateTime,
     ForeignKey,
     Integer,
@@ -28,6 +29,14 @@ class Trip(Base):
     """Trip model for carpooling rides."""
 
     __tablename__ = "trips"  # type: ignore
+    __table_args__ = (
+        CheckConstraint(
+            "available_seats >= 0", name="ck_trip_available_seats_non_negative"
+        ),
+        CheckConstraint(
+            "available_seats <= total_seats", name="ck_trip_available_seats_max"
+        ),
+    )
 
     driver_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     vehicle_id: Mapped[int] = mapped_column(ForeignKey("vehicles.id"), nullable=False)

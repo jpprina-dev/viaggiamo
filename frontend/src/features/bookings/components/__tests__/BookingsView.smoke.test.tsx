@@ -26,17 +26,6 @@ const makeBooking = (overrides: Partial<BookingWithTrip> & { trip?: Partial<Book
   totalPrice: 5000,
   status: 'pending',
   bookingTime: '2026-03-20T10:00:00',
-  trip: {
-    id: 10,
-    origin: 'Buenos Aires',
-    destination: 'Rosario',
-    departureTime: '2026-03-25T08:00:00',
-    pricePerSeat: 5000,
-    isActive: true,
-    isCompleted: false,
-    driver: { id: 2, name: 'Juan', lastName: 'Perez', username: 'juanp' },
-    ...overrides.trip,
-  },
   ...overrides,
   trip: {
     id: 10,

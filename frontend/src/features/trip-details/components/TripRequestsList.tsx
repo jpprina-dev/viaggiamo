@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { Clock, User } from 'lucide-react'
-import { gql } from 'graphql-request'
 import toast from 'react-hot-toast'
-import { graphqlClient } from '@/lib/graphql-client'
+import { useUpdateBookingStatus } from '@/features/bookings/hooks'
+import type { BookingStatus } from '@/features/bookings/types'
 
 interface Booking {
   id: number
@@ -28,37 +28,25 @@ interface TripRequestsListProps {
   onStatusChanged?: () => Promise<void>
 }
 
-const UPDATE_BOOKING_STATUS = gql`
-  mutation UpdateBookingStatus($bookingId: Int!, $status: String!) {
-    updateBooking(bookingId: $bookingId, bookingInput: { status: $status }) {
-      id
-      status
-    }
-  }
-`
-
 export function TripRequestsList({ bookings, loading, onStatusChanged }: TripRequestsListProps) {
-  const [submittingById, setSubmittingById] = useState<Record<number, boolean>>({})
+  const { mutate, loading: submitting, error } = useUpdateBookingStatus()
 
-  const updateStatus = async (bookingId: number, status: string) => {
-    setSubmittingById((prev) => ({ ...prev, [bookingId]: true }))
+  useEffect(() => {
+    if (error) toast.error(error)
+  }, [error])
+
+  const updateStatus = async (bookingId: number, status: BookingStatus) => {
     try {
-      await graphqlClient.request(UPDATE_BOOKING_STATUS, { bookingId, status })
+      await mutate(bookingId, status)
       toast.success('Solicitud actualizada')
-      if (onStatusChanged) {
-        await onStatusChanged()
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'No se pudo actualizar la solicitud'
-      toast.error(message)
-    } finally {
-      setSubmittingById((prev) => ({ ...prev, [bookingId]: false }))
+      if (onStatusChanged) await onStatusChanged()
+    } catch {
+      // error shown via useEffect on hook's error state
     }
   }
 
   const renderActionButtons = (booking: Booking) => {
-    const isSubmitting = submittingById[booking.id] === true
+    const isSubmitting = submitting
     if (booking.status === 'pending') {
       return (
         <div className="mt-3 flex items-center gap-2">
