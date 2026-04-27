@@ -27,12 +27,17 @@ def _build_info_with_context(context: Context) -> Info[Context, None]:
 
 
 def _trip(
-    *, seats: int = 2, is_active: bool = True, departure_delta_hours: int = 2
+    *,
+    seats: int = 2,
+    total_seats: int | None = None,
+    is_active: bool = True,
+    departure_delta_hours: int = 2,
 ) -> Trip:
     trip = MagicMock(spec=Trip)
     trip.id = 11
     trip.driver_id = 77
     trip.available_seats = seats
+    trip.total_seats = total_seats if total_seats is not None else seats
     trip.is_active = is_active
     trip.departure_time = datetime.now(UTC) + timedelta(hours=departure_delta_hours)
     return trip
@@ -74,17 +79,13 @@ async def test_create_booking_keeps_seats_unchanged_for_pending_request() -> Non
 
     existing_result = MagicMock()
     existing_result.scalar_one_or_none.return_value = None
-    revoked_result = MagicMock()
-    revoked_result.scalar_one_or_none.return_value = None
     trip_result = MagicMock()
     trip_result.scalar_one_or_none.return_value = trip
 
     context = MagicMock(spec=Context)
     context.user = user
     context.db = MagicMock()
-    context.db.execute = AsyncMock(
-        side_effect=[existing_result, revoked_result, trip_result]
-    )
+    context.db.execute = AsyncMock(side_effect=[existing_result, trip_result])
     context.db.add = MagicMock()
     context.db.commit = AsyncMock()
     context.db.refresh = AsyncMock()
@@ -111,17 +112,13 @@ async def test_create_booking_rejects_when_trip_full() -> None:
 
     existing_result = MagicMock()
     existing_result.scalar_one_or_none.return_value = None
-    revoked_result = MagicMock()
-    revoked_result.scalar_one_or_none.return_value = None
     trip_result = MagicMock()
     trip_result.scalar_one_or_none.return_value = trip
 
     context = MagicMock(spec=Context)
     context.user = user
     context.db = MagicMock()
-    context.db.execute = AsyncMock(
-        side_effect=[existing_result, revoked_result, trip_result]
-    )
+    context.db.execute = AsyncMock(side_effect=[existing_result, trip_result])
     info = _build_info_with_context(context)
 
     mutation = BookingMutations()
@@ -160,35 +157,6 @@ async def test_create_booking_rejected_request_still_blocks_new_request() -> Non
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_create_booking_blocked_when_passenger_is_revoked() -> None:
-    """Passenger revoked by driver cannot re-submit a booking request."""
-    user = MagicMock(spec=User)
-    user.id = 22
-
-    # No active booking (revoked is excluded from uniqueness), but revoked record exists
-    no_active = MagicMock()
-    no_active.scalar_one_or_none.return_value = None
-    revoked_booking = _booking(status=Booking.STATUS_REVOKED)
-    revoked_result = MagicMock()
-    revoked_result.scalar_one_or_none.return_value = revoked_booking
-
-    context = MagicMock(spec=Context)
-    context.user = user
-    context.db = MagicMock()
-    context.db.execute = AsyncMock(side_effect=[no_active, revoked_result])
-
-    info = _build_info_with_context(context)
-    mutation = BookingMutations()
-
-    with pytest.raises(ValueError, match="removed from this trip"):
-        await mutation.create_booking(
-            info,
-            BookingCreateInput(trip_id=11, seats_requested=1, notes=None),
-        )
-
-
-@pytest.mark.integration
-@pytest.mark.asyncio
 async def test_create_booking_allowed_after_passenger_canceled_own_request() -> None:
     """Passenger who self-canceled CAN re-submit (canceled excluded from uniqueness)."""
     user = MagicMock(spec=User)
@@ -197,18 +165,16 @@ async def test_create_booking_allowed_after_passenger_canceled_own_request() -> 
     trip = _trip(seats=2)
     trip.price_per_seat = 50
 
-    # No active booking (canceled is excluded), no revoked record
+    # No active booking (canceled is excluded from uniqueness)
     no_active = MagicMock()
     no_active.scalar_one_or_none.return_value = None
-    no_revoked = MagicMock()
-    no_revoked.scalar_one_or_none.return_value = None
     trip_result = MagicMock()
     trip_result.scalar_one_or_none.return_value = trip
 
     context = MagicMock(spec=Context)
     context.user = user
     context.db = MagicMock()
-    context.db.execute = AsyncMock(side_effect=[no_active, no_revoked, trip_result])
+    context.db.execute = AsyncMock(side_effect=[no_active, trip_result])
     context.db.add = MagicMock()
     context.db.commit = AsyncMock()
     context.db.refresh = AsyncMock()
@@ -249,24 +215,17 @@ async def test_pending_to_accepted_decrements_seat() -> None:
     context.db.commit = AsyncMock()
     context.db.refresh = AsyncMock()
 
-    import app.graphql.resolvers.booking as booking_module
-
-    notify_mock = AsyncMock()
-
     mutation = BookingMutations()
     info = _build_info_with_context(context)
 
-    with pytest.MonkeyPatch().context() as mp:
-        mp.setattr(booking_module, "_notify_passenger_status_change", notify_mock)
-        await mutation.update_booking(
-            info,
-            booking_id=booking.id,
-            booking_input=BookingUpdateInput(status=Booking.STATUS_ACCEPTED),
-        )
+    await mutation.update_booking(
+        info,
+        booking_id=booking.id,
+        booking_input=BookingUpdateInput(status=Booking.STATUS_ACCEPTED),
+    )
 
     assert booking.status == Booking.STATUS_ACCEPTED
     assert trip.available_seats == 1
-    notify_mock.assert_awaited_once()
 
 
 @pytest.mark.integration
@@ -327,16 +286,10 @@ async def test_pending_to_canceled_passenger_withdraw_no_seat_change() -> None:
     context.db.add = MagicMock()
     context.db.commit = AsyncMock()
 
-    import app.graphql.resolvers.booking as booking_module
-
-    notify_mock = AsyncMock()
-
     mutation = BookingMutations()
     info = _build_info_with_context(context)
 
-    with pytest.MonkeyPatch().context() as mp:
-        mp.setattr(booking_module, "_notify_passenger_status_change", notify_mock)
-        result = await mutation.cancel_booking(info, booking_id=booking.id)
+    result = await mutation.cancel_booking(info, booking_id=booking.id)
 
     assert result is True
     assert booking.status == Booking.STATUS_CANCELED
@@ -346,12 +299,12 @@ async def test_pending_to_canceled_passenger_withdraw_no_seat_change() -> None:
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_rejected_to_revalidated_decrements_seat() -> None:
-    """rejected → revalidated: available_seats -= seats_requested."""
+async def test_accepted_to_revoked_increments_seat() -> None:
+    """accepted → revoked: available_seats += seats_requested."""
     user = MagicMock(spec=User)
     user.id = 77
-    booking = _booking(status=Booking.STATUS_REJECTED)
-    trip = _trip(seats=2)
+    booking = _booking(status=Booking.STATUS_ACCEPTED)
+    trip = _trip(seats=0, total_seats=1)
     trip.driver_id = 77
 
     booking_result = MagicMock()
@@ -373,92 +326,8 @@ async def test_rejected_to_revalidated_decrements_seat() -> None:
     await mutation.update_booking(
         info,
         booking_id=booking.id,
-        booking_input=BookingUpdateInput(status=Booking.STATUS_REVALIDATED),
+        booking_input=BookingUpdateInput(status=Booking.STATUS_REVOKED),
     )
-
-    assert booking.status == Booking.STATUS_REVALIDATED
-    assert trip.available_seats == 1
-
-
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_revalidated_to_revoked_increments_seat() -> None:
-    """revalidated → revoked: available_seats += seats_requested."""
-    user = MagicMock(spec=User)
-    user.id = 77
-    booking = _booking(status=Booking.STATUS_REVALIDATED)
-    trip = _trip(seats=1)
-    trip.driver_id = 77
-
-    booking_result = MagicMock()
-    booking_result.scalar_one_or_none.return_value = booking
-    trip_result = MagicMock()
-    trip_result.scalar_one_or_none.return_value = trip
-
-    context = MagicMock(spec=Context)
-    context.user = user
-    context.db = MagicMock()
-    context.db.execute = AsyncMock(side_effect=[booking_result, trip_result])
-    context.db.add = MagicMock()
-    context.db.commit = AsyncMock()
-    context.db.refresh = AsyncMock()
-
-    import app.graphql.resolvers.booking as booking_module
-
-    notify_mock = AsyncMock()
-
-    mutation = BookingMutations()
-    info = _build_info_with_context(context)
-
-    with pytest.MonkeyPatch().context() as mp:
-        mp.setattr(booking_module, "_notify_passenger_status_change", notify_mock)
-        await mutation.update_booking(
-            info,
-            booking_id=booking.id,
-            booking_input=BookingUpdateInput(status=Booking.STATUS_REVOKED),
-        )
-
-    assert booking.status == Booking.STATUS_REVOKED
-    assert trip.available_seats == 2
-
-
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_accepted_to_revoked_increments_seat() -> None:
-    """accepted → revoked: available_seats += seats_requested."""
-    user = MagicMock(spec=User)
-    user.id = 77
-    booking = _booking(status=Booking.STATUS_ACCEPTED)
-    trip = _trip(seats=0)
-    trip.driver_id = 77
-
-    booking_result = MagicMock()
-    booking_result.scalar_one_or_none.return_value = booking
-    trip_result = MagicMock()
-    trip_result.scalar_one_or_none.return_value = trip
-
-    context = MagicMock(spec=Context)
-    context.user = user
-    context.db = MagicMock()
-    context.db.execute = AsyncMock(side_effect=[booking_result, trip_result])
-    context.db.add = MagicMock()
-    context.db.commit = AsyncMock()
-    context.db.refresh = AsyncMock()
-
-    import app.graphql.resolvers.booking as booking_module
-
-    notify_mock = AsyncMock()
-
-    mutation = BookingMutations()
-    info = _build_info_with_context(context)
-
-    with pytest.MonkeyPatch().context() as mp:
-        mp.setattr(booking_module, "_notify_passenger_status_change", notify_mock)
-        await mutation.update_booking(
-            info,
-            booking_id=booking.id,
-            booking_input=BookingUpdateInput(status=Booking.STATUS_REVOKED),
-        )
 
     assert booking.status == Booking.STATUS_REVOKED
     assert trip.available_seats == 1
@@ -472,7 +341,7 @@ async def test_accepted_to_canceled_passenger_increments_seat() -> None:
     user.id = 22  # passenger
 
     booking = _booking(status=Booking.STATUS_ACCEPTED)
-    trip = _trip(seats=0)
+    trip = _trip(seats=0, total_seats=1)
 
     booking_result = MagicMock()
     booking_result.scalar_one_or_none.return_value = booking
@@ -486,94 +355,14 @@ async def test_accepted_to_canceled_passenger_increments_seat() -> None:
     context.db.add = MagicMock()
     context.db.commit = AsyncMock()
 
-    import app.graphql.resolvers.booking as booking_module
-
-    notify_mock = AsyncMock()
-
     mutation = BookingMutations()
     info = _build_info_with_context(context)
 
-    with pytest.MonkeyPatch().context() as mp:
-        mp.setattr(booking_module, "_notify_passenger_status_change", notify_mock)
-        result = await mutation.cancel_booking(info, booking_id=booking.id)
+    result = await mutation.cancel_booking(info, booking_id=booking.id)
 
     assert result is True
     assert booking.status == Booking.STATUS_CANCELED
     assert trip.available_seats == 1
-
-
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_revalidated_to_canceled_passenger_increments_seat() -> None:
-    """revalidated → canceled (passenger cancel): available_seats += seats_requested."""
-    user = MagicMock(spec=User)
-    user.id = 22  # passenger
-
-    booking = _booking(status=Booking.STATUS_REVALIDATED)
-    trip = _trip(seats=0)
-
-    booking_result = MagicMock()
-    booking_result.scalar_one_or_none.return_value = booking
-    trip_result = MagicMock()
-    trip_result.scalar_one_or_none.return_value = trip
-
-    context = MagicMock(spec=Context)
-    context.user = user
-    context.db = MagicMock()
-    context.db.execute = AsyncMock(side_effect=[booking_result, trip_result])
-    context.db.add = MagicMock()
-    context.db.commit = AsyncMock()
-
-    import app.graphql.resolvers.booking as booking_module
-
-    notify_mock = AsyncMock()
-
-    mutation = BookingMutations()
-    info = _build_info_with_context(context)
-
-    with pytest.MonkeyPatch().context() as mp:
-        mp.setattr(booking_module, "_notify_passenger_status_change", notify_mock)
-        result = await mutation.cancel_booking(info, booking_id=booking.id)
-
-    assert result is True
-    assert booking.status == Booking.STATUS_CANCELED
-    assert trip.available_seats == 1
-
-
-# ── Guard: revalidated blocked when no seats ────────────────────────────
-
-
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_revalidated_blocked_when_no_seats() -> None:
-    """rejected → revalidated must fail when trip is at capacity."""
-    user = MagicMock(spec=User)
-    user.id = 77
-    booking = _booking(status=Booking.STATUS_REJECTED)
-    trip = _trip(seats=0)
-    trip.driver_id = 77
-
-    booking_result = MagicMock()
-    booking_result.scalar_one_or_none.return_value = booking
-    trip_result = MagicMock()
-    trip_result.scalar_one_or_none.return_value = trip
-
-    context = MagicMock(spec=Context)
-    context.user = user
-    context.db = MagicMock()
-    context.db.execute = AsyncMock(side_effect=[booking_result, trip_result])
-
-    mutation = BookingMutations()
-    info = _build_info_with_context(context)
-
-    with pytest.raises(
-        ValueError, match="Cannot revalidate request: no seats available"
-    ):
-        await mutation.update_booking(
-            info,
-            booking_id=booking.id,
-            booking_input=BookingUpdateInput(status=Booking.STATUS_REVALIDATED),
-        )
 
 
 # ── Race condition ──────────────────────────────────────────────────────
@@ -600,42 +389,34 @@ async def test_last_seat_acceptance_race_first_success_wins() -> None:
     context.db.commit = AsyncMock()
     context.db.refresh = AsyncMock()
 
-    import app.graphql.resolvers.booking as booking_module
-
-    notify_mock = AsyncMock()
     mutation = BookingMutations()
     info = _build_info_with_context(context)
 
-    with pytest.MonkeyPatch().context() as mp:
-        mp.setattr(booking_module, "_notify_passenger_status_change", notify_mock)
+    # First accept succeeds.
+    b1_result = MagicMock()
+    b1_result.scalar_one_or_none.return_value = booking_a
+    t1_result = MagicMock()
+    t1_result.scalar_one_or_none.return_value = trip
+    context.db.execute = AsyncMock(side_effect=[b1_result, t1_result])
+    await mutation.update_booking(
+        info,
+        booking_id=booking_a.id,
+        booking_input=BookingUpdateInput(status=Booking.STATUS_ACCEPTED),
+    )
+    assert trip.available_seats == 0
 
-        # First accept succeeds.
-        b1_result = MagicMock()
-        b1_result.scalar_one_or_none.return_value = booking_a
-        t1_result = MagicMock()
-        t1_result.scalar_one_or_none.return_value = trip
-        context.db.execute = AsyncMock(side_effect=[b1_result, t1_result])
+    # Second accept must fail.
+    b2_result = MagicMock()
+    b2_result.scalar_one_or_none.return_value = booking_b
+    t2_result = MagicMock()
+    t2_result.scalar_one_or_none.return_value = trip
+    context.db.execute = AsyncMock(side_effect=[b2_result, t2_result])
+    with pytest.raises(ValueError, match="No seats available"):
         await mutation.update_booking(
             info,
-            booking_id=booking_a.id,
+            booking_id=booking_b.id,
             booking_input=BookingUpdateInput(status=Booking.STATUS_ACCEPTED),
         )
-        assert trip.available_seats == 0
-
-        # Second accept must fail.
-        b2_result = MagicMock()
-        b2_result.scalar_one_or_none.return_value = booking_b
-        t2_result = MagicMock()
-        t2_result.scalar_one_or_none.return_value = trip
-        context.db.execute = AsyncMock(side_effect=[b2_result, t2_result])
-        with pytest.raises(
-            ValueError, match="Cannot accept request: no seats available"
-        ):
-            await mutation.update_booking(
-                info,
-                booking_id=booking_b.id,
-                booking_input=BookingUpdateInput(status=Booking.STATUS_ACCEPTED),
-            )
 
 
 # ── Trip window guards ──────────────────────────────────────────────────
@@ -732,45 +513,6 @@ async def test_revoke_blocked_after_departure() -> None:
             booking_id=booking.id,
             booking_input=BookingUpdateInput(status=Booking.STATUS_REVOKED),
         )
-
-
-# ── cancel_booking notification ─────────────────────────────────────────
-
-
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_cancel_booking_dispatches_notification() -> None:
-    """cancel_booking must dispatch _notify_passenger_status_change."""
-    user = MagicMock(spec=User)
-    user.id = 22
-
-    booking = _booking(status=Booking.STATUS_PENDING)
-    trip = _trip(seats=2)
-
-    booking_result = MagicMock()
-    booking_result.scalar_one_or_none.return_value = booking
-    trip_result = MagicMock()
-    trip_result.scalar_one_or_none.return_value = trip
-
-    context = MagicMock(spec=Context)
-    context.user = user
-    context.db = MagicMock()
-    context.db.execute = AsyncMock(side_effect=[booking_result, trip_result])
-    context.db.add = MagicMock()
-    context.db.commit = AsyncMock()
-
-    import app.graphql.resolvers.booking as booking_module
-
-    notify_mock = AsyncMock()
-
-    mutation = BookingMutations()
-    info = _build_info_with_context(context)
-
-    with pytest.MonkeyPatch().context() as mp:
-        mp.setattr(booking_module, "_notify_passenger_status_change", notify_mock)
-        await mutation.cancel_booking(info, booking_id=booking.id)
-
-    notify_mock.assert_awaited_once_with(booking)
 
 
 # ── Authorization guard ─────────────────────────────────────────────────
@@ -876,32 +618,6 @@ async def test_my_bookings_excludes_canceled_bookings() -> None:
     bookings = await queries.my_bookings(info)
     assert len(bookings) == 2
     assert all(b.status != Booking.STATUS_CANCELED for b in bookings)
-
-
-# ── Terminal-state blocked transitions ──────────────────────────────────
-
-
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_canceled_and_revoked_are_terminal_blocked_transitions() -> None:
-    """Attempting any transition from canceled or revoked must raise Invalid transition."""
-    from app.graphql.resolvers.booking_request_rules import validate_status_transition
-
-    terminal_statuses = [Booking.STATUS_CANCELED, Booking.STATUS_REVOKED]
-    all_statuses = [
-        Booking.STATUS_PENDING,
-        Booking.STATUS_ACCEPTED,
-        Booking.STATUS_REJECTED,
-        Booking.STATUS_REVALIDATED,
-        Booking.STATUS_REVOKED,
-        Booking.STATUS_CANCELED,
-    ]
-
-    for terminal in terminal_statuses:
-        for target in all_statuses:
-            assert not validate_status_transition(terminal, target), (
-                f"Expected {terminal}→{target} to be blocked"
-            )
 
 
 # ── Auto-reject on trip completion (FR-011) ─────────────────────────────

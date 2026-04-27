@@ -1,13 +1,12 @@
 """Booking-related queries and mutations."""
 
-from datetime import datetime
-
 import strawberry
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 from strawberry.types import Info
 
+from app.core.datetime_utils import utcnow
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
 from app.graphql.exceptions import (
@@ -18,8 +17,6 @@ from app.graphql.exceptions import (
 )
 from app.graphql.resolvers.booking_request_rules import (
     is_trip_open_for_request_management,
-    seat_delta_for_transition,
-    validate_status_transition,
 )
 from app.graphql.types import (
     BookingAuditLogType,
@@ -203,7 +200,7 @@ class BookingQueries:
             .where(
                 Booking.passenger_id == user.id,
                 Booking.status == Booking.STATUS_ACCEPTED,
-                Trip.is_active == False,  # noqa: E712
+                Trip.is_active.is_(False),
             )
             .options(selectinload(Booking.trip).selectinload(Trip.driver))
         )
@@ -281,7 +278,7 @@ class BookingQueries:
             select(Trip)
             .where(
                 Trip.driver_id == user.id,
-                Trip.is_active == False,  # noqa: E712
+                Trip.is_active.is_(False),
             )
             .options(
                 selectinload(
@@ -298,12 +295,6 @@ class BookingQueries:
             )
             for t in trips
         ]
-
-
-async def _notify_passenger_status_change(booking: Booking) -> None:
-    """Dispatch passenger notification for request status changes."""
-    # Placeholder for existing notification channel integration.
-    _ = booking
 
 
 @strawberry.type
@@ -377,7 +368,7 @@ class BookingMutations:
         db_booking.total_price = total_price
         db_booking.status = Booking.STATUS_PENDING
         db_booking.notes = booking_input.notes
-        db_booking.booking_time = datetime.now()
+        db_booking.booking_time = utcnow()
 
         context.db.add(db_booking)
 
@@ -454,34 +445,32 @@ class BookingMutations:
             if not is_trip_open_for_request_management(trip):
                 raise ValidationError("Trip request window is closed")
 
-            next_status = booking_input.status
+            try:
+                target_status = BookingStatusEnum(booking_input.status)
+            except ValueError as e:
+                raise ValidationError(
+                    f"Status '{booking_input.status}' is not valid"
+                ) from e
 
-            if not validate_status_transition(booking.status, next_status):
-                raise ValidationError("Invalid request status transition")
-
-            delta = seat_delta_for_transition(booking.status, next_status)
-            if delta < 0 and trip.available_seats < abs(delta):
-                if next_status == Booking.STATUS_REVALIDATED:
-                    raise ValidationError(
-                        "Cannot revalidate request: no seats available"
-                    )
-                raise ValidationError("Cannot accept request: no seats available")
+            BookingStateMachine.validate(
+                booking.status, target_status, ActorRole.driver
+            )
+            delta = BookingStateMachine.apply_seat_delta(
+                trip, booking, str(booking.status), str(target_status)
+            )
 
             previous_status = booking.status
-            booking.status = next_status  # type: ignore[assignment]  # legacy path accepts raw strings
-            trip.available_seats += delta * booking.seats_requested
+            booking.status = target_status
 
             event = RequestDecisionEvent(
                 booking_id=booking.id,
                 actor_user_id=user.id,
                 previous_status=previous_status,
-                new_status=next_status,
-                decided_at=datetime.now(),
+                new_status=target_status,
+                decided_at=utcnow(),
                 seat_delta=delta,
             )
             context.db.add(event)
-
-            await _notify_passenger_status_change(booking)
 
         if booking_input.notes is not None:
             booking.notes = booking_input.notes
@@ -546,16 +535,12 @@ class BookingMutations:
         # Validate transition — raises domain exception on failure
         BookingStateMachine.validate(from_status, target_status, actor_role)
 
-        # Adjust available seats based on transition
-        delta = seat_delta_for_transition(str(from_status), str(target_status))
-        if delta != 0:
-            if trip is None:
-                raise NotFoundError("Trip not found")
-            trip.available_seats += delta * booking.seats_requested
-            if trip.available_seats > trip.total_seats:
-                raise ValidationError("Available seats cannot exceed total seats")
-            if trip.available_seats < 0:
-                raise ValidationError("No seats available")
+        # Adjust available seats — guards bounds internally
+        if trip is None:
+            raise NotFoundError("Trip not found")
+        BookingStateMachine.apply_seat_delta(
+            trip, booking, str(from_status), str(target_status)
+        )
 
         # Atomic write: update status + insert audit log
         booking.status = target_status
@@ -577,8 +562,8 @@ class BookingMutations:
         """
         Cancel a booking (passenger-initiated).
 
-        Allowed from: pending, accepted, revalidated.
-        Seat delta is applied via seat_delta_for_transition.
+        Allowed from: pending, accepted. Seat accounting is handled by
+        ``BookingStateMachine.apply_seat_delta``.
 
         Args:
             booking_id: The booking ID to cancel
@@ -603,8 +588,9 @@ class BookingMutations:
         if booking.passenger_id != user.id:
             raise ForbiddenError("Not authorized to cancel this booking")
 
-        if not validate_status_transition(booking.status, Booking.STATUS_CANCELED):
-            raise ValidationError("Invalid request status transition")
+        BookingStateMachine.validate(
+            booking.status, BookingStatusEnum.cancelled, ActorRole.passenger
+        )
 
         # Restore seats when leaving a seat-holding status
         trip_result = await context.db.execute(
@@ -618,25 +604,24 @@ class BookingMutations:
         if not is_trip_open_for_request_management(trip):
             raise ValidationError("Trip request window is closed")
 
-        delta = seat_delta_for_transition(booking.status, Booking.STATUS_CANCELED)
-        trip.available_seats += delta * booking.seats_requested
+        delta = BookingStateMachine.apply_seat_delta(
+            trip, booking, str(booking.status), str(BookingStatusEnum.cancelled)
+        )
 
         previous_status = booking.status
-        booking.status = Booking.STATUS_CANCELED
-        booking.cancellation_time = datetime.now()
+        booking.status = BookingStatusEnum.cancelled
+        booking.cancellation_time = utcnow()
 
         event = RequestDecisionEvent(
             booking_id=booking.id,
             actor_user_id=user.id,
             previous_status=previous_status,
-            new_status=Booking.STATUS_CANCELED,
-            decided_at=datetime.now(),
+            new_status=BookingStatusEnum.cancelled,
+            decided_at=utcnow(),
             seat_delta=delta,
         )
         context.db.add(event)
 
         await context.db.commit()
-
-        await _notify_passenger_status_change(booking)
 
         return True

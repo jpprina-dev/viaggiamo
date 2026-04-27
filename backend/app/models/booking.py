@@ -51,7 +51,6 @@ class Booking(Base):
     STATUS_REJECTED = BookingStatus.rejected
     STATUS_REVOKED = BookingStatus.revoked
     STATUS_CANCELED = BookingStatus.cancelled  # legacy name, maps to "cancelled"
-    STATUS_REVALIDATED = "revalidated"  # legacy — no longer a valid column value
 
     trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id"), nullable=False)
     passenger_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)

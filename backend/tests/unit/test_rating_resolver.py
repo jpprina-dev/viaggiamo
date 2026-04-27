@@ -31,6 +31,7 @@ def _make_context(user_id: int) -> Context:
     user = MagicMock(spec=User)
     user.id = user_id
     db = AsyncMock()
+    db.add = MagicMock()  # add() is synchronous in SQLAlchemy
     context = MagicMock(spec=Context)
     context.user = user
     context.db = db
