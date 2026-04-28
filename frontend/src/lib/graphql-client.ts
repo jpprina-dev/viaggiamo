@@ -4,7 +4,7 @@
  * Provides a configured GraphQL client instance with authentication support
  */
 
-import { GraphQLClient } from 'graphql-request'
+import { GraphQLClient, ClientError } from 'graphql-request'
 import Cookies from 'js-cookie'
 
 const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:8000/graphql'
@@ -43,14 +43,12 @@ class AuthGraphQLClient {
   /**
    * Make a GraphQL request with automatic token injection
    */
-  async request<T = any>(query: string, variables?: Record<string, any>): Promise<T> {
+  async request<T = unknown>(query: string, variables?: Record<string, unknown>): Promise<T> {
     this.updateAuthHeader()
     try {
       return await this.client.request<T>(query, variables)
-    } catch (error: any) {
-      // Handle authentication errors
-      if (error.response?.errors?.[0]?.extensions?.code === 'UNAUTHENTICATED') {
-        // Clear token on authentication error
+    } catch (error: unknown) {
+      if (error instanceof ClientError && error.response?.errors?.[0]?.extensions?.code === 'UNAUTHENTICATED') {
         this.clearAccessToken()
       }
       throw error

@@ -4,10 +4,11 @@
  * Handles user authentication, registration, and session management
  */
 
-import { gql } from 'graphql-request'
+import { gql, ClientError } from 'graphql-request'
 import { graphqlClient } from './graphql-client'
 import type { User, RegisterInput, AuthResponse } from '@/types'
 import { mapGraphQLUserToUser } from '@/types/user'
+import type { GraphQLUser } from '@/types/user'
 
 // GraphQL Mutations
 const LOGIN_MUTATION = gql`
@@ -82,8 +83,10 @@ export async function login(email: string, password: string): Promise<AuthRespon
     graphqlClient.setAccessToken(response.login.accessToken)
 
     return response.login
-  } catch (error: any) {
-    const errorMessage = error.response?.errors?.[0]?.message || 'Error al iniciar sesión'
+  } catch (error: unknown) {
+    const errorMessage = error instanceof ClientError
+      ? (error.response?.errors?.[0]?.message ?? 'Error al iniciar sesión')
+      : 'Error al iniciar sesión'
     throw new Error(errorMessage)
   }
 }
@@ -93,7 +96,7 @@ export async function login(email: string, password: string): Promise<AuthRespon
  */
 export async function register(input: RegisterInput): Promise<User> {
   try {
-    const response = await graphqlClient.request<{ register: any }>(
+    const response = await graphqlClient.request<{ register: GraphQLUser }>(
       REGISTER_MUTATION,
       { 
         userInput: {
@@ -110,8 +113,10 @@ export async function register(input: RegisterInput): Promise<User> {
 
     // Map the response to User type
     return mapGraphQLUserToUser(response.register)
-  } catch (error: any) {
-    const errorMessage = error.response?.errors?.[0]?.message || 'Error al registrarse'
+  } catch (error: unknown) {
+    const errorMessage = error instanceof ClientError
+      ? (error.response?.errors?.[0]?.message ?? 'Error al registrarse')
+      : 'Error al registrarse'
     throw new Error(errorMessage)
   }
 }
@@ -135,8 +140,10 @@ export async function loginWithGoogle(credential: string): Promise<AuthResponse>
     graphqlClient.setAccessToken(response.loginWithOauth.accessToken)
 
     return response.loginWithOauth
-  } catch (error: any) {
-    const errorMessage = error.response?.errors?.[0]?.message || 'Error al iniciar sesión con Google'
+  } catch (error: unknown) {
+    const errorMessage = error instanceof ClientError
+      ? (error.response?.errors?.[0]?.message ?? 'Error al iniciar sesión con Google')
+      : 'Error al iniciar sesión con Google'
     throw new Error(errorMessage)
   }
 }
@@ -146,16 +153,15 @@ export async function loginWithGoogle(credential: string): Promise<AuthResponse>
  */
 export async function getCurrentUser(): Promise<User> {
   try {
-    const response = await graphqlClient.request<{ me: any }>(GET_CURRENT_USER_QUERY)
+    const response = await graphqlClient.request<{ me: GraphQLUser }>(GET_CURRENT_USER_QUERY)
     
     // Map GraphQL response to User type
     return mapGraphQLUserToUser(response.me)
-  } catch (error: any) {
-    if (error.response?.errors?.[0]?.extensions?.code === 'UNAUTHENTICATED') {
+  } catch (error: unknown) {
+    if (error instanceof ClientError && error.response?.errors?.[0]?.extensions?.code === 'UNAUTHENTICATED') {
       graphqlClient.clearAccessToken()
       throw new Error('No authenticated user')
     }
-    
     throw error
   }
 }
