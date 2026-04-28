@@ -37,7 +37,6 @@ function LoginFormWrapper() {
       toast.success('¡Inicio de sesión exitoso!')
       router.push(returnUrl)
     } catch (error: any) {
-      console.error('Login error:', error)
       toast.error(error.message || 'Error al iniciar sesión')
     } finally {
       setIsLoading(false)
@@ -57,7 +56,6 @@ function LoginFormWrapper() {
       toast.success('¡Inicio de sesión con Google exitoso!')
       router.push(returnUrl)
     } catch (error: any) {
-      console.error('Google login error:', error)
       toast.error(error.message || 'Error al iniciar sesión con Google')
     } finally {
       setIsLoading(false)

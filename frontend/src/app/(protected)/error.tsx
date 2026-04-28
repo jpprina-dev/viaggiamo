@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui'
@@ -14,10 +13,6 @@ export default function ProtectedError({
   reset: () => void
 }) {
   const router = useRouter()
-
-  useEffect(() => {
-    console.error('Protected route error:', error)
-  }, [error])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-emerald-50 flex items-center justify-center px-4">

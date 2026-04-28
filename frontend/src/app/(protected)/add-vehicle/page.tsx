@@ -62,8 +62,7 @@ export default function AddVehiclePage() {
       try {
         await updateVehicle(vehicle.id, { isActive: !vehicle.isActive })
         await refetch()
-      } catch (error) {
-        console.error('Error toggling vehicle:', error)
+      } catch {
         await refetch() // Refetch to restore correct state
       } finally {
         setTogglingVehicleId(null)

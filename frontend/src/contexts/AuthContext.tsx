@@ -24,8 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const currentUser = await getCurrentUser()
       setUser(currentUser)
-    } catch (error) {
-      console.error('Error refreshing user:', error)
+    } catch {
       setUser(null)
     }
   }

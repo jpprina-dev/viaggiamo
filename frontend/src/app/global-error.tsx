@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import { AlertCircle } from 'lucide-react'
 
 export default function GlobalError({
@@ -10,10 +9,6 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  useEffect(() => {
-    console.error('Global error:', error)
-  }, [error])
-
   return (
     <html lang="es">
       <body>

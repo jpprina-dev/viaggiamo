@@ -53,8 +53,7 @@ export function useCityAutocomplete(type: CityType): UseCityAutocompleteResult {
         )
 
         setSuggestions(response[queryName] || [])
-      } catch (error) {
-        console.error('Failed to fetch city suggestions:', error)
+      } catch {
         setSuggestions([])
       } finally {
         setLoading(false)

@@ -44,7 +44,6 @@ function RegisterFormWrapper() {
       toast.success('¡Registro exitoso! Por favor inicia sesión.')
       router.push(ROUTES.LOGIN)
     } catch (error: any) {
-      console.error('Register error:', error)
       const errorMessage = error.response?.errors?.[0]?.message || error.message || 'Error al registrarse'
       toast.error(errorMessage)
     } finally {
@@ -70,7 +69,6 @@ function RegisterFormWrapper() {
       toast.success('¡Registro con Google exitoso!')
       router.push(ROUTES.PROFILE)
     } catch (error: any) {
-      console.error('Google registration error:', error)
       toast.error(error.message || 'Error al registrarse con Google')
     } finally {
       setIsLoading(false)

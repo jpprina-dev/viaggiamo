@@ -112,9 +112,7 @@ export function CreateTripWizard() {
       toast.success('¡Viaje publicado exitosamente!')
       router.push(ROUTES.TRIP_DETAIL(createdTrip.id))
     } catch (error: unknown) {
-      console.error('Error creating trip:', error)
-      // Extract error message from GraphQL error
-      const errorMessage = error instanceof Error 
+      const errorMessage = error instanceof Error
         ? error.message 
         : 'Error desconocido'
       toast.error(`Error al publicar el viaje: ${errorMessage}`)
@@ -122,7 +120,6 @@ export function CreateTripWizard() {
   }
 
   const onFormError = (errors: typeof form.formState.errors) => {
-    console.error('Form validation errors:', errors)
     const firstError = Object.values(errors)[0]
     if (firstError?.message) {
       toast.error(`Error de validación: ${firstError.message}`)
