@@ -6,7 +6,6 @@
 
 import { UseFormRegister, FieldErrors } from 'react-hook-form'
 import { Calendar, Clock } from 'lucide-react'
-import { Input } from '@/components/ui'
 import type { CreateTripFormData } from '../types'
 import { format, addDays } from 'date-fns'
 

@@ -68,7 +68,7 @@ export function DriverTripCard({
   const pendingCount = bookings.filter((b) => b.status === 'pending').length
   const confirmedCount = bookings.filter((b) => b.status === 'accepted').length
 
-  const handleActionSuccess = (_newStatus: BookingStatus) => {
+  const handleActionSuccess = () => {
     void refetch()
   }
 

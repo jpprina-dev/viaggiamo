@@ -13,7 +13,6 @@ interface DeleteVehicleModalProps {
 
 export function DeleteVehicleModal({
   show,
-  vehicleLabel,
   onClose,
   onConfirm,
   loading,

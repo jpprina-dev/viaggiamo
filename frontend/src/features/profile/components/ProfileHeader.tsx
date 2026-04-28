@@ -1,4 +1,4 @@
-import { User as UserIcon, Edit2 } from 'lucide-react'
+import { Edit2 } from 'lucide-react'
 import { Button } from '@/components/ui'
 import type { User } from '@/types'
 

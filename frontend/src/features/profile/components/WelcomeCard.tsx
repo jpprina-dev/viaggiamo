@@ -1,4 +1,3 @@
-import { User } from 'lucide-react'
 import { Card } from '@/components/ui'
 import type { User as UserType } from '@/types'
 

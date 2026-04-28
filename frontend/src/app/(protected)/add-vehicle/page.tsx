@@ -8,8 +8,9 @@ import {
   useCreateVehicle,
   useUpdateVehicle,
   useDeleteVehicle,
+  type Vehicle,
+  type VehicleCreateInput,
 } from '@/features/vehicles'
-import type { Vehicle, VehicleCreateInput } from '@/features/vehicles'
 
 export default function AddVehiclePage() {
   const { vehicles, loading: listLoading, refetch } = useMyVehiclesAll()

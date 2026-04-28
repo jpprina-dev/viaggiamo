@@ -9,8 +9,7 @@ import { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from 'rea
 import { Car, Users, DollarSign, Plus, ChevronDown } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import type { CreateTripFormData, Vehicle } from '../types'
-import { AddVehicleModal, useCreateVehicle } from '@/features/vehicles'
-import type { VehicleCreateInput } from '@/features/vehicles'
+import { AddVehicleModal, useCreateVehicle, type VehicleCreateInput } from '@/features/vehicles'
 
 interface StepVehicleProps {
   register: UseFormRegister<CreateTripFormData>

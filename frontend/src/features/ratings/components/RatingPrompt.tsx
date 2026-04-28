@@ -11,7 +11,7 @@ interface RatingPromptProps {
   existingRating: number | null
 }
 
-export function RatingPrompt({ bookingId, rateeId, rateeName, existingRating }: RatingPromptProps) {
+export function RatingPrompt({ bookingId, rateeName, existingRating }: RatingPromptProps) {
   const [score, setScore] = useState<number>(0)
   const [hovered, setHovered] = useState<number>(0)
   const [comment, setComment] = useState('')
