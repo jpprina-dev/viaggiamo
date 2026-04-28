@@ -18,7 +18,7 @@ import { StepDateTime } from './StepDateTime'
 import { StepVehicle } from './StepVehicle'
 import { StepPreferences } from './StepPreferences'
 import { TripSummary } from './TripSummary'
-import { useMyVehicles, useCreateTrip } from '../hooks'
+import { useMyVehiclesForTripCreate, useCreateTrip } from '../hooks'
 import { 
   createTripFormSchema, 
   stepSchemas,
@@ -38,7 +38,7 @@ const STEPS = [
 export function CreateTripWizard() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
-  const { vehicles, loading: vehiclesLoading, refetch: refetchVehicles } = useMyVehicles()
+  const { vehicles, loading: vehiclesLoading, refetch: refetchVehicles } = useMyVehiclesForTripCreate()
   const { createTrip, loading: isSubmitting } = useCreateTrip()
 
   const form = useForm<CreateTripFormData>({

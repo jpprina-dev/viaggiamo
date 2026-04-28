@@ -2,7 +2,7 @@
  * Hook for fetching driver's created trips
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { graphqlClient } from '@/lib/graphql-client'
 import { gql } from 'graphql-request'
 import { useAuth } from '@/contexts/AuthContext'
@@ -39,8 +39,6 @@ export function useMyTrips(): UseMyTripsResult {
   const [trips, setTrips] = useState<DriverTripInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
   const fetchTrips = useCallback(async () => {
     if (!user) {
       setTrips([])
@@ -68,14 +66,6 @@ export function useMyTrips(): UseMyTripsResult {
 
   useEffect(() => {
     fetchTrips()
-
-    // intervalRef.current = setInterval(() => {
-    //   fetchTrips()
-    // }, 10000)
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
   }, [fetchTrips])
 
   return {

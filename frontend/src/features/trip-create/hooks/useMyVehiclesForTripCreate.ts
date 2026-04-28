@@ -24,14 +24,14 @@ const MY_VEHICLES_QUERY = gql`
   }
 `
 
-interface UseMyVehiclesResult {
+interface UseMyVehiclesForTripCreateResult {
   vehicles: Vehicle[]
   loading: boolean
   error: Error | null
   refetch: () => Promise<void>
 }
 
-export function useMyVehicles(): UseMyVehiclesResult {
+export function useMyVehiclesForTripCreate(): UseMyVehiclesForTripCreateResult {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)

@@ -4,29 +4,13 @@
 
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
 import { BookingCard } from '@/features/bookings/components'
 import { Loader2, Clock } from 'lucide-react'
-import { gql } from 'graphql-request'
-import { graphqlClient } from '@/lib/graphql-client'
 import { useMyBookingHistory } from '../hooks/useMyBookingHistory'
 import { useMyDriverTripHistory } from '../hooks/useMyDriverTripHistory'
 import { DriverHistoryCard } from './DriverHistoryCard'
 import { RatingPrompt } from '@/features/ratings/components/RatingPrompt'
-import type { Rating } from '@/features/ratings/types'
-
-const MY_RATINGS_QUERY = gql`
-  query MyRatings {
-    myRatings {
-      id
-      bookingId
-      raterId
-      rateeId
-      score
-      comment
-    }
-  }
-`
+import { useMyRatings } from '@/features/ratings/hooks/useMyRatings'
 
 export function HistoryView() {
   const {
@@ -43,17 +27,7 @@ export function HistoryView() {
     refetch: refetchTrips,
   } = useMyDriverTripHistory()
 
-  // Fetch user's existing ratings to determine existingRating per booking
-  const [ratings, setRatings] = useState<Rating[]>([])
-  const fetchRatings = useCallback(async () => {
-    try {
-      const res = await graphqlClient.request<{ myRatings: Rating[] }>(MY_RATINGS_QUERY)
-      setRatings(res.myRatings)
-    } catch {
-      // non-critical — ratings prompt still works without this
-    }
-  }, [])
-  useEffect(() => { fetchRatings() }, [fetchRatings])
+  const { ratings } = useMyRatings()
 
   const getRatingForBooking = (bookingId: number): number | null => {
     const r = ratings.find((r) => r.bookingId === bookingId)
