@@ -8,8 +8,11 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
 import { Calendar, User, AlertCircle, Briefcase, X } from 'lucide-react'
+import toast from 'react-hot-toast'
 import type { BookingWithTrip } from '../types'
 import { useCancelBooking } from '../hooks/useCancelBooking'
+import { useState } from 'react'
+import { ActionConfirmModal } from './ActionConfirmModal'
 
 interface BookingCardProps {
   booking: BookingWithTrip
@@ -50,13 +53,20 @@ export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled 
   const formattedDate = format(departureDate, "d 'de' MMMM, yyyy", { locale: es })
   const formattedTime = format(departureDate, 'HH:mm')
   const { cancelBooking, loading: cancelling } = useCancelBooking()
+  const [showConfirm, setShowConfirm] = useState(false)
 
-  const handleCancel = async (e: React.MouseEvent) => {
+  const handleCancelClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    setShowConfirm(true)
+  }
+
+  const handleConfirm = async () => {
     const success = await cancelBooking(booking.id)
-    if (success && onBookingCancelled) {
-      onBookingCancelled(booking.id)
+    if (success) {
+      setShowConfirm(false)
+      toast.success('Solicitud cancelada')
+      if (onBookingCancelled) onBookingCancelled(booking.id)
     }
   }
 
@@ -156,7 +166,7 @@ export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled 
           <div className="border-t border-gray-100 pt-3">
             <button
               type="button"
-              onClick={handleCancel}
+              onClick={handleCancelClick}
               disabled={cancelling}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50"
             >
@@ -166,6 +176,15 @@ export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled 
           </div>
         )}
       </div>
+
+      {showConfirm && (
+        <ActionConfirmModal
+          action="cancelRequest"
+          onConfirm={() => void handleConfirm()}
+          onCancel={() => setShowConfirm(false)}
+          loading={cancelling}
+        />
+      )}
     </Link>
   )
 }

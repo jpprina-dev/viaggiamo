@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Clock, User } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useUpdateBookingStatus } from '@/features/bookings/hooks'
-import type { BookingStatus } from '@/features/bookings/types'
+import { ActionConfirmModal } from '@/features/bookings/components/ActionConfirmModal'
+import type { BookingStatus, Action } from '@/features/bookings/types'
 
 interface Booking {
   id: number
@@ -26,20 +27,32 @@ interface TripRequestsListProps {
   bookings: Booking[]
   loading: boolean
   onStatusChanged?: () => Promise<void>
+  onTripDataChanged?: () => Promise<void>
 }
 
-export function TripRequestsList({ bookings, loading, onStatusChanged }: TripRequestsListProps) {
+const statusToAction: Record<string, Action> = {
+  accepted: 'accept',
+  rejected: 'reject',
+  revoked: 'revoke',
+}
+
+export function TripRequestsList({ bookings, loading, onStatusChanged, onTripDataChanged }: TripRequestsListProps) {
   const { mutate, loading: submitting, error } = useUpdateBookingStatus()
+  const [pendingAction, setPendingAction] = useState<{ bookingId: number; status: BookingStatus } | null>(null)
 
   useEffect(() => {
     if (error) toast.error(error)
   }, [error])
 
-  const updateStatus = async (bookingId: number, status: BookingStatus) => {
+  const confirmUpdate = async () => {
+    if (!pendingAction) return
+    const { bookingId, status } = pendingAction
+    setPendingAction(null)
     try {
       await mutate(bookingId, status)
       toast.success('Solicitud actualizada')
       if (onStatusChanged) await onStatusChanged()
+      if (onTripDataChanged) await onTripDataChanged()
     } catch {
       // error shown via useEffect on hook's error state
     }
@@ -52,7 +65,7 @@ export function TripRequestsList({ bookings, loading, onStatusChanged }: TripReq
         <div className="mt-3 flex items-center gap-2">
           <button
             type="button"
-            onClick={() => void updateStatus(booking.id, 'accepted')}
+            onClick={() => setPendingAction({ bookingId: booking.id, status: 'accepted' })}
             disabled={isSubmitting}
             className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -60,7 +73,7 @@ export function TripRequestsList({ bookings, loading, onStatusChanged }: TripReq
           </button>
           <button
             type="button"
-            onClick={() => void updateStatus(booking.id, 'rejected')}
+            onClick={() => setPendingAction({ bookingId: booking.id, status: 'rejected' })}
             disabled={isSubmitting}
             className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -74,7 +87,7 @@ export function TripRequestsList({ bookings, loading, onStatusChanged }: TripReq
         <div className="mt-3 flex items-center gap-2">
           <button
             type="button"
-            onClick={() => void updateStatus(booking.id, 'revoked')}
+            onClick={() => setPendingAction({ bookingId: booking.id, status: 'revoked' })}
             disabled={isSubmitting}
             className="rounded-md bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -105,6 +118,15 @@ export function TripRequestsList({ bookings, loading, onStatusChanged }: TripReq
   }
 
   return (
+    <>
+    {pendingAction && (
+      <ActionConfirmModal
+        action={statusToAction[pendingAction.status]}
+        onConfirm={() => void confirmUpdate()}
+        onCancel={() => setPendingAction(null)}
+        loading={submitting}
+      />
+    )}
     <div className="space-y-3">
       {bookings.map((booking) => (
         <div
@@ -183,6 +205,7 @@ export function TripRequestsList({ bookings, loading, onStatusChanged }: TripReq
         </div>
       ))}
     </div>
+    </>
   )
 }
 

@@ -28,9 +28,10 @@ interface TripDetailsViewProps {
   tripData: TripDetailsData
   returnUrl?: string
   onBookingSuccess?: () => void
+  onTripRefetch?: () => Promise<void>
 }
 
-export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSuccess }: TripDetailsViewProps) {
+export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSuccess, onTripRefetch }: TripDetailsViewProps) {
   const { trip, driver, vehicle } = tripData
   const { user } = useAuth()
   const router = useRouter()
@@ -209,6 +210,7 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
                     bookings={tripBookings}
                     loading={tripBookingsLoading}
                     onStatusChanged={refetchTripBookings}
+                    onTripDataChanged={onTripRefetch}
                   />
                 </div>
               ) : (

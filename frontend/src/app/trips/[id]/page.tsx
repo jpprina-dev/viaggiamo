@@ -20,7 +20,7 @@ export default function TripPage({ params }: TripPageProps) {
   const tripId = parseInt(params.id, 10)
   const searchParams = useSearchParams()
 
-  const { tripData, loading, error } = useTripDetails(tripId)
+  const { tripData, loading, error, refetch: refetchTrip } = useTripDetails(tripId)
   
   // Build the return URL with search params
   const fromParam = searchParams.get('from')
@@ -115,5 +115,5 @@ export default function TripPage({ params }: TripPageProps) {
     )
   }
 
-  return <TripDetailsView tripData={tripData} returnUrl={returnUrl} />
+  return <TripDetailsView tripData={tripData} returnUrl={returnUrl} onTripRefetch={refetchTrip} />
 }
