@@ -5,7 +5,6 @@ import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui'
 
 export default function AuthError({
-  error,
   reset,
 }: {
   error: Error & { digest?: string }

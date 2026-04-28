@@ -6,7 +6,6 @@ import { Button } from '@/components/ui'
 import { ROUTES } from '@/config/routes'
 
 export default function ProtectedError({
-  error,
   reset,
 }: {
   error: Error & { digest?: string }
