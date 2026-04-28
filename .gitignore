@@ -79,6 +79,7 @@ yarn-error.log*
 .next/
 out/
 build/
+frontend/tsconfig.tsbuildinfo
 
 # Environment variables
 .env
