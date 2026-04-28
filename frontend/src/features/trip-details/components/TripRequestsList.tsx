@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { Clock, User } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -137,9 +138,11 @@ export function TripRequestsList({ bookings, loading, onStatusChanged, onTripDat
             {/* Passenger Info */}
             <div className="flex items-center gap-3 flex-1 min-w-0">
               {booking.passenger.profilePicture ? (
-                <img
+                <Image
                   src={booking.passenger.profilePicture}
                   alt={`${booking.passenger.name} ${booking.passenger.lastName}`}
+                  width={40}
+                  height={40}
                   className="h-10 w-10 rounded-full object-cover flex-shrink-0"
                 />
               ) : (

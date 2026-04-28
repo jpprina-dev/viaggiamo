@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { User } from 'lucide-react'
 
 interface DriverInfoProps {
@@ -22,9 +23,11 @@ export function DriverInfo({ driver }: DriverInfoProps) {
 
       <div className="flex items-start space-x-4">
         {driver.profilePicture ? (
-          <img
+          <Image
             src={driver.profilePicture}
             alt={`${driver.name} ${driver.lastName}`}
+            width={64}
+            height={64}
             className="h-16 w-16 rounded-full object-cover"
           />
         ) : (

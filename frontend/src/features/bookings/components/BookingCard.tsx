@@ -4,6 +4,7 @@
 
 'use client'
 
+import Image from 'next/image'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
@@ -131,9 +132,11 @@ export function BookingCard({ booking, showRoleIcon = false, onBookingCancelled 
             {/* Driver Info */}
             <div className="flex items-center gap-2 min-w-0 flex-1">
               {trip.driver.profilePicture ? (
-                <img
+                <Image
                   src={trip.driver.profilePicture}
                   alt={`${trip.driver.name} ${trip.driver.lastName}`}
+                  width={36}
+                  height={36}
                   className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover flex-shrink-0"
                 />
               ) : (

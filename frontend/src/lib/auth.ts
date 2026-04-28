@@ -7,8 +7,7 @@
 import { gql, ClientError } from 'graphql-request'
 import { graphqlClient } from './graphql-client'
 import type { User, RegisterInput, AuthResponse } from '@/types'
-import { mapGraphQLUserToUser } from '@/types/user'
-import type { GraphQLUser } from '@/types/user'
+import { mapGraphQLUserToUser, type GraphQLUser } from '@/types/user'
 
 // GraphQL Mutations
 const LOGIN_MUTATION = gql`
