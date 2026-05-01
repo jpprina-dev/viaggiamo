@@ -1,0 +1,63 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: check-json
+      - id: check-toml
+      - id: mixed-line-ending
+      - id: check-case-conflict
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: bash -c 'uv run mypy backend/'
+        language: system
+        types: [python]
+        files: ^backend/
+        pass_filenames: false
+        stages: [manual]
+      - id: ruff
+        name: ruff
+        entry: bash -c 'uv run ruff check --fix "$@"' --
+        language: system
+        types: [python]
+        files: ^backend/
+        pass_filenames: true
+      - id: ruff-format
+        name: ruff format
+        entry: bash -c 'uv run ruff format "$@"' --
+        language: system
+        types: [python]
+        files: ^backend/
+        pass_filenames: true
+
+# Global configuration
+default_stages: [pre-commit]
+fail_fast: false
+minimum_pre_commit_version: '3.0.0'
+
+# Exclude patterns
+exclude: |
+  (?x)^(
+    \.git/|
+    \.venv/|
+    node_modules/|
+    \.next/|
+    __pycache__/|
+    \.pytest_cache/|
+    \.mypy_cache/|
+    alembic/versions/|
+    \.env.*|
+    .*\.egg-info/|
+    dist/|
+    build/|
+    frontend/.*|
+    infra/.*
+  )$

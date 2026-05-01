@@ -1,0 +1,21 @@
+{
+  "name": "Viajamos",
+  "short_name": "Viajamos",
+  "icons": [
+    {
+      "src": "/icon1.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#48A79F",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}

@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Ruta Gaucha — Design Tokens (CSS Custom Properties)
+   Source of truth: src/design-system/DESIGN_SYSTEM.md
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Primary */
+  --color-primary:                   #006d33;
+  --color-primary-container:         #7ce495;
+  --color-on-primary-fixed:          #00210b;
+
+  /* Secondary */
+  --color-secondary:                 #006a64;
+  --color-secondary-container:       #96f3e9;
+  --color-on-secondary-fixed:        #00201e;
+
+  /* Tertiary */
+  --color-tertiary:                  #8e4e14;
+  --color-tertiary-container:        #ffc295;
+
+  /* Anchor Dark */
+  --color-anchor-dark:               #21212b;
+
+  /* Surfaces */
+  --color-surface:                   #fcf8ff;
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #f5f2ff;
+  --color-surface-container:         #efecfa;
+  --color-surface-container-high:    #e9e6f5;
+  --color-surface-container-highest: #e3e1ef;
+
+  /* On-Surface */
+  --color-on-surface:                #1b1b24;
+  --color-on-surface-variant:        #3e4a3f;
+
+  /* Outline */
+  --color-outline:                   #6e7a6e;
+  --color-outline-variant:           #becabc;
+
+  /* Error */
+  --color-error:                     #ba1a1a;
+  --color-error-container:           #ffdad6;
+
+  /* Typography */
+  --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
+
+  /* Radius */
+  --radius-md:  0.75rem;
+  --radius-lg:  1rem;
+  --radius-xl:  1.5rem;
+  --radius-2xl: 2rem;
+
+  /* Shadows */
+  --shadow-ambient:    0 8px 28px 0 rgba(27,27,36,0.06);
+  --shadow-ambient-lg: 0 12px 40px 0 rgba(27,27,36,0.09);
+  --shadow-glass:      0 4px 24px 0 rgba(27,27,36,0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Base
+   ───────────────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-surface text-on-surface;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+    cursor: pointer;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Components
+   ───────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    @apply backdrop-blur-[20px] bg-white/85;
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-dark {
+    background: rgba(33, 33, 43, 0.88);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-glass);
+  }
+
+  /* Filled Input — Ruta Gaucha style (filled bg + bottom border on focus) */
+  .input-filled {
+    @apply w-full px-4 py-3 bg-surface-container-high rounded-md border-0
+           border-b-2 border-transparent text-on-surface placeholder:text-on-surface-variant
+           focus:outline-none focus:border-primary-container transition-colors;
+  }
+
+  /* Ambient shadow card */
+  .card-ambient {
+    @apply bg-surface-container-lowest rounded-lg;
+    box-shadow: var(--shadow-ambient);
+  }
+
+  /* Route Visualizer dashed line */
+  .route-line {
+    @apply border-l-2 border-dashed border-primary-container h-8 ml-[0.4375rem];
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Utilities
+   ───────────────────────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-primary-container to-secondary-container bg-clip-text text-transparent;
+  }
+
+  /* App icon watermark — 5% opacity background texture */
+  .bg-pin-watermark {
+    background-image: url("data:image/svg+xml,%3Csvg width='120' height='132' viewBox='-120 -120 480 530' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='translate(-11484.57,-463.68802)'%3E%3Cpath d='m 929.237,725.216 c -2.512,-8.885 -3.846,-18.273 -3.846,-27.975 v 0 c 0,-9.2 1.208,-18.117 3.469,-26.611 v 0 c 7.488,-28.133 26.594,-51.525 51.855,-64.774 v 0 c -15.888,16.845 -25.621,39.562 -25.621,64.523 v 0 c 0,5.526 0.47,10.943 1.396,16.201 v 0 c 2.261,0.362 4.585,0.55 6.939,0.55 v 0 c 24.569,0 44.477,-19.906 44.477,-44.475 v 0 c 0,-16.736 -20.118,-38.524 -21.132,-39.719 v 0 l -18.148,-18.148 -5.322,-5.338 -18.173,16.157 c -11.672,10.905 -18.469,17.109 -25.753,27.769 v 0 c -11.288,16.531 -17.881,36.517 -17.881,58.055 v 0 c 0,10.221 1.491,20.111 4.254,29.421 v 0 c -13.721,-11.571 -23.972,-27.145 -28.949,-44.9 v 0 c -2.198,-7.834 -3.375,-16.076 -3.375,-24.616 v 0 c 0,-23.329 6.242,-40.382 23.25,-60.693 v 0 L 963.65,513.67 c 0,0 54.936,50.836 74,77.968 v 0 c 9.045,12.871 17.557,32.822 17.557,49.698 v 0 c 0,9.106 -1.335,17.912 -3.831,26.201 v 0 c -10.032,33.361 -38.683,58.637 -73.896,63.739 v 0 c -4.301,0.628 -8.698,0.958 -13.171,0.958 v 0 c -12.434,0 -24.287,-2.496 -35.072,-7.018' fill='%237CE495' fill-opacity='0.05' stroke='none' transform='matrix(1.3333333,0,0,-1.3333333,10320,1440)'/%3E%3C/g%3E%3C/svg%3E");
+  }
+}

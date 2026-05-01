@@ -1,0 +1,137 @@
+# Vehicle GraphQL Mutation Contracts
+# Feature: 001-vehicle-crud
+# Date: 2026-02-21
+
+# ---------------------------------------------------------------------------
+# Input Types
+# ---------------------------------------------------------------------------
+
+"""
+Input for creating a new vehicle.
+All fields except color and isActive are required.
+"""
+input VehicleCreateInput {
+  make: String!                       # Vehicle manufacturer, e.g. "Toyota"
+  model: String!                      # Vehicle model, e.g. "Corolla"
+  year: Int!                          # Manufacturing year, e.g. 2020
+  licensePlate: String!               # Unique license plate; rejected if duplicate
+  seats: Int!                         # Total seat count
+  color: String                       # Optional color description
+  isActive: Boolean                   # Defaults to true if omitted
+  vehicleLegalComplianceAck: Boolean! # MUST be true; creation fails if false
+}
+
+"""
+Input for updating an existing vehicle.
+All fields are optional; only provided fields are changed (partial update).
+"""
+input VehicleUpdateInput {
+  make: String
+  model: String
+  year: Int
+  licensePlate: String
+  seats: Int
+  color: String
+  isActive: Boolean
+  vehicleLegalComplianceAck: Boolean
+}
+
+# ---------------------------------------------------------------------------
+# Mutations
+# ---------------------------------------------------------------------------
+
+"""
+Creates a new vehicle for the authenticated user.
+
+Contract:
+- Requires authentication.
+- vehicleLegalComplianceAck MUST be true; rejected otherwise.
+- licensePlate MUST be unique; rejected if already in use by any vehicle.
+- New vehicle is immediately active (is_active = true) and appears in myVehicles.
+
+Returns: VehicleType — the newly created vehicle.
+
+Error behaviour:
+- Unauthenticated → "Authentication required"
+- Missing legal compliance → "Legal compliance acknowledgment is required"
+- Duplicate license plate → database constraint error surfaced as GraphQL error
+"""
+mutation CreateVehicle($vehicleInput: VehicleCreateInput!) {
+  createVehicle(vehicleInput: $vehicleInput) {
+    id
+    userId
+    make
+    model
+    year
+    color
+    licensePlate
+    seats
+    isActive
+    vehicleLegalComplianceAck
+    createdAt
+    updatedAt
+  }
+}
+
+"""
+Updates one or more fields of an existing vehicle.
+
+Contract:
+- Requires authentication.
+- Caller MUST be the owner of the vehicle (user_id match).
+- Only fields present in the input are updated; absent fields are unchanged.
+- Returns null if the vehicle does not exist.
+
+Arguments:
+  vehicleId: Int!           — ID of the vehicle to update
+  vehicleInput: VehicleUpdateInput! — fields to change
+
+Returns: VehicleType | null
+
+Error behaviour:
+- Unauthenticated → "Authentication required"
+- Caller is not owner → "Not authorized to update this vehicle"
+- Vehicle not found → returns null (no error thrown)
+"""
+mutation UpdateVehicle($vehicleId: Int!, $vehicleInput: VehicleUpdateInput!) {
+  updateVehicle(vehicleId: $vehicleId, vehicleInput: $vehicleInput) {
+    id
+    userId
+    make
+    model
+    year
+    color
+    licensePlate
+    seats
+    isActive
+    vehicleLegalComplianceAck
+    createdAt
+    updatedAt
+  }
+}
+
+"""
+Deletes a vehicle using smart soft/hard delete logic.
+
+Contract:
+- Requires authentication.
+- Caller MUST be the owner of the vehicle.
+- Hard delete (permanent removal): vehicle has NO associated trips in the database.
+- Soft delete (is_active = false): vehicle HAS one or more associated trips.
+- After either delete type, myVehicles will NO LONGER return the vehicle.
+- After soft delete, associated trip records are fully preserved.
+- Returns true on success.
+
+Arguments:
+  vehicleId: Int! — ID of the vehicle to delete
+
+Returns: Boolean (true = success)
+
+Error behaviour:
+- Unauthenticated → "Authentication required"
+- Vehicle not found → "Vehicle not found"
+- Caller is not owner → "Not authorized to delete this vehicle"
+"""
+mutation DeleteVehicle($vehicleId: Int!) {
+  deleteVehicle(vehicleId: $vehicleId)
+}
