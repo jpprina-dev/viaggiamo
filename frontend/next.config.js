@@ -193,6 +193,7 @@ const nextConfig = {
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'https', hostname: 'api.viaggiamo.com' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: 'viajamos-backend.up.railway.app' },
     ],
     formats: ['image/webp', 'image/avif'],
   },
