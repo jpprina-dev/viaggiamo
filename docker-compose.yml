@@ -67,7 +67,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: viaggiamo-frontend
     env_file:
       - ./frontend/.env
