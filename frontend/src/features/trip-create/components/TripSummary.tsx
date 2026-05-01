@@ -7,13 +7,12 @@
 import React from 'react'
 import { UseFormRegister, FieldErrors, UseFormWatch } from 'react-hook-form'
 import { 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  Car, 
-  Users, 
+  MapPin,
+  Calendar,
+  Clock,
+  Car,
+  Users,
   DollarSign,
-  Check,
   FileText,
   Shield,
   HelpCircle
@@ -22,8 +21,7 @@ import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
 import { ROUTES } from '@/config/routes'
-import type { CreateTripFormData, Vehicle, TripPreference } from '../types'
-import { TRIP_PREFERENCE_LABELS } from '../types'
+import { TRIP_PREFERENCE_LABELS, type CreateTripFormData, type Vehicle, type TripPreference } from '../types'
 import { getPreferenceIcon } from '../constants'
 
 interface TripSummaryProps {

@@ -1,3 +1,3 @@
-export { useMyVehicles } from './useMyVehicles'
+export { useMyVehiclesForTripCreate } from './useMyVehiclesForTripCreate'
 export { useCreateTrip } from './useCreateTrip'
 

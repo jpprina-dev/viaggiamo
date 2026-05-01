@@ -10,8 +10,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -81,6 +79,7 @@ yarn-error.log*
 .next/
 out/
 build/
+frontend/tsconfig.tsbuildinfo
 
 # Environment variables
 .env

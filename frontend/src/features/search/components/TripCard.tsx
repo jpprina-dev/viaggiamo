@@ -4,6 +4,7 @@
 
 'use client'
 
+import Image from 'next/image'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
@@ -75,9 +76,11 @@ export function TripCard({ result }: TripCardProps) {
           {/* Driver */}
           <div className="flex items-center gap-2.5">
             {driver.profilePicture ? (
-              <img
+              <Image
                 src={driver.profilePicture}
                 alt={driver.name}
+                width={36}
+                height={36}
                 className="h-9 w-9 rounded-full object-cover border-2 border-primary-container"
               />
             ) : (

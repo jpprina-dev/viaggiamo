@@ -18,7 +18,7 @@ import { StepDateTime } from './StepDateTime'
 import { StepVehicle } from './StepVehicle'
 import { StepPreferences } from './StepPreferences'
 import { TripSummary } from './TripSummary'
-import { useMyVehicles, useCreateTrip } from '../hooks'
+import { useMyVehiclesForTripCreate, useCreateTrip } from '../hooks'
 import { 
   createTripFormSchema, 
   stepSchemas,
@@ -38,7 +38,7 @@ const STEPS = [
 export function CreateTripWizard() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
-  const { vehicles, loading: vehiclesLoading, refetch: refetchVehicles } = useMyVehicles()
+  const { vehicles, loading: vehiclesLoading, refetch: refetchVehicles } = useMyVehiclesForTripCreate()
   const { createTrip, loading: isSubmitting } = useCreateTrip()
 
   const form = useForm<CreateTripFormData>({
@@ -112,9 +112,7 @@ export function CreateTripWizard() {
       toast.success('¡Viaje publicado exitosamente!')
       router.push(ROUTES.TRIP_DETAIL(createdTrip.id))
     } catch (error: unknown) {
-      console.error('Error creating trip:', error)
-      // Extract error message from GraphQL error
-      const errorMessage = error instanceof Error 
+      const errorMessage = error instanceof Error
         ? error.message 
         : 'Error desconocido'
       toast.error(`Error al publicar el viaje: ${errorMessage}`)
@@ -122,7 +120,6 @@ export function CreateTripWizard() {
   }
 
   const onFormError = (errors: typeof form.formState.errors) => {
-    console.error('Form validation errors:', errors)
     const firstError = Object.values(errors)[0]
     if (firstError?.message) {
       toast.error(`Error de validación: ${firstError.message}`)

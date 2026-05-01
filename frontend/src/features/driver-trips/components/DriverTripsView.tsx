@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react'
 import Link from 'next/link'
-import { Car, Plus, Search } from 'lucide-react'
+import { Car, Plus } from 'lucide-react'
 import { useMyTrips } from '../hooks/useMyTrips'
 import { DriverTripCard } from './DriverTripCard'
 import { ROUTES } from '@/config/routes'

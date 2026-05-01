@@ -1,4 +1,4 @@
-import { User } from 'lucide-react'
+import Image from 'next/image'
 import { Card } from '@/components/ui'
 import type { User as UserType } from '@/types'
 
@@ -21,9 +21,11 @@ export function WelcomeCard({ user }: WelcomeCardProps) {
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
         <div className="flex-shrink-0">
           {user.profile_picture ? (
-            <img
+            <Image
               src={user.profile_picture}
               alt={fullName}
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-full border-2 border-primary-container"
             />
           ) : (

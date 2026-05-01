@@ -280,6 +280,7 @@ class TripQueries:
 
 async def _auto_reject_pending_bookings(context: Context, trip: Trip) -> None:
     """FR-011: Auto-reject all pending bookings when trip is completed."""
+    user = require_auth(context)
     result = await context.db.execute(
         select(Booking).where(
             Booking.trip_id == trip.id,
@@ -292,7 +293,7 @@ async def _auto_reject_pending_bookings(context: Context, trip: Trip) -> None:
         booking.status = Booking.STATUS_REJECTED
         event = RequestDecisionEvent(
             booking_id=booking.id,
-            actor_user_id=context.user.id,
+            actor_user_id=user.id,
             previous_status=Booking.STATUS_PENDING,
             new_status=Booking.STATUS_REJECTED,
             decided_at=utcnow(),
@@ -303,6 +304,7 @@ async def _auto_reject_pending_bookings(context: Context, trip: Trip) -> None:
 
 async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None:
     """FR-010: Cancel all accepted/pending bookings when trip is deactivated."""
+    user = require_auth(context)
     result = await context.db.execute(
         select(Booking).where(
             Booking.trip_id == trip.id,
@@ -325,7 +327,7 @@ async def _cancel_bookings_on_deactivation(context: Context, trip: Trip) -> None
         booking.cancellation_time = utcnow()
         event = RequestDecisionEvent(
             booking_id=booking.id,
-            actor_user_id=context.user.id,
+            actor_user_id=user.id,
             previous_status=previous_status,
             new_status=Booking.STATUS_REVOKED,
             decided_at=utcnow(),

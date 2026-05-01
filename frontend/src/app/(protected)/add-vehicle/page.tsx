@@ -8,8 +8,9 @@ import {
   useCreateVehicle,
   useUpdateVehicle,
   useDeleteVehicle,
+  type Vehicle,
+  type VehicleCreateInput,
 } from '@/features/vehicles'
-import type { Vehicle, VehicleCreateInput } from '@/features/vehicles'
 
 export default function AddVehiclePage() {
   const { vehicles, loading: listLoading, refetch } = useMyVehiclesAll()
@@ -61,8 +62,7 @@ export default function AddVehiclePage() {
       try {
         await updateVehicle(vehicle.id, { isActive: !vehicle.isActive })
         await refetch()
-      } catch (error) {
-        console.error('Error toggling vehicle:', error)
+      } catch {
         await refetch() // Refetch to restore correct state
       } finally {
         setTogglingVehicleId(null)

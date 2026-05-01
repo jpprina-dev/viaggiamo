@@ -1,4 +1,5 @@
-import { User as UserIcon, Edit2 } from 'lucide-react'
+import Image from 'next/image'
+import { Edit2 } from 'lucide-react'
 import { Button } from '@/components/ui'
 import type { User } from '@/types'
 
@@ -14,9 +15,11 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       <div className="flex items-center space-x-4">
         {/* Avatar */}
         {user.profile_picture ? (
-          <img
+          <Image
             src={user.profile_picture}
             alt={fullName}
+            width={80}
+            height={80}
             className="w-20 h-20 rounded-full border-4 border-primary-container"
           />
         ) : (

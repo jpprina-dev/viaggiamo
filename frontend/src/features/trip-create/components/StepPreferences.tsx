@@ -8,8 +8,7 @@ import React from 'react'
 import { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from 'react-hook-form'
 import { FileText } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import type { CreateTripFormData, TripPreference } from '../types'
-import { TRIP_PREFERENCES, TRIP_PREFERENCE_LABELS } from '../types'
+import { TRIP_PREFERENCES, TRIP_PREFERENCE_LABELS, type CreateTripFormData, type TripPreference } from '../types'
 import { getPreferenceIcon } from '../constants'
 
 interface StepPreferencesProps {

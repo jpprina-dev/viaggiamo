@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -72,9 +73,11 @@ export default function NavBar() {
             aria-label="Toggle menu"
           >
             {user && user.profile_picture ? (
-              <img
+              <Image
                 src={user.profile_picture}
                 alt={`${user.name} ${user.last_name}`}
+                width={36}
+                height={36}
                 className="w-9 h-9 rounded-full border-2 border-primary-container"
               />
             ) : user ? (
@@ -117,9 +120,11 @@ export default function NavBar() {
                   <div className="pb-4 mb-3 border-b border-white/10">
                     <div className="flex items-center space-x-3">
                       {user.profile_picture ? (
-                        <img
+                        <Image
                           src={user.profile_picture}
                           alt={`${user.name} ${user.last_name}`}
+                          width={48}
+                          height={48}
                           className="w-12 h-12 rounded-full border-2 border-primary-container"
                         />
                       ) : (

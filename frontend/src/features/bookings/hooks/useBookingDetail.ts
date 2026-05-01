@@ -2,9 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { gql } from 'graphql-request'
 import { graphqlClient } from '@/lib/graphql-client'
 import { useAuth } from '@/contexts/AuthContext'
-import { bookingDetailSchema } from '../types'
+import { bookingDetailSchema, type BookingDetail, type Role, type Action } from '../types'
 import { getAllowedActions } from '../utils/getAllowedActions'
-import type { BookingDetail, Role, Action } from '../types'
 
 const GET_BOOKING = gql`
   query GetBooking($bookingId: Int!) {

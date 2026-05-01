@@ -15,7 +15,7 @@ interface UseCityAutocompleteResult {
 }
 
 // Debounce helper
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: never[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -53,8 +53,7 @@ export function useCityAutocomplete(type: CityType): UseCityAutocompleteResult {
         )
 
         setSuggestions(response[queryName] || [])
-      } catch (error) {
-        console.error('Failed to fetch city suggestions:', error)
+      } catch {
         setSuggestions([])
       } finally {
         setLoading(false)

@@ -189,7 +189,11 @@ const nextConfig = {
   swcMinify: true,
   output: 'standalone',
   images: {
-    domains: ['localhost', 'api.viaggiamo.com'],
+    remotePatterns: [
+      { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'api.viaggiamo.com' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+    ],
     formats: ['image/webp', 'image/avif'],
   },
   async rewrites() {

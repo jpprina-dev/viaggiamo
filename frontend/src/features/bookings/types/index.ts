@@ -98,7 +98,7 @@ export const bookingDetailSchema = z.object({
   }),
 })
 
-// ─── Legacy types (unchanged) ─────────────────────────────────────────────────
+// ─── Aggregate response types ─────────────────────────────────────────────────
 
 export interface DriverInfo {
   id: number

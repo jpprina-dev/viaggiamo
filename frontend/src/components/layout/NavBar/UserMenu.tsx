@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { User as UserIcon, LogOut, Settings } from 'lucide-react'
@@ -35,9 +36,11 @@ export function UserMenu({ user }: UserMenuProps) {
         className="flex items-center space-x-2 focus:outline-none"
       >
         {user.profile_picture ? (
-          <img
+          <Image
             src={user.profile_picture}
             alt={fullName}
+            width={40}
+            height={40}
             className="w-10 h-10 rounded-full border-2 border-primary-500"
           />
         ) : (

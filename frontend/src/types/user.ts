@@ -35,8 +35,24 @@ export interface AuthResponse {
   tokenType: string
 }
 
-// Helper function to map GraphQL UserType to User interface
-export function mapGraphQLUserToUser(gqlUser: any): User {
+export interface GraphQLUser {
+  id: number
+  email: string
+  username: string
+  name: string
+  lastName: string
+  status: string
+  emailVerified: boolean
+  phone?: string
+  phoneVerified?: boolean
+  profilePicture?: string
+  profileShortBio?: string
+  authProvider?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export function mapGraphQLUserToUser(gqlUser: GraphQLUser): User {
   return {
     id: gqlUser.id,
     email: gqlUser.email,

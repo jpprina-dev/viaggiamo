@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { GoogleOAuthProvider, CredentialResponse } from '@react-oauth/google'
@@ -44,10 +43,8 @@ function RegisterFormWrapper() {
       await registerUser(data)
       toast.success('¡Registro exitoso! Por favor inicia sesión.')
       router.push(ROUTES.LOGIN)
-    } catch (error: any) {
-      console.error('Register error:', error)
-      const errorMessage = error.response?.errors?.[0]?.message || error.message || 'Error al registrarse'
-      toast.error(errorMessage)
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Error al registrarse')
     } finally {
       setIsLoading(false)
     }
@@ -70,9 +67,8 @@ function RegisterFormWrapper() {
       await refreshUser()
       toast.success('¡Registro con Google exitoso!')
       router.push(ROUTES.PROFILE)
-    } catch (error: any) {
-      console.error('Google registration error:', error)
-      toast.error(error.message || 'Error al registrarse con Google')
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Error al registrarse con Google')
     } finally {
       setIsLoading(false)
     }

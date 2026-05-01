@@ -4,6 +4,7 @@
 
 'use client'
 
+import Image from 'next/image'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Calendar, MapPin, User, Users } from 'lucide-react'
@@ -63,9 +64,11 @@ export function DriverHistoryCard({ tripHistory }: DriverHistoryCardProps) {
               {passengers.map((passenger) => (
                 <div key={passenger.id} className="flex items-center gap-2">
                   {passenger.profilePicture ? (
-                    <img
+                    <Image
                       src={passenger.profilePicture}
                       alt={`${passenger.name} ${passenger.lastName}`}
+                      width={28}
+                      height={28}
                       className="h-7 w-7 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (

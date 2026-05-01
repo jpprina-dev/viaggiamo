@@ -4,6 +4,7 @@
 
 'use client'
 
+import Image from 'next/image'
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -68,7 +69,7 @@ export function DriverTripCard({
   const pendingCount = bookings.filter((b) => b.status === 'pending').length
   const confirmedCount = bookings.filter((b) => b.status === 'accepted').length
 
-  const handleActionSuccess = (_newStatus: BookingStatus) => {
+  const handleActionSuccess = () => {
     void refetch()
   }
 
@@ -173,9 +174,11 @@ export function DriverTripCard({
                         {/* Passenger Info */}
                         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                           {booking.passenger.profilePicture ? (
-                            <img
+                            <Image
                               src={booking.passenger.profilePicture}
                               alt={`${booking.passenger.name} ${booking.passenger.lastName}`}
+                              width={40}
+                              height={40}
                               className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0"
                             />
                           ) : (
@@ -250,9 +253,11 @@ export function DriverTripCard({
                         {/* Passenger Info */}
                         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                           {booking.passenger.profilePicture ? (
-                            <img
+                            <Image
                               src={booking.passenger.profilePicture}
                               alt={`${booking.passenger.name} ${booking.passenger.lastName}`}
+                              width={40}
+                              height={40}
                               className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0"
                             />
                           ) : (
