@@ -59,21 +59,25 @@ class TestSettingsCreation:
         )
         assert test_settings.REDIS_URL == "redis://localhost:6379/0"
 
-    def test_settings_environment_default(self):
-        """Test default environment."""
-        test_settings = Settings(
-            SECRET_KEY="test-key",
-            DATABASE_URL="sqlite+aiosqlite:///:memory:",
-        )
-        assert test_settings.ENVIRONMENT == "development"
+    def test_settings_environment_default(self, monkeypatch):
+        monkeypatch.delenv("ENVIRONMENT", raising=False)
 
-    def test_settings_debug_default(self):
-        """Test default debug setting."""
-        test_settings = Settings(
+        settings = Settings(
             SECRET_KEY="test-key",
             DATABASE_URL="sqlite+aiosqlite:///:memory:",
         )
-        assert test_settings.DEBUG is True
+
+        assert settings.ENVIRONMENT == "development"
+
+    def test_settings_debug_default(self, monkeypatch):
+        monkeypatch.delenv("DEBUG", raising=False)
+
+        settings = Settings(
+            SECRET_KEY="test-key",
+            DATABASE_URL="sqlite+aiosqlite:///:memory:",
+        )
+
+        assert settings.DEBUG is True
 
 
 @pytest.mark.unit
