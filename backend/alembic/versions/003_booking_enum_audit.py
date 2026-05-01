@@ -6,6 +6,7 @@ Create Date: 2026-04-02
 """
 
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 from alembic import op
 
@@ -66,7 +67,7 @@ def upgrade() -> None:
                 "bookings",
                 sa.Column(
                     "status_new",
-                    sa.Enum(
+                    postgresql.ENUM(
                         *BOOKING_STATUS_VALUES,
                         name=BOOKING_STATUS_ENUM,
                         create_type=False,
@@ -139,7 +140,9 @@ def upgrade() -> None:
             ),
             sa.Column(
                 "actor_role",
-                sa.Enum(*ACTOR_ROLE_VALUES, name=ACTOR_ROLE_ENUM, create_type=False),
+                postgresql.ENUM(
+                    *ACTOR_ROLE_VALUES, name=ACTOR_ROLE_ENUM, create_type=False
+                ),
                 nullable=False,
             ),
             sa.Column(
