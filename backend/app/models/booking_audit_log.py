@@ -33,7 +33,7 @@ class BookingAuditLog(Base):
     to_status: Mapped[str] = mapped_column(String(20), nullable=False)
     actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     actor_role: Mapped[ActorRole] = mapped_column(
-        Enum(ActorRole, name="actorrole"), nullable=False
+        Enum(ActorRole, name="actorrole", create_type=False), nullable=False
     )
 
     # Relationships

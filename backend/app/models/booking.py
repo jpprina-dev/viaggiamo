@@ -58,7 +58,7 @@ class Booking(Base):
     total_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
 
     status: Mapped[BookingStatus] = mapped_column(
-        Enum(BookingStatus, name="bookingstatus"),
+        Enum(BookingStatus, name="bookingstatus", create_type=False),
         nullable=False,
         default=BookingStatus.pending,
     )
