@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     EMAILS_FROM_EMAIL: str = ""
-    EMAILS_FROM_NAME: str = "Viaggiamo"
+    EMAILS_FROM_NAME: str = "Viajamos"
 
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20

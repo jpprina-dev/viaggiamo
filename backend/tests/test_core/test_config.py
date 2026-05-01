@@ -32,7 +32,7 @@ class TestSettingsCreation:
             SECRET_KEY="test-key",
             DATABASE_URL="sqlite+aiosqlite:///:memory:",
         )
-        assert test_settings.PROJECT_NAME == "Viaggiamo"
+        assert test_settings.PROJECT_NAME == "Viajamos"
 
     def test_settings_algorithm_default(self):
         """Test default algorithm."""
@@ -213,7 +213,7 @@ class TestEmailSettings:
         assert test_settings.SMTP_TLS is True
         assert test_settings.SMTP_PORT == 587
         assert test_settings.SMTP_HOST == "smtp.gmail.com"
-        assert test_settings.EMAILS_FROM_NAME == "Viaggiamo"
+        assert test_settings.EMAILS_FROM_NAME == "Viajamos"
 
     def test_email_settings_can_be_customized(self):
         """Test that email settings can be customized."""

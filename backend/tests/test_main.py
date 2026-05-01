@@ -24,7 +24,7 @@ class TestApplicationCreation:
         """Test that application is created with correct project name."""
         with patch("app.main.create_tables", new_callable=AsyncMock):
             app = create_application()
-            assert app.title == "Viaggiamo"
+            assert app.title == "Viajamos"
 
     def test_create_application_includes_lifespan(self):
         """Test that application includes lifespan context manager."""
