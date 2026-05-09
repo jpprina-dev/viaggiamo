@@ -34,7 +34,7 @@ class VehicleQueries:
         result = await context.db.execute(
             select(Vehicle).where(
                 Vehicle.user_id == user.id,
-                Vehicle.is_active.is_(True),
+                Vehicle.deleted_at.is_(None),
             )
         )
         vehicles = result.scalars().all()
@@ -214,7 +214,7 @@ class VehicleMutations:
 
         if has_trips:
             # Soft delete: vehicle is used in trips — preserve record for trip history
-            vehicle.is_active = False
+            vehicle.deleted_at = utcnow()
             await context.db.commit()
         else:
             # Hard delete: no trips associated — permanently remove the record

@@ -862,6 +862,8 @@ BACKEND_CORS_ORIGINS=["https://viajamos.vercel.app"]
 
 (Reemplazar con el dominio real anotado en Task 16 si difiere.)
 
+#### ⚠️ Importante: El dominio va sin el / final
+
 - [ ] **Step 2: Esperar redeploy automático**
 
 Railway redeploya automáticamente al cambiar variables. Verificar en Deployments.

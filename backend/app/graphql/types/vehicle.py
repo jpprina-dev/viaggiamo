@@ -23,6 +23,7 @@ class VehicleType:
     seats: int
     is_active: bool
     vehicle_legal_compliance_ack: bool
+    deleted_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -40,6 +41,7 @@ def to_vehicle_type(vehicle: "Vehicle") -> VehicleType:
         seats=vehicle.seats,
         is_active=vehicle.is_active,
         vehicle_legal_compliance_ack=vehicle.vehicle_legal_compliance_ack,
+        deleted_at=vehicle.deleted_at,
         created_at=vehicle.created_at,
         updated_at=vehicle.updated_at,
     )

@@ -1,5 +1,7 @@
 """Integration tests for vehicle management feature."""
 
+from datetime import UTC
+
 import pytest
 
 from app.graphql.schema import schema
@@ -245,7 +247,9 @@ class TestVehicleDeleteBehavior:
         mock_user = MagicMock(spec=User)
         mock_user.id = 1
 
-        # Soft-deleted vehicle — is_active is False
+        # Soft-deleted vehicle — deleted_at is set
+        from datetime import datetime
+
         soft_deleted_vehicle = MagicMock(spec=Vehicle)
         soft_deleted_vehicle.id = 1
         soft_deleted_vehicle.user_id = 1
@@ -255,7 +259,8 @@ class TestVehicleDeleteBehavior:
         soft_deleted_vehicle.color = "Blue"
         soft_deleted_vehicle.license_plate = "ABC-123"
         soft_deleted_vehicle.seats = 5
-        soft_deleted_vehicle.is_active = False
+        soft_deleted_vehicle.is_active = True
+        soft_deleted_vehicle.deleted_at = datetime(2024, 1, 1, tzinfo=UTC)
         soft_deleted_vehicle.vehicle_legal_compliance_ack = True
         soft_deleted_vehicle.created_at = "2024-01-01T00:00:00Z"
         soft_deleted_vehicle.updated_at = "2024-01-01T00:00:00Z"
@@ -290,8 +295,8 @@ class TestVehicleDeleteBehavior:
         where_clause = (
             str(compiled).split("WHERE")[-1] if "WHERE" in str(compiled) else ""
         )
-        assert "is_active" in where_clause, (
-            f"myVehicles WHERE clause must include is_active filter. Got: '{where_clause}'"
+        assert "deleted_at" in where_clause, (
+            f"myVehicles WHERE clause must include deleted_at IS NULL filter. Got: '{where_clause}'"
         )
 
 
