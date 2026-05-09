@@ -34,7 +34,6 @@ class VehicleQueries:
         result = await context.db.execute(
             select(Vehicle).where(
                 Vehicle.user_id == user.id,
-                Vehicle.is_active.is_(True),
             )
         )
         vehicles = result.scalars().all()

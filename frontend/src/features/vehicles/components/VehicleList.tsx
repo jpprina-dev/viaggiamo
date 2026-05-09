@@ -96,6 +96,11 @@ export function VehicleList({
                   <span className="font-semibold text-gray-900">
                     {vehicle.make} {vehicle.model}
                   </span>
+                  {!vehicle.isActive && (
+                    <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">
+                      Inactivo
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-gray-600 mt-0.5">
                   {vehicle.year} {vehicle.color ? `• ${vehicle.color}` : ''} • {vehicle.seats} asientos
