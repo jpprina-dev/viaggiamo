@@ -94,13 +94,13 @@ class TestVehicleQueries:
         assert result[0].license_plate == "ABC-123"
 
     @pytest.mark.asyncio
-    async def test_my_vehicles_returns_only_active_vehicles(self) -> None:
-        """Test that myVehicles query includes is_active filter to exclude soft-deleted vehicles."""
+    async def test_my_vehicles_excludes_deleted_vehicles(self) -> None:
+        """Test that myVehicles query filters by deleted_at IS NULL to exclude soft-deleted vehicles."""
         # Mock user
         mock_user = MagicMock(spec=User)
         mock_user.id = 1
 
-        # Mock database result (single active vehicle)
+        # Mock database result (single non-deleted vehicle)
         mock_vehicle = MagicMock(spec=Vehicle)
         mock_vehicle.id = 1
         mock_vehicle.user_id = 1
@@ -111,6 +111,7 @@ class TestVehicleQueries:
         mock_vehicle.license_plate = "ABC-123"
         mock_vehicle.seats = 5
         mock_vehicle.is_active = True
+        mock_vehicle.deleted_at = None
         mock_vehicle.vehicle_legal_compliance_ack = True
         mock_vehicle.created_at = "2024-01-01T00:00:00Z"
         mock_vehicle.updated_at = "2024-01-01T00:00:00Z"
@@ -130,8 +131,7 @@ class TestVehicleQueries:
         queries = VehicleQueries()
         result = await queries.my_vehicles(mock_info)
 
-        # Verify the SQL query sent to the DB includes an is_active WHERE filter.
-        # Compile with literal binds so boolean True renders as "true" or "1".
+        # Verify the SQL query sent to the DB includes a deleted_at IS NULL WHERE filter.
         from sqlalchemy.dialects import sqlite
 
         executed_query = mock_context.db.execute.call_args[0][0]
@@ -141,8 +141,8 @@ class TestVehicleQueries:
         where_clause = (
             str(compiled).split("WHERE")[-1] if "WHERE" in str(compiled) else ""
         )
-        assert "is_active" in where_clause, (
-            "myVehicles WHERE clause must filter by is_active to exclude soft-deleted vehicles. "
+        assert "deleted_at" in where_clause, (
+            "myVehicles WHERE clause must filter by deleted_at IS NULL to exclude soft-deleted vehicles. "
             f"WHERE clause was: '{where_clause}'"
         )
 
@@ -565,7 +565,9 @@ class TestVehicleMutations:
 
     @pytest.mark.asyncio
     async def test_delete_vehicle_soft_deletes_vehicle(self) -> None:
-        """Test that deleteVehicle soft deletes a vehicle that has associated trips."""
+        """Test that deleteVehicle soft deletes a vehicle that has associated trips by setting deleted_at."""
+        from datetime import datetime
+
         # Mock user
         mock_user = MagicMock(spec=User)
         mock_user.id = 1
@@ -573,7 +575,7 @@ class TestVehicleMutations:
         # Mock vehicle owned by user
         mock_vehicle = MagicMock(spec=Vehicle)
         mock_vehicle.user_id = 1
-        mock_vehicle.is_active = True
+        mock_vehicle.deleted_at = None
 
         # First DB call returns the vehicle; second (Trip check) returns a Trip → soft delete
         mock_vehicle_result = MagicMock()
@@ -601,7 +603,8 @@ class TestVehicleMutations:
         result = await mutations.delete_vehicle(mock_info, vehicle_id=1)
 
         assert result is True
-        assert mock_vehicle.is_active is False
+        assert mock_vehicle.deleted_at is not None
+        assert isinstance(mock_vehicle.deleted_at, datetime)
         mock_context.db.commit.assert_called_once()
 
     @pytest.mark.asyncio

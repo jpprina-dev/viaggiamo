@@ -1,8 +1,9 @@
 """Vehicle model for user's cars."""
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -31,6 +32,9 @@ class Vehicle(Base):
     vehicle_legal_compliance_ack: Mapped[bool] = mapped_column(
         Boolean, default=False
     )  # User acknowledges vehicle meets legal requirements for carpooling
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
     # Relationships
     owner: Mapped["User"] = relationship("User", back_populates="vehicles")
