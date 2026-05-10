@@ -6,10 +6,10 @@ import { usePathname } from 'next/navigation'
 import { User } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProfileSheet } from './ProfileSheet'
-import { NAV_ITEMS } from './navItems'
+import { NAV_ITEMS, PROFILE_SUB_ITEMS } from './navItems'
 import { cn } from '@/utils/cn'
 
-const PROFILE_ACTIVE_PATHS = ['/profile', '/settings']
+const PROFILE_ACTIVE_PATHS = PROFILE_SUB_ITEMS.map(item => item.href)
 
 export function MobileBottomNav() {
   const { user } = useAuth()
