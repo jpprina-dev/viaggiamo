@@ -21,7 +21,7 @@ export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
     <>
       <div
         data-testid="profile-sheet-overlay"
-        className="fixed inset-0 bg-black/60 z-40"
+        className="fixed inset-0 bg-black/60 z-50"
         onClick={onClose}
         aria-hidden="true"
       />
