@@ -4,10 +4,20 @@ import { ProfilePopover } from '../ProfilePopover'
 import { ROUTES } from '@/config/routes'
 
 const mockUser = {
+  id: 1,
   name: 'Juan',
   last_name: 'Pérez',
   email: 'juan@example.com',
+  username: 'juan_perez',
+  status: 'active',
+  email_verified: true,
+  phone: '+34123456789',
+  phone_verified: true,
   profile_picture: null,
+  profile_short_bio: 'Test bio',
+  auth_provider: 'local',
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z',
 }
 
 vi.mock('@/contexts/AuthContext', () => ({
