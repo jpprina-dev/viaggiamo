@@ -12,15 +12,17 @@ import { cn } from '@/utils/cn'
 
 export function DesktopSidebar() {
   const [expanded, setExpanded] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false)
   const pathname = usePathname()
 
+  const isExpanded = expanded || popoverOpen
   const navItems = NAV_ITEMS.slice(1)
 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 bottom-0 z-50 bg-anchor-dark flex-col hidden md:flex transition-all duration-300 ease-in-out overflow-hidden',
-        expanded ? 'w-[220px]' : 'w-16',
+        'fixed left-0 top-0 bottom-0 z-50 bg-anchor-dark flex-col hidden md:flex transition-all duration-300 ease-in-out',
+        isExpanded ? 'w-[220px]' : 'w-16',
       )}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
@@ -33,7 +35,7 @@ export function DesktopSidebar() {
         <span
           className={cn(
             'ml-3 text-lg font-bold text-primary-container whitespace-nowrap transition-all duration-300',
-            expanded ? 'opacity-100 max-w-[140px]' : 'opacity-0 max-w-0 overflow-hidden',
+            isExpanded ? 'opacity-100 max-w-[140px]' : 'opacity-0 max-w-0 overflow-hidden',
           )}
         >
           Viajamos
@@ -41,7 +43,7 @@ export function DesktopSidebar() {
       </Link>
 
       <nav className="flex flex-col flex-1 p-2 space-y-1 mt-2">
-        <ProfilePopover expanded={expanded} />
+        <ProfilePopover expanded={isExpanded} onOpenChange={setPopoverOpen} />
 
         {navItems.map(item => (
           <SidebarItem
@@ -52,7 +54,7 @@ export function DesktopSidebar() {
             isActive={pathname === item.href}
             isDisabled={item.disabled}
             badge={item.badge}
-            expanded={expanded}
+            expanded={isExpanded}
           />
         ))}
       </nav>

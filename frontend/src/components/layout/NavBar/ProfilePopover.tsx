@@ -8,16 +8,22 @@ import { cn } from '@/utils/cn'
 
 interface ProfilePopoverProps {
   expanded: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function ProfilePopover({ expanded }: ProfilePopoverProps) {
+export function ProfilePopover({ expanded, onOpenChange }: ProfilePopoverProps) {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
+  const updateOpen = (next: boolean) => {
+    setOpen(next)
+    onOpenChange?.(next)
+  }
+
   useEffect(() => {
     function onOutsideClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (ref.current && !ref.current.contains(e.target as Node)) updateOpen(false)
     }
     document.addEventListener('mousedown', onOutsideClick)
     return () => document.removeEventListener('mousedown', onOutsideClick)
@@ -30,7 +36,7 @@ export function ProfilePopover({ expanded }: ProfilePopoverProps) {
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen(prev => !prev)}
+        onClick={() => updateOpen(!open)}
         aria-label="Mi Perfil"
         aria-expanded={open}
         className={cn(
@@ -60,7 +66,7 @@ export function ProfilePopover({ expanded }: ProfilePopoverProps) {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setOpen(false)}
+              onClick={() => updateOpen(false)}
               className="block px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors"
             >
               {item.label}
