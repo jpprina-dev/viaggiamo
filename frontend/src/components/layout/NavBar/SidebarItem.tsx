@@ -49,7 +49,7 @@ export function SidebarItem({
 
   if (isDisabled) {
     return (
-      <div role="presentation" aria-label={label} aria-disabled="true">
+      <div aria-label={label} aria-disabled="true">
         {inner}
       </div>
     )

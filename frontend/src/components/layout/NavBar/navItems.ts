@@ -1,5 +1,4 @@
-import { User, Bookmark, Search, PlusCircle, MessageCircle } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { User, Bookmark, Search, PlusCircle, MessageCircle, type LucideIcon } from 'lucide-react'
 import { ROUTES } from '@/config/routes'
 
 export interface NavItem {
