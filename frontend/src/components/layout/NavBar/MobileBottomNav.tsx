@@ -23,18 +23,19 @@ export function MobileBottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-anchor-dark border-t border-white/10 flex items-center justify-around px-2 z-50 md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-anchor-dark border-t border-white/10 flex items-center justify-around px-2 z-50 md:hidden">
         <button
           onClick={() => setSheetOpen(true)}
           aria-label="Mi Perfil"
           className={cn(
-            'flex items-center justify-center w-12 h-12 rounded-xl transition-colors',
+            'flex flex-col items-center justify-center gap-1 w-14 h-16 rounded-xl transition-colors',
             isProfileActive
               ? 'bg-primary-container text-[#00210b]'
               : 'text-white/70 hover:text-white hover:bg-white/10',
           )}
         >
           <User className="w-5 h-5" />
+          <span className="text-[10px] font-medium leading-none">Perfil</span>
         </button>
 
         {otherItems.map(item => {
@@ -45,11 +46,12 @@ export function MobileBottomNav() {
             return (
               <div
                 key={item.id}
-                className="relative flex items-center justify-center w-12 h-12 rounded-xl text-white/30 cursor-not-allowed"
+                className="relative flex flex-col items-center justify-center gap-1 w-14 h-16 rounded-xl text-white/30 cursor-not-allowed"
                 aria-label={item.label}
                 aria-disabled="true"
               >
                 <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium leading-none">{item.shortLabel}</span>
                 {item.badge && (
                   <span className="absolute -top-0.5 -right-0.5 text-[8px] bg-white/10 text-white/50 px-1 rounded-full leading-4">
                     {item.badge}
@@ -65,13 +67,14 @@ export function MobileBottomNav() {
               href={item.href}
               aria-label={item.label}
               className={cn(
-                'flex items-center justify-center w-12 h-12 rounded-xl transition-colors',
+                'flex flex-col items-center justify-center gap-1 w-14 h-16 rounded-xl transition-colors',
                 isActive
                   ? 'bg-primary-container text-[#00210b]'
                   : 'text-white/70 hover:text-white hover:bg-white/10',
               )}
             >
               <Icon className="w-5 h-5" />
+              <span className="text-[10px] font-medium leading-none">{item.shortLabel}</span>
             </Link>
           )
         })}

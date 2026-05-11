@@ -29,6 +29,16 @@ describe('NAV_ITEMS', () => {
     NAV_ITEMS.forEach(item => expect(item.icon).toBeDefined())
   })
 
+  it('shortLabels are the simplified versions', () => {
+    expect(NAV_ITEMS.map(i => i.shortLabel)).toEqual([
+      'Perfil',
+      'Mis Viajes',
+      'Buscar',
+      'Publicar',
+      'Chat',
+    ])
+  })
+
   it('Chats is disabled with badge "Próximamente"', () => {
     const chats = NAV_ITEMS.find(i => i.id === 'chats')
     expect(chats?.disabled).toBe(true)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { PROFILE_SUB_ITEMS } from './navItems'
@@ -16,10 +16,10 @@ export function ProfilePopover({ expanded, onOpenChange }: ProfilePopoverProps) 
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  const updateOpen = (next: boolean) => {
+  const updateOpen = useCallback((next: boolean) => {
     setOpen(next)
     onOpenChange?.(next)
-  }
+  }, [onOpenChange])
 
   useEffect(() => {
     function onOutsideClick(e: MouseEvent) {
@@ -27,7 +27,7 @@ export function ProfilePopover({ expanded, onOpenChange }: ProfilePopoverProps) 
     }
     document.addEventListener('mousedown', onOutsideClick)
     return () => document.removeEventListener('mousedown', onOutsideClick)
-  }, [])
+  }, [updateOpen])
 
   if (!user) return null
 
