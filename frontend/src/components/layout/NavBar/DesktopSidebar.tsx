@@ -3,9 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LogOut } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 import { GradientIcon } from '@/components/GradientIcon'
 import { SidebarItem } from './SidebarItem'
 import { ProfilePopover } from './ProfilePopover'
+import { LogoutConfirmModal } from './LogoutConfirmModal'
 import { NAV_ITEMS } from './navItems'
 import { ROUTES } from '@/config/routes'
 import { cn } from '@/utils/cn'
@@ -13,6 +16,8 @@ import { cn } from '@/utils/cn'
 export function DesktopSidebar() {
   const [expanded, setExpanded] = useState(false)
   const [popoverOpen, setPopoverOpen] = useState(false)
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false)
+  const { logout } = useAuth()
   const pathname = usePathname()
 
   const isExpanded = expanded || popoverOpen
@@ -58,6 +63,31 @@ export function DesktopSidebar() {
           />
         ))}
       </nav>
+
+      <div className="p-2 border-t border-white/10">
+        <button
+          onClick={() => setLogoutModalOpen(true)}
+          aria-label="Cerrar Sesión"
+          className="flex items-center w-full px-3 py-2 rounded-xl transition-colors text-error/70 hover:text-error hover:bg-error/10"
+        >
+          <LogOut className="w-5 h-5 flex-shrink-0" />
+          <span
+            className={cn(
+              'ml-3 text-sm font-medium whitespace-nowrap transition-all duration-300',
+              isExpanded ? 'opacity-100 max-w-[140px]' : 'opacity-0 max-w-0 overflow-hidden',
+            )}
+          >
+            Cerrar Sesión
+          </span>
+        </button>
+      </div>
+
+      {logoutModalOpen && (
+        <LogoutConfirmModal
+          onConfirm={() => { setLogoutModalOpen(false); logout() }}
+          onCancel={() => setLogoutModalOpen(false)}
+        />
+      )}
     </aside>
   )
 }

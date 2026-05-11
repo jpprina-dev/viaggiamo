@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { X, LogOut } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { PROFILE_SUB_ITEMS } from './navItems'
+import { LogoutConfirmModal } from './LogoutConfirmModal'
 
 interface ProfileSheetProps {
   isOpen: boolean
@@ -12,6 +14,7 @@ interface ProfileSheetProps {
 
 export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
   const { user, logout } = useAuth()
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false)
 
   if (!isOpen || !user) return null
 
@@ -54,7 +57,7 @@ export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
 
           <div className="border-t border-white/10 mt-2 pt-2">
             <button
-              onClick={() => { onClose(); logout() }}
+              onClick={() => setLogoutModalOpen(true)}
               className="w-full flex items-center space-x-2 px-4 py-3 text-error hover:bg-error/10 rounded-lg transition-colors text-left"
             >
               <LogOut className="h-5 w-5" />
@@ -63,6 +66,13 @@ export function ProfileSheet({ isOpen, onClose }: ProfileSheetProps) {
           </div>
         </nav>
       </div>
+
+      {logoutModalOpen && (
+        <LogoutConfirmModal
+          onConfirm={() => { setLogoutModalOpen(false); onClose(); logout() }}
+          onCancel={() => setLogoutModalOpen(false)}
+        />
+      )}
     </>
   )
 }
