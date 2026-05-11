@@ -6,7 +6,7 @@ import { ROUTES } from '@/config/routes'
 
 export function GuestHeader() {
   return (
-    <header className="sticky top-0 z-50 bg-anchor-dark">
+    <header className="sticky top-0 z-50 bg-[#21212b]/85 backdrop-blur-md">
       <div className="container">
         <div className="flex justify-between items-center py-4">
           <Link href={ROUTES.HOME} className="flex items-center space-x-2">

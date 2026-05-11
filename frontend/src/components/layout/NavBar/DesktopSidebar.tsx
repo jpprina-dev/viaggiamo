@@ -21,7 +21,7 @@ export function DesktopSidebar() {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 bottom-0 z-50 bg-anchor-dark flex-col hidden md:flex transition-all duration-300 ease-in-out',
+        'fixed left-0 top-0 bottom-0 z-50 bg-[#21212b]/85 backdrop-blur-md flex-col hidden md:flex transition-all duration-300 ease-in-out',
         isExpanded ? 'w-[220px]' : 'w-16',
       )}
       onMouseEnter={() => setExpanded(true)}
