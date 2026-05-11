@@ -1,4 +1,4 @@
-import { User, Bookmark, Search, PlusCircle, MessageCircle, type LucideIcon } from 'lucide-react'
+import { User, Route, Search, PlusCircle, MessageCircle, type LucideIcon } from 'lucide-react'
 import { ROUTES } from '@/config/routes'
 
 export interface NavItem {
@@ -17,7 +17,7 @@ export interface ProfileSubItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'profile',  label: 'Mi Perfil',     icon: User,          href: ROUTES.PROFILE },
-  { id: 'my-trips', label: 'Mis Viajes',     icon: Bookmark,      href: ROUTES.BOOKINGS },
+  { id: 'my-trips', label: 'Mis Viajes',     icon: Route,      href: ROUTES.BOOKINGS },
   { id: 'search',   label: 'Buscar Viajes',  icon: Search,        href: ROUTES.SEARCH },
   { id: 'publish',  label: 'Publicar Viaje', icon: PlusCircle,    href: ROUTES.TRIPS_CREATE },
   { id: 'chats',    label: 'Chats',          icon: MessageCircle, href: ROUTES.CHATS, disabled: true, badge: 'Próximamente' },
