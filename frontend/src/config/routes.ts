@@ -32,6 +32,9 @@ export const ROUTES = {
 
   // Booking routes (user's seat requests)
   BOOKINGS: '/bookings',
+
+  // Chat routes (placeholder — feature not yet implemented)
+  CHATS: '/chats',
 } as const
 
 /**

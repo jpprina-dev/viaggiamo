@@ -34,5 +34,5 @@ export default function ProtectedLayout({
     return null
   }
 
-  return <>{children}</>
+  return <div className="pb-16 md:pb-0">{children}</div>
 }
