@@ -11,6 +11,7 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'viaggiamo_db')\gexec
 -- Create extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+CREATE EXTENSION IF NOT EXISTS "unaccent";
 
 -- Set timezone
 SET timezone = 'UTC';
