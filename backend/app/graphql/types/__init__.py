@@ -10,6 +10,7 @@ from app.graphql.types.booking import (
     BookingUpdateInput,
     DriverTripHistoryType,
 )
+from app.graphql.types.locality import LocalitySuggestion, build_locality_suggestion
 from app.graphql.types.rating import RatingType, SubmitRatingInput
 from app.graphql.types.trip import (
     TripCreateInput,
@@ -55,4 +56,7 @@ __all__ = [
     # Rating
     "RatingType",
     "SubmitRatingInput",
+    # Locality
+    "LocalitySuggestion",
+    "build_locality_suggestion",
 ]
