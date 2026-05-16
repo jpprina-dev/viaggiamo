@@ -3,10 +3,8 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: viaggiamo-backend-postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-viaggiamo}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-viaggiamo_password}
-      POSTGRES_DB: ${POSTGRES_DB:-viaggiamo_db}
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
@@ -24,6 +22,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: viaggiamo-backend-redis
+    env_file:
+      - .env
     ports:
       - "6379:6379"
     volumes:
@@ -48,6 +48,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
+      - ../data:/data
     networks:
       - viaggiamo-backend-network
     depends_on:
