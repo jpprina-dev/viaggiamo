@@ -1,20 +1,29 @@
 /**
- * Hook for city autocomplete with debouncing
+ * Hook for city autocomplete using the georef-ar locality catalog.
  */
 
 import { useCallback, useMemo, useState } from 'react'
 import { graphqlClient } from '@/lib/graphql-client'
-import { CITY_ORIGINS, CITY_DESTINATIONS } from '@/lib/graphql/queries/search'
+import { SEARCH_LOCALITIES } from '@/lib/graphql/queries/search'
 
-type CityType = 'origin' | 'destination'
+interface LocalitySuggestion {
+  id: string
+  name: string
+  province: string
+  department: string
+  displayName: string
+}
 
-interface UseCityAutocompleteResult {
+interface SearchLocalitiesResponse {
+  searchLocalities: LocalitySuggestion[]
+}
+
+export interface UseCityAutocompleteResult {
   suggestions: string[]
   loading: boolean
   fetchSuggestions: (prefix: string) => void
 }
 
-// Debounce helper
 function debounce<T extends (...args: never[]) => unknown>(
   func: T,
   wait: number
@@ -27,40 +36,32 @@ function debounce<T extends (...args: never[]) => unknown>(
   }
 }
 
-export function useCityAutocomplete(type: CityType): UseCityAutocompleteResult {
+export function useCityAutocomplete(): UseCityAutocompleteResult {
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
-  const query = type === 'origin' ? CITY_ORIGINS : CITY_DESTINATIONS
+  const fetchSuggestionsInternal = useCallback(async (prefix: string) => {
+    if (!prefix || prefix.length < 2) {
+      setSuggestions([])
+      return
+    }
 
-  const fetchSuggestionsInternal = useCallback(
-    async (prefix: string) => {
-      if (!prefix || prefix.length < 2) {
-        setSuggestions([])
-        return
-      }
+    setLoading(true)
 
-      setLoading(true)
-
-      try {
-        const queryName = type === 'origin' ? 'cityOrigins' : 'cityDestinations'
-        const response = await graphqlClient.request<Record<string, string[]>>(
-          query,
-          {
-            prefix,
-            limit: 10,
-          }
-        )
-
-        setSuggestions(response[queryName] || [])
-      } catch {
-        setSuggestions([])
-      } finally {
-        setLoading(false)
-      }
-    },
-    [query, type]
-  )
+    try {
+      const response = await graphqlClient.request<SearchLocalitiesResponse>(
+        SEARCH_LOCALITIES,
+        { q: prefix, limit: 10 }
+      )
+      setSuggestions(
+        (response.searchLocalities ?? []).map((loc) => loc.displayName)
+      )
+    } catch {
+      setSuggestions([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   const fetchSuggestions = useMemo(
     () => debounce(fetchSuggestionsInternal, 300),
@@ -73,4 +74,3 @@ export function useCityAutocomplete(type: CityType): UseCityAutocompleteResult {
     fetchSuggestions,
   }
 }
-
