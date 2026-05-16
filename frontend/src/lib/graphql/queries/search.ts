@@ -4,21 +4,15 @@
 
 import { gql } from 'graphql-request'
 
-/**
- * Query to get city origin suggestions based on prefix
- */
-export const CITY_ORIGINS = gql`
-  query CityOrigins($prefix: String!, $limit: Int) {
-    cityOrigins(prefix: $prefix, limit: $limit)
-  }
-`
-
-/**
- * Query to get city destination suggestions based on prefix
- */
-export const CITY_DESTINATIONS = gql`
-  query CityDestinations($prefix: String!, $limit: Int) {
-    cityDestinations(prefix: $prefix, limit: $limit)
+export const SEARCH_LOCALITIES = gql`
+  query SearchLocalities($q: String!, $limit: Int) {
+    searchLocalities(q: $q, limit: $limit) {
+      id
+      name
+      province
+      department
+      displayName
+    }
   }
 `
 

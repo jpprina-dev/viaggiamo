@@ -32,7 +32,7 @@ export function CityAutocomplete({
   leftIcon,
   rightIcon,
 }: CityAutocompleteProps) {
-  const { suggestions, loading, fetchSuggestions } = useCityAutocomplete(type)
+  const { suggestions, loading, fetchSuggestions } = useCityAutocomplete()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)

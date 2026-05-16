@@ -50,6 +50,7 @@ services:
     volumes:
       - ./backend:/app
       - ./data:/data
+      - backend_venv:/app/.venv
     networks:
       - viaggiamo-network
     depends_on:
@@ -83,6 +84,8 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  backend_venv:
     driver: local
 
 networks:

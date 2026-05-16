@@ -3,6 +3,7 @@
 from app.models.base import Base
 from app.models.booking import Booking, BookingStatus
 from app.models.booking_audit_log import ActorRole, BookingAuditLog
+from app.models.locality import Department, Locality, Province
 from app.models.rating import Rating
 from app.models.request_decision_event import RequestDecisionEvent
 from app.models.trip import Trip
@@ -20,4 +21,7 @@ __all__ = [
     "Vehicle",
     "Rating",
     "RequestDecisionEvent",
+    "Province",
+    "Department",
+    "Locality",
 ]
