@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import strawberry
 
+from app.models.locality import Locality
+
 
 @strawberry.type
 class LocalitySuggestion:
@@ -14,7 +16,7 @@ class LocalitySuggestion:
     display_name: str
 
 
-def build_locality_suggestion(loc: object) -> LocalitySuggestion:
+def build_locality_suggestion(loc: Locality) -> LocalitySuggestion:
     display = f"{loc.name}, {loc.department_name}, {loc.province_name}"
     return LocalitySuggestion(
         id=loc.id,
