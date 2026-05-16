@@ -59,8 +59,14 @@ def upgrade() -> None:
     )
 
     op.execute("""
+        CREATE OR REPLACE FUNCTION immutable_unaccent(text)
+        RETURNS text LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE AS
+        $$ SELECT unaccent($1) $$;
+    """)
+
+    op.execute("""
         CREATE INDEX ix_localities_name_trgm
-        ON localities USING gin (unaccent(name) gin_trgm_ops);
+        ON localities USING gin (immutable_unaccent(name) gin_trgm_ops);
     """)
 
 
@@ -69,3 +75,4 @@ def downgrade() -> None:
     op.drop_table("localities")
     op.drop_table("departments")
     op.drop_table("provinces")
+    op.execute("DROP FUNCTION IF EXISTS immutable_unaccent(text);")
