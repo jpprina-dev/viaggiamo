@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import unicodedata
+
 import strawberry
 from sqlalchemy import case, func, select
 from strawberry.types import Info
@@ -9,6 +11,12 @@ from strawberry.types import Info
 from app.graphql.context import Context
 from app.graphql.types.locality import LocalitySuggestion, build_locality_suggestion
 from app.models.locality import Locality
+
+
+def _strip_accents(s: str) -> str:
+    return "".join(
+        c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn"
+    )
 
 
 @strawberry.type
@@ -24,7 +32,7 @@ class LocalityQueries:
             return []
 
         ctx = info.context
-        normalized = q.strip()
+        normalized = _strip_accents(q.strip())
 
         name_q = func.unaccent(Locality.name).ilike(f"%{normalized}%")
         dept_q = func.unaccent(Locality.department_name).ilike(f"%{normalized}%")

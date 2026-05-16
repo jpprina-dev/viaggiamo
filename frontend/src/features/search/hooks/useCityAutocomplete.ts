@@ -1,12 +1,8 @@
-/**
- * Hook for city autocomplete using the georef-ar locality catalog.
- */
-
 import { useCallback, useMemo, useState } from 'react'
 import { graphqlClient } from '@/lib/graphql-client'
 import { SEARCH_LOCALITIES } from '@/lib/graphql/queries/search'
 
-interface LocalitySuggestion {
+export interface LocalitySuggestion {
   id: string
   name: string
   province: string
@@ -19,7 +15,7 @@ interface SearchLocalitiesResponse {
 }
 
 export interface UseCityAutocompleteResult {
-  suggestions: string[]
+  suggestions: LocalitySuggestion[]
   loading: boolean
   fetchSuggestions: (prefix: string) => void
 }
@@ -37,7 +33,7 @@ function debounce<T extends (...args: never[]) => unknown>(
 }
 
 export function useCityAutocomplete(): UseCityAutocompleteResult {
-  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestions, setSuggestions] = useState<LocalitySuggestion[]>([])
   const [loading, setLoading] = useState(false)
 
   const fetchSuggestionsInternal = useCallback(async (prefix: string) => {
@@ -53,9 +49,7 @@ export function useCityAutocomplete(): UseCityAutocompleteResult {
         SEARCH_LOCALITIES,
         { q: prefix, limit: 10 }
       )
-      setSuggestions(
-        (response.searchLocalities ?? []).map((loc) => loc.displayName)
-      )
+      setSuggestions(response.searchLocalities ?? [])
     } catch {
       setSuggestions([])
     } finally {

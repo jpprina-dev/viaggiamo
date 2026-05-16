@@ -60,6 +60,16 @@ def test_locality_models_have_string_pk() -> None:
     assert "department_name" in cols
 
 
+def test_locality_model_has_lat_lng() -> None:
+    from app.models.locality import Locality
+
+    cols = {c.key: c for c in Locality.__table__.columns}
+    assert "lat" in cols
+    assert "lng" in cols
+    assert not cols["lat"].nullable
+    assert not cols["lng"].nullable
+
+
 def test_province_pk_is_string() -> None:
     from app.models.locality import Province
 
@@ -133,6 +143,22 @@ async def test_search_localities_respects_limit() -> None:
     assert len(results) == 5
 
 
+@pytest.mark.asyncio
+async def test_search_localities_by_department_name() -> None:
+    """Localidades encontradas por partido/departamento aparecen en resultados."""
+    from app.graphql.resolvers.locality import LocalityQueries
+
+    db = AsyncMock()
+    info = _make_info(db)
+    loc = _make_locality("001", "La Emilia", "Buenos Aires", "San Nicolás")
+    _mock_db_result(db, [loc])
+
+    results = await LocalityQueries().search_localities(info, q="San Nico", limit=10)
+    assert len(results) == 1
+    assert results[0].department == "San Nicolás"
+    assert results[0].display_name == "La Emilia, San Nicolás, Buenos Aires"
+
+
 # ---------------------------------------------------------------------------
 # Ciclo 4: displayName con y sin colisión
 # ---------------------------------------------------------------------------
@@ -163,12 +189,27 @@ def test_display_name_unique_locality_shows_department_and_province() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Ciclo 5: Schema expone searchLocalities
+# Ciclo 5: Normalización de acentos en el query
+# ---------------------------------------------------------------------------
+
+
+def test_strip_accents_removes_diacritics() -> None:
+    from app.graphql.resolvers.locality import _strip_accents
+
+    assert _strip_accents("córdo") == "cordo"
+    assert _strip_accents("Córdoba") == "Cordoba"
+    assert _strip_accents("bahía") == "bahia"
+    assert _strip_accents("Martín") == "Martin"
+    assert _strip_accents("sin acentos") == "sin acentos"
+
+
+# ---------------------------------------------------------------------------
+# Ciclo 6: Schema expone searchLocalities
 # ---------------------------------------------------------------------------
 
 
 # ---------------------------------------------------------------------------
-# Ciclo 6: Script de importación idempotente
+# Ciclo 7: Script de importación idempotente
 # ---------------------------------------------------------------------------
 
 

@@ -5,12 +5,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useCityAutocomplete } from '../hooks/useCityAutocomplete'
+import { LocalitySuggestion, useCityAutocomplete } from '../hooks/useCityAutocomplete'
 
 interface CityAutocompleteProps {
   type: 'origin' | 'destination'
   value: string
   onChange: (value: string) => void
+  onSelectLocality?: (locality: LocalitySuggestion) => void
   onBlur?: () => void
   placeholder?: string
   error?: string
@@ -24,6 +25,7 @@ export function CityAutocomplete({
   type,
   value,
   onChange,
+  onSelectLocality,
   onBlur,
   placeholder,
   error,
@@ -68,14 +70,14 @@ export function CityAutocomplete({
   }
   
   const handleInputFocus = () => {
-    // Only open dropdown if there's a value and we have suggestions
     if (value && value.length >= 2 && suggestions.length > 0) {
       setIsOpen(true)
     }
   }
 
-  const handleSelectSuggestion = (city: string) => {
-    onChange(city)
+  const handleSelectSuggestion = (suggestion: LocalitySuggestion) => {
+    onChange(suggestion.displayName)
+    onSelectLocality?.(suggestion)
     setIsOpen(false)
     setSelectedIndex(-1)
     inputRef.current?.blur()
@@ -98,7 +100,7 @@ export function CityAutocomplete({
       case 'Enter':
         e.preventDefault()
         if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
-          handleSelectSuggestion(suggestions[selectedIndex])
+          handleSelectSuggestion(suggestions[selectedIndex]!)
         }
         break
       case 'Escape':
@@ -172,9 +174,9 @@ export function CityAutocomplete({
           role="listbox"
           className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg"
         >
-          {suggestions.map((city, index) => (
+          {suggestions.map((suggestion, index) => (
             <button
-              key={city}
+              key={suggestion.id}
               type="button"
               role="option"
               aria-selected={index === selectedIndex}
@@ -183,10 +185,10 @@ export function CityAutocomplete({
                   ? 'bg-primary-100 text-primary-700'
                   : 'hover:bg-gray-50'
               }`}
-              onClick={() => handleSelectSuggestion(city)}
+              onClick={() => handleSelectSuggestion(suggestion)}
               onMouseEnter={() => setSelectedIndex(index)}
             >
-              {city}
+              {suggestion.displayName}
             </button>
           ))}
         </div>

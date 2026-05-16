@@ -54,6 +54,8 @@ def upgrade() -> None:
         ),
         sa.Column("province_name", sa.String(100), nullable=False),
         sa.Column("department_name", sa.String(100), nullable=False),
+        sa.Column("lat", sa.Float, nullable=False),
+        sa.Column("lng", sa.Float, nullable=False),
     )
 
     op.execute("""
