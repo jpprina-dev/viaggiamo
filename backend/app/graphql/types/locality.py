@@ -14,13 +14,8 @@ class LocalitySuggestion:
     display_name: str
 
 
-def build_locality_suggestion(
-    loc: object, *, has_name_collision: bool
-) -> LocalitySuggestion:
-    if has_name_collision:
-        display = f"{loc.name} ({loc.department_name}), {loc.province_name}"
-    else:
-        display = f"{loc.name}, {loc.province_name}"
+def build_locality_suggestion(loc: object) -> LocalitySuggestion:
+    display = f"{loc.name}, {loc.department_name}, {loc.province_name}"
     return LocalitySuggestion(
         id=loc.id,
         name=loc.name,

@@ -138,28 +138,28 @@ async def test_search_localities_respects_limit() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_display_name_no_collision() -> None:
+def test_display_name_includes_department() -> None:
     from app.graphql.types.locality import build_locality_suggestion
 
     loc = _make_locality("001", "Bahía Blanca", "Buenos Aires", "Bahía Blanca")
-    result = build_locality_suggestion(loc, has_name_collision=False)
-    assert result.display_name == "Bahía Blanca, Buenos Aires"
+    result = build_locality_suggestion(loc)
+    assert result.display_name == "Bahía Blanca, Bahía Blanca, Buenos Aires"
 
 
-def test_display_name_with_collision() -> None:
+def test_display_name_always_shows_department() -> None:
     from app.graphql.types.locality import build_locality_suggestion
 
     loc = _make_locality("002", "San Martín", "Córdoba", "Gral. San Martín")
-    result = build_locality_suggestion(loc, has_name_collision=True)
-    assert result.display_name == "San Martín (Gral. San Martín), Córdoba"
+    result = build_locality_suggestion(loc)
+    assert result.display_name == "San Martín, Gral. San Martín, Córdoba"
 
 
-def test_display_name_unique_locality_shows_province() -> None:
+def test_display_name_unique_locality_shows_department_and_province() -> None:
     from app.graphql.types.locality import build_locality_suggestion
 
     loc = _make_locality("003", "Mendoza", "Mendoza", "Capital")
-    result = build_locality_suggestion(loc, has_name_collision=False)
-    assert result.display_name == "Mendoza, Mendoza"
+    result = build_locality_suggestion(loc)
+    assert result.display_name == "Mendoza, Capital, Mendoza"
 
 
 # ---------------------------------------------------------------------------

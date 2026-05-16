@@ -61,6 +61,8 @@ async def import_localities(db: AsyncSession, csv_path: Path) -> int:
     with open(csv_path, encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            if row["localidad_categoria"] == "Entidad":
+                continue
             await db.execute(
                 text(
                     "INSERT INTO localities "

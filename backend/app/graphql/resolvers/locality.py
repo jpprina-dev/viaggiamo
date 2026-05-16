@@ -26,9 +26,12 @@ class LocalityQueries:
         ctx = info.context
         normalized = q.strip()
 
+        name_q = func.unaccent(Locality.name).ilike(f"%{normalized}%")
+        dept_q = func.unaccent(Locality.department_name).ilike(f"%{normalized}%")
+
         stmt = (
             select(Locality)
-            .where(func.unaccent(Locality.name).ilike(f"%{normalized}%"))
+            .where(name_q | dept_q)
             .order_by(
                 case(
                     (func.unaccent(Locality.name).ilike(f"{normalized}%"), 0), else_=1
@@ -40,18 +43,4 @@ class LocalityQueries:
         result = await ctx.db.execute(stmt)
         rows = result.scalars().all()
 
-        name_province_counts: dict[tuple[str, str], int] = {}
-        for row in rows:
-            key = (row.name.lower(), row.province_name.lower())
-            name_province_counts[key] = name_province_counts.get(key, 0) + 1
-
-        return [
-            build_locality_suggestion(
-                row,
-                has_name_collision=name_province_counts[
-                    (row.name.lower(), row.province_name.lower())
-                ]
-                > 1,
-            )
-            for row in rows
-        ]
+        return [build_locality_suggestion(row) for row in rows]
