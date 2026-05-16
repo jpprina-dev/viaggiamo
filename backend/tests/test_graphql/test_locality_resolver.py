@@ -156,7 +156,7 @@ async def test_search_localities_by_department_name() -> None:
     results = await LocalityQueries().search_localities(info, q="San Nico", limit=10)
     assert len(results) == 1
     assert results[0].department == "San Nicolás"
-    assert results[0].display_name == "La Emilia, San Nicolás, Buenos Aires"
+    assert results[0].display_name == "La Emilia, Buenos Aires"
 
 
 # ---------------------------------------------------------------------------
@@ -164,28 +164,58 @@ async def test_search_localities_by_department_name() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_display_name_includes_department() -> None:
+def test_display_name_without_collision_omits_department() -> None:
     from app.graphql.types.locality import build_locality_suggestion
 
     loc = _make_locality("001", "Bahía Blanca", "Buenos Aires", "Bahía Blanca")
     result = build_locality_suggestion(loc)
-    assert result.display_name == "Bahía Blanca, Bahía Blanca, Buenos Aires"
+    assert result.display_name == "Bahía Blanca, Buenos Aires"
 
 
-def test_display_name_always_shows_department() -> None:
+def test_display_name_with_department_flag_includes_department() -> None:
     from app.graphql.types.locality import build_locality_suggestion
 
     loc = _make_locality("002", "San Martín", "Córdoba", "Gral. San Martín")
-    result = build_locality_suggestion(loc)
+    result = build_locality_suggestion(loc, with_department=True)
     assert result.display_name == "San Martín, Gral. San Martín, Córdoba"
 
 
-def test_display_name_unique_locality_shows_department_and_province() -> None:
+def test_display_name_unique_locality_shows_only_province() -> None:
     from app.graphql.types.locality import build_locality_suggestion
 
     loc = _make_locality("003", "Mendoza", "Mendoza", "Capital")
     result = build_locality_suggestion(loc)
-    assert result.display_name == "Mendoza, Capital, Mendoza"
+    assert result.display_name == "Mendoza, Mendoza"
+
+
+@pytest.mark.asyncio
+async def test_display_name_shows_department_on_name_collision() -> None:
+    """Dos localidades con mismo nombre y provincia reciben el departamento en displayName."""
+    from app.graphql.resolvers.locality import LocalityQueries
+
+    db = AsyncMock()
+    info = _make_info(db)
+    loc1 = _make_locality("001", "San Martín", "Buenos Aires", "Gral. San Martín")
+    loc2 = _make_locality("002", "San Martín", "Buenos Aires", "La Matanza")
+    _mock_db_result(db, [loc1, loc2])
+
+    results = await LocalityQueries().search_localities(info, q="San Mart", limit=10)
+    assert results[0].display_name == "San Martín, Gral. San Martín, Buenos Aires"
+    assert results[1].display_name == "San Martín, La Matanza, Buenos Aires"
+
+
+@pytest.mark.asyncio
+async def test_display_name_no_department_when_no_collision() -> None:
+    """Localidad sin colisión de nombre+provincia no muestra departamento."""
+    from app.graphql.resolvers.locality import LocalityQueries
+
+    db = AsyncMock()
+    info = _make_info(db)
+    loc = _make_locality("001", "Rosario", "Santa Fe", "Rosario")
+    _mock_db_result(db, [loc])
+
+    results = await LocalityQueries().search_localities(info, q="Rosari", limit=10)
+    assert results[0].display_name == "Rosario, Santa Fe"
 
 
 # ---------------------------------------------------------------------------

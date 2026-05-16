@@ -51,4 +51,16 @@ class LocalityQueries:
         result = await ctx.db.execute(stmt)
         rows = result.scalars().all()
 
-        return [build_locality_suggestion(row) for row in rows]
+        # Detectar colisiones: localidades con mismo nombre y provincia en esta página
+        name_province_counts: dict[tuple[str, str], int] = {}
+        for row in rows:
+            key = (row.name, row.province_name)
+            name_province_counts[key] = name_province_counts.get(key, 0) + 1
+
+        return [
+            build_locality_suggestion(
+                row,
+                with_department=name_province_counts[(row.name, row.province_name)] > 1,
+            )
+            for row in rows
+        ]

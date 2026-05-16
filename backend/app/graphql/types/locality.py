@@ -16,8 +16,13 @@ class LocalitySuggestion:
     display_name: str
 
 
-def build_locality_suggestion(loc: Locality) -> LocalitySuggestion:
-    display = f"{loc.name}, {loc.department_name}, {loc.province_name}"
+def build_locality_suggestion(
+    loc: Locality, *, with_department: bool = False
+) -> LocalitySuggestion:
+    if with_department:
+        display = f"{loc.name}, {loc.department_name}, {loc.province_name}"
+    else:
+        display = f"{loc.name}, {loc.province_name}"
     return LocalitySuggestion(
         id=loc.id,
         name=loc.name,
