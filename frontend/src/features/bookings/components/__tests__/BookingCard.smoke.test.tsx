@@ -28,8 +28,8 @@ const baseBooking: BookingWithTrip = {
   bookingTime: '2026-03-20T10:00:00',
   trip: {
     id: 10,
-    origin: 'Buenos Aires',
-    destination: 'Rosario',
+    originName: 'Buenos Aires',
+    destinationName: 'Rosario',
     departureTime: '2026-03-25T08:00:00',
     pricePerSeat: 5000,
     isActive: true,

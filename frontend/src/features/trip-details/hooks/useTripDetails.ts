@@ -13,8 +13,8 @@ const GET_TRIP = gql`
       id
       driverId
       vehicleId
-      origin
-      destination
+      originName
+      destinationName
       departureTime
       availableSeats
       totalSeats

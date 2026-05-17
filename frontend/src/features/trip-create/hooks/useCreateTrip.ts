@@ -11,8 +11,10 @@ const CREATE_TRIP_MUTATION = gql`
   mutation CreateTrip($tripInput: TripCreateInput!) {
     createTrip(tripInput: $tripInput) {
       id
-      origin
-      destination
+      originLocalityId
+      destinationLocalityId
+      originName
+      destinationName
       departureTime
       availableSeats
       totalSeats

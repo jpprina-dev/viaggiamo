@@ -42,8 +42,10 @@ export const SEARCH_TRIPS = gql`
     ) {
       trip {
         id
-        origin
-        destination
+        originLocalityId
+        destinationLocalityId
+        originName
+        destinationName
         departureTime
         pricePerSeat
         availableSeats

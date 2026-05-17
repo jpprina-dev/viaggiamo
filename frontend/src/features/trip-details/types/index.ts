@@ -6,8 +6,8 @@ export interface TripDetails {
   id: number
   driverId: number
   vehicleId: number
-  origin: string
-  destination: string
+  originName: string
+  destinationName: string
   departureTime: string
   availableSeats: number
   totalSeats: number

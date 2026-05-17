@@ -42,8 +42,8 @@ export interface BookingDetail {
   passengerId: number
   trip: {
     id: number
-    origin: string
-    destination: string
+    originName: string
+    destinationName: string
     departureTime: string
     pricePerSeat: number
     driverId: number
@@ -76,8 +76,8 @@ export const bookingDetailSchema = z.object({
   passengerId: z.number(),
   trip: z.object({
     id: z.number(),
-    origin: z.string(),
-    destination: z.string(),
+    originName: z.string(),
+    destinationName: z.string(),
     departureTime: z.string(),
     pricePerSeat: z.union([z.number(), z.string()]),
     driverId: z.number(),
@@ -110,8 +110,8 @@ export interface DriverInfo {
 
 export interface TripInfo {
   id: number
-  origin: string
-  destination: string
+  originName: string
+  destinationName: string
   departureTime: string
   pricePerSeat: number
   isActive: boolean

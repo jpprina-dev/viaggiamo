@@ -6,8 +6,8 @@ import type { DriverTripWithPassengers } from '../../types'
 const tripHistory: DriverTripWithPassengers = {
   trip: {
     id: 1,
-    origin: 'Buenos Aires',
-    destination: 'Rosario',
+    originName: 'Buenos Aires',
+    destinationName: 'Rosario',
     departureTime: '2026-03-20T08:00:00',
     pricePerSeat: 5000,
     isActive: false,

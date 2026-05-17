@@ -20,8 +20,8 @@ const MY_BOOKINGS_WITH_DETAILS = gql`
       notes
       trip {
         id
-        origin
-        destination
+        originName
+        destinationName
         departureTime
         pricePerSeat
         isActive

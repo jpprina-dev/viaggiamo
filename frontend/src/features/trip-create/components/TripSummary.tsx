@@ -74,7 +74,7 @@ export function TripSummary({
           <div className="flex items-center gap-3">
             <MapPin className="h-5 w-5 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-lg font-semibold truncate">{formData.origin || 'Origen'}</p>
+              <p className="text-lg font-semibold truncate">{formData.originLabel || 'Origen'}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 mt-2 pl-8">
@@ -83,7 +83,7 @@ export function TripSummary({
           <div className="flex items-center gap-3 mt-2">
             <MapPin className="h-5 w-5 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-lg font-semibold truncate">{formData.destination || 'Destino'}</p>
+              <p className="text-lg font-semibold truncate">{formData.destinationLabel || 'Destino'}</p>
             </div>
           </div>
         </div>

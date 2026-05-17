@@ -29,8 +29,8 @@ const makeBooking = (overrides: Partial<BookingWithTrip> & { trip?: Partial<Book
   ...overrides,
   trip: {
     id: 10,
-    origin: 'Buenos Aires',
-    destination: 'Rosario',
+    originName: 'Buenos Aires',
+    destinationName: 'Rosario',
     departureTime: '2026-03-25T08:00:00',
     pricePerSeat: 5000,
     isActive: true,
@@ -43,7 +43,7 @@ const makeBooking = (overrides: Partial<BookingWithTrip> & { trip?: Partial<Book
 describe('BookingsView with filter=active', () => {
   it('excludes booking with inactive trip and non-rejected status', () => {
     const bookings = [
-      makeBooking({ id: 1, status: 'pending', trip: { id: 10, origin: 'InactiveTrip', destination: 'X', departureTime: '2026-03-25T08:00:00', pricePerSeat: 1000, isActive: false, isCompleted: false, driver: { id: 2, name: 'A', lastName: 'B', username: 'ab' } } }),
+      makeBooking({ id: 1, status: 'pending', trip: { id: 10, originName: 'InactiveTrip', destinationName: 'X', departureTime: '2026-03-25T08:00:00', pricePerSeat: 1000, isActive: false, isCompleted: false, driver: { id: 2, name: 'A', lastName: 'B', username: 'ab' } } }),
     ]
     render(<BookingsView bookings={bookings} filter="active" />)
     expect(screen.queryByText('InactiveTrip')).not.toBeInTheDocument()
@@ -51,7 +51,7 @@ describe('BookingsView with filter=active', () => {
 
   it('includes booking with active trip', () => {
     const bookings = [
-      makeBooking({ id: 2, status: 'pending', trip: { id: 11, origin: 'ActiveTrip', destination: 'Y', departureTime: '2026-03-25T08:00:00', pricePerSeat: 1000, isActive: true, isCompleted: false, driver: { id: 2, name: 'A', lastName: 'B', username: 'ab' } } }),
+      makeBooking({ id: 2, status: 'pending', trip: { id: 11, originName: 'ActiveTrip', destinationName: 'Y', departureTime: '2026-03-25T08:00:00', pricePerSeat: 1000, isActive: true, isCompleted: false, driver: { id: 2, name: 'A', lastName: 'B', username: 'ab' } } }),
     ]
     render(<BookingsView bookings={bookings} filter="active" />)
     expect(screen.getByText('ActiveTrip')).toBeInTheDocument()
@@ -59,7 +59,7 @@ describe('BookingsView with filter=active', () => {
 
   it('excludes rejected booking when trip is inactive', () => {
     const bookings = [
-      makeBooking({ id: 3, status: 'rejected', trip: { id: 12, origin: 'RejectedInactive', destination: 'Z', departureTime: '2026-03-25T08:00:00', pricePerSeat: 1000, isActive: false, isCompleted: false, driver: { id: 2, name: 'A', lastName: 'B', username: 'ab' } } }),
+      makeBooking({ id: 3, status: 'rejected', trip: { id: 12, originName: 'RejectedInactive', destinationName: 'Z', departureTime: '2026-03-25T08:00:00', pricePerSeat: 1000, isActive: false, isCompleted: false, driver: { id: 2, name: 'A', lastName: 'B', username: 'ab' } } }),
     ]
     render(<BookingsView bookings={bookings} filter="active" />)
     expect(screen.queryByText('RejectedInactive')).not.toBeInTheDocument()

@@ -17,8 +17,8 @@ const GET_BOOKING = gql`
       passengerId
       trip {
         id
-        origin
-        destination
+        originName
+        destinationName
         departureTime
         pricePerSeat
         driverId

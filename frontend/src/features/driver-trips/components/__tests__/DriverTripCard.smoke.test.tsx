@@ -26,8 +26,8 @@ vi.mock('@/features/bookings/components/BookingActionPanel', () => ({
 
 const baseTrip: DriverTripInfo = {
   id: 10,
-  origin: 'Buenos Aires',
-  destination: 'Rosario',
+  originName: 'Buenos Aires',
+  destinationName: 'Rosario',
   departureTime: '2026-03-25T08:00:00',
   availableSeats: 2,
   totalSeats: 4,

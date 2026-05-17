@@ -27,11 +27,11 @@ export function DriverHistoryCard({ tripHistory }: DriverHistoryCardProps) {
         <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
           <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-            {trip.origin}
+            {trip.originName}
           </h3>
           <span className="text-gray-400 flex-shrink-0 text-sm sm:text-base">→</span>
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-            {trip.destination}
+            {trip.destinationName}
           </h3>
         </div>
 

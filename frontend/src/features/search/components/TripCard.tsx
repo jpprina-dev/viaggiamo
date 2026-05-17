@@ -53,8 +53,8 @@ export function TripCard({ result }: TripCardProps) {
                 <MapPin className="h-4 w-4 text-primary-container flex-shrink-0" />
               </div>
               <div className="flex flex-col gap-3.5">
-                <span className="text-title-sm text-on-surface">{trip.origin}</span>
-                <span className="text-title-sm text-on-surface">{trip.destination}</span>
+                <span className="text-title-sm text-on-surface">{trip.originName}</span>
+                <span className="text-title-sm text-on-surface">{trip.destinationName}</span>
               </div>
             </div>
             <p className="text-body-md text-on-surface-variant mt-1">

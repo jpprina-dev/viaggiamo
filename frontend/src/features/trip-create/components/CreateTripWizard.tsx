@@ -44,8 +44,10 @@ export function CreateTripWizard() {
   const form = useForm<CreateTripFormData>({
     resolver: zodResolver(createTripFormSchema),
     defaultValues: {
-      origin: '',
-      destination: '',
+      originLabel: '',
+      destinationLabel: '',
+      originLocalityId: '',
+      destinationLocalityId: '',
       departureDate: '',
       departureTime: '',
       vehicleId: 0,
@@ -94,8 +96,8 @@ export function CreateTripWizard() {
       const departureDateTime = new Date(`${data.departureDate}T${data.departureTime}`)
       
       const tripInput: TripCreateInput = {
-        origin: data.origin,
-        destination: data.destination,
+        originLocalityId: data.originLocalityId,
+        destinationLocalityId: data.destinationLocalityId,
         departureTime: departureDateTime.toISOString(),
         vehicleId: data.vehicleId,
         totalSeats: data.totalSeats,

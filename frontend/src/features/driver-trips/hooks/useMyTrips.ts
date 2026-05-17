@@ -12,8 +12,8 @@ const MY_TRIPS = gql`
   query MyTrips {
     myTrips {
       id
-      origin
-      destination
+      originName
+      destinationName
       departureTime
       availableSeats
       totalSeats

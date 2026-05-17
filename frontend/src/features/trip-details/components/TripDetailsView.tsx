@@ -159,8 +159,8 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
       <div className="mx-auto max-w-4xl px-4 py-8">
         {/* Trip Header */}
         <TripHeader
-          origin={trip.origin}
-          destination={trip.destination}
+          origin={trip.originName}
+          destination={trip.destinationName}
           departureTime={trip.departureTime}
           isActive={trip.isActive}
           isCompleted={trip.isCompleted}
