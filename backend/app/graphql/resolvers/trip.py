@@ -23,6 +23,7 @@ from app.graphql.types.trip import to_trip_type
 from app.graphql.types.user import to_user_type
 from app.graphql.types.vehicle import to_vehicle_type
 from app.models.booking import Booking
+from app.models.locality import Locality
 from app.models.request_decision_event import RequestDecisionEvent
 from app.models.trip import Trip
 from app.models.user import User
@@ -388,11 +389,29 @@ class TripMutations:
         if trip_input.price_per_seat <= 0:
             raise ValidationError("Price per seat must be greater than 0")
 
+        # Validate origin locality exists and capture name snapshot
+        result = await context.db.execute(
+            select(Locality).where(Locality.id == trip_input.origin_locality_id)
+        )
+        origin_locality = result.scalar_one_or_none()
+        if not origin_locality:
+            raise ValidationError("Origin locality not found")
+
+        # Validate destination locality exists and capture name snapshot
+        result = await context.db.execute(
+            select(Locality).where(Locality.id == trip_input.destination_locality_id)
+        )
+        destination_locality = result.scalar_one_or_none()
+        if not destination_locality:
+            raise ValidationError("Destination locality not found")
+
         db_trip = Trip()
         db_trip.driver_id = user.id
         db_trip.vehicle_id = trip_input.vehicle_id
         db_trip.origin_locality_id = trip_input.origin_locality_id
         db_trip.destination_locality_id = trip_input.destination_locality_id
+        db_trip.origin_name = origin_locality.name
+        db_trip.destination_name = destination_locality.name
         db_trip.departure_time = trip_input.departure_time
         db_trip.available_seats = trip_input.total_seats
         db_trip.total_seats = trip_input.total_seats

@@ -12,6 +12,7 @@ from app.graphql.resolvers.trip import TripMutations
 from app.graphql.types.booking import BookingUpdateInput
 from app.graphql.types.trip import TripCreateInput, TripUpdateInput
 from app.models.booking import Booking, BookingStatus
+from app.models.locality import Locality
 from app.models.trip import Trip
 from app.models.user import User
 from app.models.vehicle import Vehicle
@@ -348,8 +349,22 @@ def _ctx_for_create_trip(driver_id: int, vehicle: Vehicle) -> Context:
     vehicle_result = MagicMock()
     vehicle_result.scalar_one_or_none.return_value = vehicle
 
+    mock_origin = MagicMock(spec=Locality)
+    mock_origin.id = "060700"
+    mock_origin.name = "Buenos Aires"
+    origin_result = MagicMock()
+    origin_result.scalar_one_or_none.return_value = mock_origin
+
+    mock_destination = MagicMock(spec=Locality)
+    mock_destination.id = "140150"
+    mock_destination.name = "Córdoba"
+    destination_result = MagicMock()
+    destination_result.scalar_one_or_none.return_value = mock_destination
+
     db = MagicMock()
-    db.execute = AsyncMock(return_value=vehicle_result)
+    db.execute = AsyncMock(
+        side_effect=[vehicle_result, origin_result, destination_result]
+    )
     db.add = MagicMock()
     db.commit = AsyncMock()
     db.refresh = AsyncMock()
@@ -411,8 +426,22 @@ async def test_create_trip_accepts_total_seats_equal_to_vehicle_capacity_minus_o
     vehicle_result = MagicMock()
     vehicle_result.scalar_one_or_none.return_value = vehicle
 
+    mock_origin = MagicMock(spec=Locality)
+    mock_origin.id = "060700"
+    mock_origin.name = "Buenos Aires"
+    origin_result = MagicMock()
+    origin_result.scalar_one_or_none.return_value = mock_origin
+
+    mock_destination = MagicMock(spec=Locality)
+    mock_destination.id = "140150"
+    mock_destination.name = "Córdoba"
+    destination_result = MagicMock()
+    destination_result.scalar_one_or_none.return_value = mock_destination
+
     db = MagicMock()
-    db.execute = AsyncMock(return_value=vehicle_result)
+    db.execute = AsyncMock(
+        side_effect=[vehicle_result, origin_result, destination_result]
+    )
     db.add = MagicMock()
     db.commit = AsyncMock()
 

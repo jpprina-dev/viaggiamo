@@ -9,6 +9,7 @@ from app.graphql.context import Context
 from app.graphql.exceptions import AuthenticationError
 from app.graphql.resolvers.trip import TripMutations, TripQueries
 from app.graphql.types.trip import TripCreateInput, TripUpdateInput
+from app.models.locality import Locality
 from app.models.trip import Trip
 from app.models.user import User
 from app.models.vehicle import Vehicle
@@ -339,15 +340,38 @@ class TestTripMutations:
         mock_trip.created_at = "2024-01-01T00:00:00Z"
         mock_trip.updated_at = "2024-01-01T00:00:00Z"
 
+        # Mock localities
+        mock_origin_locality = MagicMock(spec=Locality)
+        mock_origin_locality.id = "060700"
+        mock_origin_locality.name = "Madrid"
+
+        mock_destination_locality = MagicMock(spec=Locality)
+        mock_destination_locality.id = "140150"
+        mock_destination_locality.name = "Barcelona"
+
         # Mock database results
         mock_vehicle_result = MagicMock()
         mock_vehicle_result.scalar_one_or_none.return_value = mock_vehicle
+
+        mock_origin_result = MagicMock()
+        mock_origin_result.scalar_one_or_none.return_value = mock_origin_locality
+
+        mock_destination_result = MagicMock()
+        mock_destination_result.scalar_one_or_none.return_value = (
+            mock_destination_locality
+        )
 
         # Mock context
         mock_context = MagicMock(spec=Context)
         mock_context.user = mock_user
         mock_context.db = MagicMock()
-        mock_context.db.execute = AsyncMock(return_value=mock_vehicle_result)
+        mock_context.db.execute = AsyncMock(
+            side_effect=[
+                mock_vehicle_result,
+                mock_origin_result,
+                mock_destination_result,
+            ]
+        )
         mock_context.db.add = MagicMock()
         mock_context.db.commit = AsyncMock()
         mock_context.db.refresh = AsyncMock()
@@ -415,10 +439,32 @@ class TestTripMutations:
         mock_vehicle_result = MagicMock()
         mock_vehicle_result.scalar_one_or_none.return_value = mock_vehicle
 
+        mock_origin_locality = MagicMock(spec=Locality)
+        mock_origin_locality.id = "060700"
+        mock_origin_locality.name = "Bogota"
+
+        mock_destination_locality = MagicMock(spec=Locality)
+        mock_destination_locality.id = "060098"
+        mock_destination_locality.name = "Medellin"
+
+        mock_origin_result = MagicMock()
+        mock_origin_result.scalar_one_or_none.return_value = mock_origin_locality
+
+        mock_destination_result = MagicMock()
+        mock_destination_result.scalar_one_or_none.return_value = (
+            mock_destination_locality
+        )
+
         mock_context = MagicMock(spec=Context)
         mock_context.user = mock_user
         mock_context.db = MagicMock()
-        mock_context.db.execute = AsyncMock(return_value=mock_vehicle_result)
+        mock_context.db.execute = AsyncMock(
+            side_effect=[
+                mock_vehicle_result,
+                mock_origin_result,
+                mock_destination_result,
+            ]
+        )
         mock_context.db.add = MagicMock()
         mock_context.db.commit = AsyncMock()
         mock_context.db.refresh = AsyncMock()
@@ -462,6 +508,190 @@ class TestTripMutations:
 
             assert result.is_active is True
             assert result.is_completed is False
+
+    @pytest.mark.asyncio
+    async def test_create_trip_with_valid_locality_sets_snapshot(self):
+        """Test that create_trip fills origin_name and destination_name from locality DB."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_vehicle = MagicMock(spec=Vehicle)
+        mock_vehicle.user_id = 1
+        mock_vehicle.is_active = True
+        mock_vehicle.seats = 5
+
+        mock_origin_locality = MagicMock(spec=Locality)
+        mock_origin_locality.id = "060700"
+        mock_origin_locality.name = "Rosario"
+
+        mock_destination_locality = MagicMock(spec=Locality)
+        mock_destination_locality.id = "140150"
+        mock_destination_locality.name = "Córdoba"
+
+        mock_vehicle_result = MagicMock()
+        mock_vehicle_result.scalar_one_or_none.return_value = mock_vehicle
+
+        mock_origin_result = MagicMock()
+        mock_origin_result.scalar_one_or_none.return_value = mock_origin_locality
+
+        mock_destination_result = MagicMock()
+        mock_destination_result.scalar_one_or_none.return_value = (
+            mock_destination_locality
+        )
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(
+            side_effect=[
+                mock_vehicle_result,
+                mock_origin_result,
+                mock_destination_result,
+            ]
+        )
+        mock_context.db.add = MagicMock()
+        mock_context.db.commit = AsyncMock()
+        mock_context.db.refresh = AsyncMock()
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        trip_input = TripCreateInput(
+            origin_locality_id="060700",
+            destination_locality_id="140150",
+            departure_time="2024-01-15T10:00:00Z",
+            vehicle_id=1,
+            total_seats=4,
+            price_per_seat=25.50,
+            trip_legal_compliance_ack=True,
+        )
+
+        mutations = TripMutations()
+
+        with patch("app.graphql.resolvers.trip.Trip") as mock_trip_class:
+            mock_trip_instance = MagicMock()
+            mock_trip_instance.id = 1
+            mock_trip_instance.driver_id = 1
+            mock_trip_instance.vehicle_id = 1
+            mock_trip_instance.origin_locality_id = "060700"
+            mock_trip_instance.destination_locality_id = "140150"
+            mock_trip_instance.origin_name = "Rosario"
+            mock_trip_instance.destination_name = "Córdoba"
+            mock_trip_instance.departure_time = "2024-01-15T10:00:00Z"
+            mock_trip_instance.available_seats = 4
+            mock_trip_instance.total_seats = 4
+            mock_trip_instance.price_per_seat = 25.50
+            mock_trip_instance.description = None
+            mock_trip_instance.is_active = True
+            mock_trip_instance.is_completed = False
+            mock_trip_instance.trip_legal_compliance_ack = True
+            mock_trip_instance.created_at = "2024-01-01T00:00:00Z"
+            mock_trip_instance.updated_at = "2024-01-01T00:00:00Z"
+            mock_trip_class.return_value = mock_trip_instance
+
+            result = await mutations.create_trip(mock_info, trip_input)
+
+            # Verify the snapshot names were set from the locality
+            assert mock_trip_instance.origin_name == "Rosario"
+            assert mock_trip_instance.destination_name == "Córdoba"
+            assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_create_trip_with_invalid_origin_locality_raises_error(self):
+        """Test that create_trip raises ValidationError when origin locality does not exist."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_vehicle = MagicMock(spec=Vehicle)
+        mock_vehicle.user_id = 1
+        mock_vehicle.is_active = True
+        mock_vehicle.seats = 5
+
+        mock_vehicle_result = MagicMock()
+        mock_vehicle_result.scalar_one_or_none.return_value = mock_vehicle
+
+        # Origin locality not found
+        mock_origin_result = MagicMock()
+        mock_origin_result.scalar_one_or_none.return_value = None
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(
+            side_effect=[mock_vehicle_result, mock_origin_result]
+        )
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        trip_input = TripCreateInput(
+            origin_locality_id="INVALID_ID",
+            destination_locality_id="140150",
+            departure_time="2024-01-15T10:00:00Z",
+            vehicle_id=1,
+            total_seats=4,
+            price_per_seat=25.50,
+            trip_legal_compliance_ack=True,
+        )
+
+        mutations = TripMutations()
+
+        with pytest.raises(ValueError, match="Origin locality not found"):
+            await mutations.create_trip(mock_info, trip_input)
+
+    @pytest.mark.asyncio
+    async def test_create_trip_with_invalid_destination_locality_raises_error(self):
+        """Test that create_trip raises ValidationError when destination locality does not exist."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_vehicle = MagicMock(spec=Vehicle)
+        mock_vehicle.user_id = 1
+        mock_vehicle.is_active = True
+        mock_vehicle.seats = 5
+
+        mock_origin_locality = MagicMock(spec=Locality)
+        mock_origin_locality.id = "060700"
+        mock_origin_locality.name = "Rosario"
+
+        mock_vehicle_result = MagicMock()
+        mock_vehicle_result.scalar_one_or_none.return_value = mock_vehicle
+
+        mock_origin_result = MagicMock()
+        mock_origin_result.scalar_one_or_none.return_value = mock_origin_locality
+
+        # Destination locality not found
+        mock_destination_result = MagicMock()
+        mock_destination_result.scalar_one_or_none.return_value = None
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(
+            side_effect=[
+                mock_vehicle_result,
+                mock_origin_result,
+                mock_destination_result,
+            ]
+        )
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        trip_input = TripCreateInput(
+            origin_locality_id="060700",
+            destination_locality_id="INVALID_ID",
+            departure_time="2024-01-15T10:00:00Z",
+            vehicle_id=1,
+            total_seats=4,
+            price_per_seat=25.50,
+            trip_legal_compliance_ack=True,
+        )
+
+        mutations = TripMutations()
+
+        with pytest.raises(ValueError, match="Destination locality not found"):
+            await mutations.create_trip(mock_info, trip_input)
 
     @pytest.mark.asyncio
     async def test_update_trip_validates_vehicle_ownership(self):
