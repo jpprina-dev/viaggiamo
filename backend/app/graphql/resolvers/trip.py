@@ -458,10 +458,37 @@ class TripMutations:
             raise ForbiddenError("Not authorized to update this trip")
 
         # Update fields if provided
+        # Cambio de localidades requiere >24h antes del departure_time
+        if (
+            trip_input.origin_locality_id is not None
+            or trip_input.destination_locality_id is not None
+        ):
+            if trip.departure_time - utcnow() < timedelta(hours=24):
+                raise ValidationError(
+                    "Cannot change trip location within 24 hours of departure"
+                )
+
         if trip_input.origin_locality_id is not None:
+            result = await context.db.execute(
+                select(Locality).where(Locality.id == trip_input.origin_locality_id)
+            )
+            origin_locality = result.scalar_one_or_none()
+            if not origin_locality:
+                raise ValidationError("Origin locality not found")
             trip.origin_locality_id = trip_input.origin_locality_id
+            trip.origin_name = origin_locality.name  # resync snapshot
+
         if trip_input.destination_locality_id is not None:
+            result = await context.db.execute(
+                select(Locality).where(
+                    Locality.id == trip_input.destination_locality_id
+                )
+            )
+            destination_locality = result.scalar_one_or_none()
+            if not destination_locality:
+                raise ValidationError("Destination locality not found")
             trip.destination_locality_id = trip_input.destination_locality_id
+            trip.destination_name = destination_locality.name  # resync snapshot
         if trip_input.departure_time is not None:
             trip.departure_time = trip_input.departure_time
         if trip_input.vehicle_id is not None:

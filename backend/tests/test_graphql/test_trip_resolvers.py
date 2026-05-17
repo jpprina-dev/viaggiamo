@@ -1,12 +1,13 @@
 """Tests for trip GraphQL resolvers with vehicle integration."""
 
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from strawberry.types import Info
 
 from app.graphql.context import Context
-from app.graphql.exceptions import AuthenticationError
+from app.graphql.exceptions import AuthenticationError, ValidationError
 from app.graphql.resolvers.trip import TripMutations, TripQueries
 from app.graphql.types.trip import TripCreateInput, TripUpdateInput
 from app.models.locality import Locality
@@ -733,3 +734,109 @@ class TestTripMutations:
 
         with pytest.raises(ValueError, match="Not authorized to use this vehicle"):
             await mutations.update_trip(mock_info, trip_id=1, trip_input=trip_input)
+
+    @pytest.mark.asyncio
+    async def test_update_trip_locality_within_24h_raises_error(self):
+        """Test that updating locality is rejected when departure is within 24 hours."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_trip = MagicMock(spec=Trip)
+        mock_trip.driver_id = 1
+        # Departure in 12 hours — within the 24h window
+        mock_trip.departure_time = datetime.now(UTC) + timedelta(hours=12)
+
+        mock_trip_result = MagicMock()
+        mock_trip_result.scalar_one_or_none.return_value = mock_trip
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(return_value=mock_trip_result)
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        trip_input = TripUpdateInput(origin_locality_id="060700")
+
+        mutations = TripMutations()
+
+        with pytest.raises(ValidationError, match="24 hours"):
+            await mutations.update_trip(mock_info, trip_id=1, trip_input=trip_input)
+
+    @pytest.mark.asyncio
+    async def test_update_trip_locality_with_invalid_id_raises_error(self):
+        """Test that updating locality with a non-existent locality ID raises ValidationError."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_trip = MagicMock(spec=Trip)
+        mock_trip.driver_id = 1
+        # Departure in 48 hours — outside the 24h window
+        mock_trip.departure_time = datetime.now(UTC) + timedelta(hours=48)
+
+        mock_trip_result = MagicMock()
+        mock_trip_result.scalar_one_or_none.return_value = mock_trip
+
+        # Locality lookup returns None (not found)
+        mock_locality_result = MagicMock()
+        mock_locality_result.scalar_one_or_none.return_value = None
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(
+            side_effect=[mock_trip_result, mock_locality_result]
+        )
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        trip_input = TripUpdateInput(origin_locality_id="INVALID_ID")
+
+        mutations = TripMutations()
+
+        with pytest.raises(ValidationError, match="Origin locality not found"):
+            await mutations.update_trip(mock_info, trip_id=1, trip_input=trip_input)
+
+    @pytest.mark.asyncio
+    async def test_update_trip_locality_updates_snapshot(self):
+        """Test that a valid locality change resyncs the origin_name snapshot."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_trip = MagicMock(spec=Trip)
+        mock_trip.driver_id = 1
+        mock_trip.origin_name = "Old City"
+        # Departure in 48 hours — outside the 24h window
+        mock_trip.departure_time = datetime.now(UTC) + timedelta(hours=48)
+
+        mock_trip_result = MagicMock()
+        mock_trip_result.scalar_one_or_none.return_value = mock_trip
+
+        mock_locality = MagicMock(spec=Locality)
+        mock_locality.name = "New City"
+
+        mock_locality_result = MagicMock()
+        mock_locality_result.scalar_one_or_none.return_value = mock_locality
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(
+            side_effect=[mock_trip_result, mock_locality_result]
+        )
+        mock_context.db.commit = AsyncMock()
+        mock_context.db.refresh = AsyncMock()
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        trip_input = TripUpdateInput(origin_locality_id="060700")
+
+        mutations = TripMutations()
+
+        await mutations.update_trip(mock_info, trip_id=1, trip_input=trip_input)
+
+        assert mock_trip.origin_locality_id == "060700"
+        assert mock_trip.origin_name == "New City"
