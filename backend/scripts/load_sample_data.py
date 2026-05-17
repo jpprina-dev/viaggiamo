@@ -25,10 +25,19 @@ from sqlalchemy.orm import sessionmaker  # noqa: E402
 from app.core.config import settings  # noqa: E402
 from app.core.security import get_password_hash  # noqa: E402
 from app.models.booking import Booking  # noqa: E402
+from app.models.locality import Locality  # noqa: E402
 from app.models.rating import Rating  # noqa: E402
 from app.models.trip import Trip  # noqa: E402
 from app.models.user import User  # noqa: E402
 from app.models.vehicle import Vehicle  # noqa: E402
+
+
+async def get_locality_by_id(
+    session: AsyncSession, locality_id: str
+) -> "Locality | None":
+    """Fetch a locality by its georef-ar ID."""
+    result = await session.execute(select(Locality).where(Locality.id == locality_id))
+    return result.scalar_one_or_none()
 
 
 def parse_datetime(dt_string: str | None) -> datetime | None:
@@ -151,6 +160,7 @@ async def load_data():
         print(f"   ✓ Inserted {len(vehicles_data)} vehicles")
 
         print("\n🚌 Inserting trips...")
+        trips_inserted = 0
         for trip_data in trips_data:
             # Check if trip already exists
             result = await session.execute(
@@ -161,12 +171,37 @@ async def load_data():
                 print(f"   ⚠ Trip {trip_data['id']} already exists, skipping...")
                 continue
 
+            # Resolve locality IDs
+            origin_locality_id = trip_data["origin_locality_id"]
+            destination_locality_id = trip_data["destination_locality_id"]
+            origin_locality = await get_locality_by_id(session, origin_locality_id)
+            destination_locality = await get_locality_by_id(
+                session, destination_locality_id
+            )
+
+            if origin_locality is None:
+                print(
+                    f"   ⚠ Trip {trip_data['id']}: locality '{origin_locality_id}' "
+                    "not found in DB (run import_georef.py first). Skipping..."
+                )
+                continue
+            if destination_locality is None:
+                print(
+                    f"   ⚠ Trip {trip_data['id']}: locality '{destination_locality_id}' "
+                    "not found in DB (run import_georef.py first). Skipping..."
+                )
+                continue
+
             trip = Trip()
             trip.id = trip_data["id"]
             trip.driver_id = trip_data["driver_id"]
             trip.vehicle_id = trip_data["vehicle_id"]
-            trip.origin = trip_data["origin"]
-            trip.destination = trip_data["destination"]
+            trip.origin_locality_id = origin_locality_id
+            trip.destination_locality_id = destination_locality_id
+            trip.origin_name = trip_data.get("origin_name", origin_locality.name)
+            trip.destination_name = trip_data.get(
+                "destination_name", destination_locality.name
+            )
             trip.departure_time = parse_datetime(trip_data["departure_time"])
             trip.available_seats = trip_data["available_seats"]
             trip.total_seats = trip_data["total_seats"]
@@ -181,9 +216,10 @@ async def load_data():
             trip.updated_at = parse_datetime(trip_data.get("updated_at"))
 
             session.add(trip)
+            trips_inserted += 1
 
         await session.commit()
-        print(f"   ✓ Inserted {len(trips_data)} trips")
+        print(f"   ✓ Inserted {trips_inserted} trips")
 
         print("\n📅 Inserting bookings...")
         for booking_data in bookings_data:
@@ -265,7 +301,7 @@ async def load_data():
         print("\n📊 Summary:")
         print(f"   • {len(users_data)} users")
         print(f"   • {len(vehicles_data)} vehicles")
-        print(f"   • {len(trips_data)} trips")
+        print(f"   • {trips_inserted} trips")
         print(f"   • {len(bookings_data)} bookings")
         print(f"   • {len(ratings_data)} ratings")
         print("\n🔐 Login credentials for testing:")
