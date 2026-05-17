@@ -59,9 +59,9 @@ class TripQueries:
         query = select(Trip).where(Trip.is_active.is_(True))
 
         if origin:
-            query = query.where(Trip.origin.ilike(f"%{origin}%"))
+            query = query.where(Trip.origin_name.ilike(f"%{origin}%"))
         if destination:
-            query = query.where(Trip.destination.ilike(f"%{destination}%"))
+            query = query.where(Trip.destination_name.ilike(f"%{destination}%"))
 
         query = query.offset(offset).limit(limit)
         result = await context.db.execute(query)
@@ -166,8 +166,8 @@ class TripQueries:
                 Trip.is_completed.is_(False),
                 Trip.available_seats >= search.min_seats,
                 # Fuzzy match using similarity (threshold 0.3)
-                func.similarity(Trip.origin, search.origin) > 0.3,
-                func.similarity(Trip.destination, search.destination) > 0.3,
+                func.similarity(Trip.origin_name, search.origin) > 0.3,
+                func.similarity(Trip.destination_name, search.destination) > 0.3,
             )
         )
 
@@ -234,12 +234,12 @@ class TripQueries:
         """
         context = info.context
         query = (
-            select(Trip.origin, func.count(Trip.id))
+            select(Trip.origin_name, func.count(Trip.id))
             .where(
                 Trip.is_active.is_(True),
-                Trip.origin.ilike(f"{prefix}%"),
+                Trip.origin_name.ilike(f"{prefix}%"),
             )
-            .group_by(Trip.origin)
+            .group_by(Trip.origin_name)
             .order_by(func.count(Trip.id).desc())
             .limit(limit)
         )
@@ -265,12 +265,12 @@ class TripQueries:
         """
         context = info.context
         query = (
-            select(Trip.destination, func.count(Trip.id))
+            select(Trip.destination_name, func.count(Trip.id))
             .where(
                 Trip.is_active.is_(True),
-                Trip.destination.ilike(f"{prefix}%"),
+                Trip.destination_name.ilike(f"{prefix}%"),
             )
-            .group_by(Trip.destination)
+            .group_by(Trip.destination_name)
             .order_by(func.count(Trip.id).desc())
             .limit(limit)
         )
@@ -391,8 +391,8 @@ class TripMutations:
         db_trip = Trip()
         db_trip.driver_id = user.id
         db_trip.vehicle_id = trip_input.vehicle_id
-        db_trip.origin = trip_input.origin
-        db_trip.destination = trip_input.destination
+        db_trip.origin_locality_id = trip_input.origin_locality_id
+        db_trip.destination_locality_id = trip_input.destination_locality_id
         db_trip.departure_time = trip_input.departure_time
         db_trip.available_seats = trip_input.total_seats
         db_trip.total_seats = trip_input.total_seats
@@ -439,10 +439,10 @@ class TripMutations:
             raise ForbiddenError("Not authorized to update this trip")
 
         # Update fields if provided
-        if trip_input.origin is not None:
-            trip.origin = trip_input.origin
-        if trip_input.destination is not None:
-            trip.destination = trip_input.destination
+        if trip_input.origin_locality_id is not None:
+            trip.origin_locality_id = trip_input.origin_locality_id
+        if trip_input.destination_locality_id is not None:
+            trip.destination_locality_id = trip_input.destination_locality_id
         if trip_input.departure_time is not None:
             trip.departure_time = trip_input.departure_time
         if trip_input.vehicle_id is not None:

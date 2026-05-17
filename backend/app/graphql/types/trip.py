@@ -20,8 +20,10 @@ class TripType:
     id: int
     driver_id: int
     vehicle_id: int
-    origin: str
-    destination: str
+    origin_locality_id: str
+    destination_locality_id: str
+    origin_name: str
+    destination_name: str
     departure_time: datetime
     available_seats: int
     total_seats: int
@@ -52,8 +54,10 @@ def to_trip_type(trip: "Trip") -> TripType:
         id=trip.id,
         driver_id=trip.driver_id,
         vehicle_id=trip.vehicle_id,
-        origin=trip.origin,
-        destination=trip.destination,
+        origin_locality_id=trip.origin_locality_id,
+        destination_locality_id=trip.destination_locality_id,
+        origin_name=trip.origin_name,
+        destination_name=trip.destination_name,
         departure_time=trip.departure_time,
         available_seats=trip.available_seats,
         total_seats=trip.total_seats,
@@ -72,8 +76,8 @@ def to_trip_type(trip: "Trip") -> TripType:
 class TripCreateInput:
     """Input type for trip creation."""
 
-    origin: str
-    destination: str
+    origin_locality_id: str
+    destination_locality_id: str
     departure_time: datetime
     vehicle_id: int
     total_seats: int
@@ -87,8 +91,8 @@ class TripCreateInput:
 class TripUpdateInput:
     """Input type for trip updates."""
 
-    origin: str | None = None
-    destination: str | None = None
+    origin_locality_id: str | None = None
+    destination_locality_id: str | None = None
     departure_time: datetime | None = None
     vehicle_id: int | None = None
     available_seats: int | None = None

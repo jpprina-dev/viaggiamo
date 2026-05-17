@@ -147,8 +147,8 @@ class TestTripMutations:
         mock_info.context = mock_context
 
         trip_input = TripCreateInput(
-            origin="Madrid",
-            destination="Barcelona",
+            origin_locality_id="060700",
+            destination_locality_id="140150",
             departure_time="2024-01-15T10:00:00Z",
             vehicle_id=1,
             total_seats=4,
@@ -176,8 +176,8 @@ class TestTripMutations:
         mock_info.context = mock_context
 
         trip_input = TripCreateInput(
-            origin="Madrid",
-            destination="Barcelona",
+            origin_locality_id="060700",
+            destination_locality_id="140150",
             departure_time="2024-01-15T10:00:00Z",
             vehicle_id=1,
             total_seats=4,
@@ -213,8 +213,8 @@ class TestTripMutations:
         mock_info.context = mock_context
 
         trip_input = TripCreateInput(
-            origin="Madrid",
-            destination="Barcelona",
+            origin_locality_id="060700",
+            destination_locality_id="140150",
             departure_time="2024-01-15T10:00:00Z",
             vehicle_id=999,  # Non-existent vehicle
             total_seats=4,
@@ -252,8 +252,8 @@ class TestTripMutations:
         mock_info.context = mock_context
 
         trip_input = TripCreateInput(
-            origin="Madrid",
-            destination="Barcelona",
+            origin_locality_id="060700",
+            destination_locality_id="140150",
             departure_time="2024-01-15T10:00:00Z",
             vehicle_id=1,
             total_seats=4,
@@ -292,8 +292,8 @@ class TestTripMutations:
         mock_info.context = mock_context
 
         trip_input = TripCreateInput(
-            origin="Madrid",
-            destination="Barcelona",
+            origin_locality_id="060700",
+            destination_locality_id="140150",
             departure_time="2024-01-15T10:00:00Z",
             vehicle_id=1,
             total_seats=4,
@@ -324,8 +324,10 @@ class TestTripMutations:
         mock_trip.id = 1
         mock_trip.driver_id = 1
         mock_trip.vehicle_id = 1
-        mock_trip.origin = "Madrid"
-        mock_trip.destination = "Barcelona"
+        mock_trip.origin_locality_id = "060700"
+        mock_trip.destination_locality_id = "140150"
+        mock_trip.origin_name = "Madrid"
+        mock_trip.destination_name = "Barcelona"
         mock_trip.departure_time = "2024-01-15T10:00:00Z"
         mock_trip.available_seats = 4
         mock_trip.total_seats = 4
@@ -354,8 +356,8 @@ class TestTripMutations:
         mock_info.context = mock_context
 
         trip_input = TripCreateInput(
-            origin="Madrid",
-            destination="Barcelona",
+            origin_locality_id="060700",
+            destination_locality_id="140150",
             departure_time="2024-01-15T10:00:00Z",
             vehicle_id=1,
             total_seats=4,
@@ -374,8 +376,10 @@ class TestTripMutations:
             mock_trip_instance.id = 1
             mock_trip_instance.driver_id = 1
             mock_trip_instance.vehicle_id = 1
-            mock_trip_instance.origin = "Madrid"
-            mock_trip_instance.destination = "Barcelona"
+            mock_trip_instance.origin_locality_id = "060700"
+            mock_trip_instance.destination_locality_id = "140150"
+            mock_trip_instance.origin_name = "Madrid"
+            mock_trip_instance.destination_name = "Barcelona"
             mock_trip_instance.departure_time = "2024-01-15T10:00:00Z"
             mock_trip_instance.available_seats = 4
             mock_trip_instance.total_seats = 4
@@ -391,8 +395,8 @@ class TestTripMutations:
 
             assert result is not None
             assert result.id == 1
-            assert result.origin == "Madrid"
-            assert result.destination == "Barcelona"
+            assert result.origin_name == "Madrid"
+            assert result.destination_name == "Barcelona"
             assert result.vehicle_id == 1
             assert result.trip_legal_compliance_ack is True
 
@@ -423,8 +427,8 @@ class TestTripMutations:
         mock_info.context = mock_context
 
         trip_input = TripCreateInput(
-            origin="Bogota",
-            destination="Medellin",
+            origin_locality_id="060700",
+            destination_locality_id="060098",
             departure_time="2026-03-03T10:00:00Z",
             vehicle_id=1,
             total_seats=3,
@@ -438,8 +442,10 @@ class TestTripMutations:
             mock_trip_instance.id = 101
             mock_trip_instance.driver_id = 1
             mock_trip_instance.vehicle_id = 1
-            mock_trip_instance.origin = "Bogota"
-            mock_trip_instance.destination = "Medellin"
+            mock_trip_instance.origin_locality_id = "060700"
+            mock_trip_instance.destination_locality_id = "060098"
+            mock_trip_instance.origin_name = "Bogota"
+            mock_trip_instance.destination_name = "Medellin"
             mock_trip_instance.departure_time = "2026-03-03T10:00:00Z"
             mock_trip_instance.available_seats = 3
             mock_trip_instance.total_seats = 3

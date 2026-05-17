@@ -18,6 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+from app.models.locality import Locality
 
 if TYPE_CHECKING:
     from app.models.booking import Booking
@@ -40,8 +41,14 @@ class Trip(Base):
 
     driver_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     vehicle_id: Mapped[int] = mapped_column(ForeignKey("vehicles.id"), nullable=False)
-    origin: Mapped[str] = mapped_column(String(200), nullable=False)
-    destination: Mapped[str] = mapped_column(String(200), nullable=False)
+    origin_locality_id: Mapped[str] = mapped_column(
+        String(24), ForeignKey("localities.id"), nullable=False
+    )
+    destination_locality_id: Mapped[str] = mapped_column(
+        String(24), ForeignKey("localities.id"), nullable=False
+    )
+    origin_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    destination_name: Mapped[str] = mapped_column(String(200), nullable=False)
     departure_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
@@ -64,3 +71,9 @@ class Trip(Base):
     driver: Mapped["User"] = relationship("User", back_populates="trips")
     vehicle: Mapped["Vehicle"] = relationship("Vehicle")
     bookings: Mapped[list["Booking"]] = relationship("Booking", back_populates="trip")
+    origin_locality: Mapped[Locality] = relationship(
+        Locality, foreign_keys=[origin_locality_id]
+    )
+    destination_locality: Mapped[Locality] = relationship(
+        Locality, foreign_keys=[destination_locality_id]
+    )
