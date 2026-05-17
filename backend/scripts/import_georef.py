@@ -66,8 +66,8 @@ async def import_localities(db: AsyncSession, csv_path: Path) -> int:
             await db.execute(
                 text(
                     "INSERT INTO localities "
-                    "(id, name, province_id, department_id, province_name, department_name) "
-                    "VALUES (:id, :name, :province_id, :department_id, :province_name, :department_name) "
+                    "(id, name, province_id, department_id, province_name, department_name, lat, lng) "
+                    "VALUES (:id, :name, :province_id, :department_id, :province_name, :department_name, :lat, :lng) "
                     "ON CONFLICT (id) DO NOTHING"
                 ),
                 {
@@ -77,6 +77,8 @@ async def import_localities(db: AsyncSession, csv_path: Path) -> int:
                     "department_id": row["departamento_id"],
                     "province_name": row["provincia_nombre"],
                     "department_name": row["departamento_nombre"],
+                    "lat": float(row["localidad_centroide_lat"]),
+                    "lng": float(row["localidad_centroide_lon"]),
                 },
             )
             count += 1

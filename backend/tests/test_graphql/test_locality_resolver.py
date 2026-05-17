@@ -60,6 +60,16 @@ def test_locality_models_have_string_pk() -> None:
     assert "department_name" in cols
 
 
+def test_locality_model_has_lat_lng() -> None:
+    from app.models.locality import Locality
+
+    cols = {c.key: c for c in Locality.__table__.columns}
+    assert "lat" in cols
+    assert "lng" in cols
+    assert not cols["lat"].nullable
+    assert not cols["lng"].nullable
+
+
 def test_province_pk_is_string() -> None:
     from app.models.locality import Province
 
@@ -133,42 +143,103 @@ async def test_search_localities_respects_limit() -> None:
     assert len(results) == 5
 
 
+@pytest.mark.asyncio
+async def test_search_localities_by_department_name() -> None:
+    """Localidades encontradas por partido/departamento aparecen en resultados."""
+    from app.graphql.resolvers.locality import LocalityQueries
+
+    db = AsyncMock()
+    info = _make_info(db)
+    loc = _make_locality("001", "La Emilia", "Buenos Aires", "San Nicolás")
+    _mock_db_result(db, [loc])
+
+    results = await LocalityQueries().search_localities(info, q="San Nico", limit=10)
+    assert len(results) == 1
+    assert results[0].department == "San Nicolás"
+    assert results[0].display_name == "La Emilia, Buenos Aires"
+
+
 # ---------------------------------------------------------------------------
 # Ciclo 4: displayName con y sin colisión
 # ---------------------------------------------------------------------------
 
 
-def test_display_name_includes_department() -> None:
+def test_display_name_without_collision_omits_department() -> None:
     from app.graphql.types.locality import build_locality_suggestion
 
     loc = _make_locality("001", "Bahía Blanca", "Buenos Aires", "Bahía Blanca")
     result = build_locality_suggestion(loc)
-    assert result.display_name == "Bahía Blanca, Bahía Blanca, Buenos Aires"
+    assert result.display_name == "Bahía Blanca, Buenos Aires"
 
 
-def test_display_name_always_shows_department() -> None:
+def test_display_name_with_department_flag_includes_department() -> None:
     from app.graphql.types.locality import build_locality_suggestion
 
     loc = _make_locality("002", "San Martín", "Córdoba", "Gral. San Martín")
-    result = build_locality_suggestion(loc)
+    result = build_locality_suggestion(loc, with_department=True)
     assert result.display_name == "San Martín, Gral. San Martín, Córdoba"
 
 
-def test_display_name_unique_locality_shows_department_and_province() -> None:
+def test_display_name_unique_locality_shows_only_province() -> None:
     from app.graphql.types.locality import build_locality_suggestion
 
     loc = _make_locality("003", "Mendoza", "Mendoza", "Capital")
     result = build_locality_suggestion(loc)
-    assert result.display_name == "Mendoza, Capital, Mendoza"
+    assert result.display_name == "Mendoza, Mendoza"
+
+
+@pytest.mark.asyncio
+async def test_display_name_shows_department_on_name_collision() -> None:
+    """Dos localidades con mismo nombre y provincia reciben el departamento en displayName."""
+    from app.graphql.resolvers.locality import LocalityQueries
+
+    db = AsyncMock()
+    info = _make_info(db)
+    loc1 = _make_locality("001", "San Martín", "Buenos Aires", "Gral. San Martín")
+    loc2 = _make_locality("002", "San Martín", "Buenos Aires", "La Matanza")
+    _mock_db_result(db, [loc1, loc2])
+
+    results = await LocalityQueries().search_localities(info, q="San Mart", limit=10)
+    assert results[0].display_name == "San Martín, Gral. San Martín, Buenos Aires"
+    assert results[1].display_name == "San Martín, La Matanza, Buenos Aires"
+
+
+@pytest.mark.asyncio
+async def test_display_name_no_department_when_no_collision() -> None:
+    """Localidad sin colisión de nombre+provincia no muestra departamento."""
+    from app.graphql.resolvers.locality import LocalityQueries
+
+    db = AsyncMock()
+    info = _make_info(db)
+    loc = _make_locality("001", "Rosario", "Santa Fe", "Rosario")
+    _mock_db_result(db, [loc])
+
+    results = await LocalityQueries().search_localities(info, q="Rosari", limit=10)
+    assert results[0].display_name == "Rosario, Santa Fe"
 
 
 # ---------------------------------------------------------------------------
-# Ciclo 5: Schema expone searchLocalities
+# Ciclo 5: Normalización de acentos en el query
+# ---------------------------------------------------------------------------
+
+
+def test_strip_accents_removes_diacritics() -> None:
+    from app.graphql.resolvers.locality import _strip_accents
+
+    assert _strip_accents("córdo") == "cordo"
+    assert _strip_accents("Córdoba") == "Cordoba"
+    assert _strip_accents("bahía") == "bahia"
+    assert _strip_accents("Martín") == "Martin"
+    assert _strip_accents("sin acentos") == "sin acentos"
+
+
+# ---------------------------------------------------------------------------
+# Ciclo 6: Schema expone searchLocalities
 # ---------------------------------------------------------------------------
 
 
 # ---------------------------------------------------------------------------
-# Ciclo 6: Script de importación idempotente
+# Ciclo 7: Script de importación idempotente
 # ---------------------------------------------------------------------------
 
 

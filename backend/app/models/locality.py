@@ -1,6 +1,6 @@
 """Modelos georef-ar: provincias, departamentos, localidades."""
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Float, ForeignKey, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.models.base import Base
@@ -42,3 +42,5 @@ class Locality(GeoBase):
     # Desnormalizados para evitar JOIN en el hot path del autocomplete
     province_name: Mapped[str] = mapped_column(String(100), nullable=False)
     department_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    lat: Mapped[float] = mapped_column(Float, nullable=False)
+    lng: Mapped[float] = mapped_column(Float, nullable=False)

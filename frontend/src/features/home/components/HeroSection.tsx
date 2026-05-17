@@ -17,18 +17,20 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative bg-anchor-dark bg-pin-watermark overflow-hidden">
-      {/* Subtle teal gradient accent */}
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse 70% 60% at 80% 50%, rgba(150,243,233,0.06) 0%, transparent 70%)',
-        }}
-      />
+    <section className="relative bg-anchor-dark -mt-16">
+      {/* Fondo con watermark — overflow-hidden acá para no cortar el dropdown */}
+      <div aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none bg-pin-watermark">
+        {/* Subtle teal gradient accent */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 70% 60% at 80% 50%, rgba(150,243,233,0.06) 0%, transparent 70%)',
+          }}
+        />
+      </div>
 
-      <div className="container relative z-10 py-20 md:py-32">
+      <div className="container relative z-10 pt-36 pb-20 md:pt-48 md:pb-32">
         {/* Label overline */}
         <div className="flex items-center gap-2 mb-6 justify-center md:justify-start">
           <MapPin className="h-4 w-4 text-secondary-container flex-shrink-0" />
