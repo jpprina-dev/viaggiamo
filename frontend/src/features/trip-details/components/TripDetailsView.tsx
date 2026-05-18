@@ -12,6 +12,8 @@ import { useMyBookingForTrip } from '../hooks/useMyBookingForTrip'
 import { useCancelBooking } from '@/features/bookings/hooks/useCancelBooking'
 import { useCheckDriverBlock } from '@/features/bookings'
 import { useTripBookings } from '@/features/driver-trips/hooks/useTripBookings'
+import { useDeleteTrip } from '@/features/driver-trips/hooks/useDeleteTrip'
+import { DeleteTripModal } from '@/features/driver-trips/components/DeleteTripModal'
 import type { TripDetailsData } from '../types'
 import toast from 'react-hot-toast'
 import { ArrowLeft } from 'lucide-react'
@@ -40,6 +42,8 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
   const { cancelBooking, loading: cancelLoading } = useCancelBooking()
   const { isBlocked, loading: blockCheckLoading } = useCheckDriverBlock(trip.id)
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const { deleteTrip, loading: deleteLoading } = useDeleteTrip()
 
   // Check if this is the user's own trip
   const isOwnTrip = Boolean(user && driver.id === user.id)
@@ -141,7 +145,28 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
     }
   }
 
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteTrip(trip.id)
+      toast.success('Viaje eliminado correctamente')
+      router.push('/bookings')
+    } catch {
+      toast.error('No se pudo eliminar el viaje. Intentá de nuevo.')
+    }
+  }
+
+  const acceptedPassengersCount = tripBookings.filter((b) => b.status === 'accepted').length
+
   return (
+    <>
+      {showDeleteModal && (
+        <DeleteTripModal
+          acceptedPassengersCount={acceptedPassengersCount}
+          loading={deleteLoading}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      )}
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Back Button */}
       <div className="bg-white border-b border-gray-200">
@@ -164,6 +189,8 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
           departureTime={trip.departureTime}
           isActive={trip.isActive}
           isCompleted={trip.isCompleted}
+          isOwnTrip={isOwnTrip}
+          onDeleteTrip={() => setShowDeleteModal(true)}
         />
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -259,5 +286,6 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
         loading={cancelLoading}
       />
     </div>
+    </>
   )
 }

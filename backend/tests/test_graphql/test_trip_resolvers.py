@@ -7,7 +7,12 @@ import pytest
 from strawberry.types import Info
 
 from app.graphql.context import Context
-from app.graphql.exceptions import AuthenticationError, ValidationError
+from app.graphql.exceptions import (
+    AuthenticationError,
+    ForbiddenError,
+    NotFoundError,
+    ValidationError,
+)
 from app.graphql.resolvers.trip import TripMutations, TripQueries
 from app.graphql.types.trip import TripCreateInput, TripUpdateInput
 from app.models.locality import Locality
@@ -840,3 +845,139 @@ class TestTripMutations:
 
         assert mock_trip.origin_locality_id == "060700"
         assert mock_trip.origin_name == "New City"
+
+
+@pytest.mark.unit
+class TestDeleteTripMutation:
+    """Tests for TripMutations.delete_trip — soft delete + cascade."""
+
+    @pytest.mark.asyncio
+    async def test_delete_trip_unauthenticated_raises_error(self):
+        """Unauthenticated request must raise AuthenticationError."""
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = None
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        mutations = TripMutations()
+
+        with pytest.raises(AuthenticationError):
+            await mutations.delete_trip(mock_info, trip_id=1)
+
+    @pytest.mark.asyncio
+    async def test_delete_trip_not_found_raises_error(self):
+        """Requesting deletion of a non-existent trip must raise NotFoundError."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_trip_result = MagicMock()
+        mock_trip_result.scalar_one_or_none.return_value = None
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(return_value=mock_trip_result)
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        mutations = TripMutations()
+
+        with pytest.raises(NotFoundError, match="Trip not found"):
+            await mutations.delete_trip(mock_info, trip_id=99)
+
+    @pytest.mark.asyncio
+    async def test_delete_trip_not_owner_raises_forbidden(self):
+        """Driver who doesn't own the trip must receive ForbiddenError."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 2  # different from trip.driver_id
+
+        mock_trip = MagicMock(spec=Trip)
+        mock_trip.driver_id = 1
+
+        mock_trip_result = MagicMock()
+        mock_trip_result.scalar_one_or_none.return_value = mock_trip
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(return_value=mock_trip_result)
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        mutations = TripMutations()
+
+        with pytest.raises(ForbiddenError, match="Not authorized"):
+            await mutations.delete_trip(mock_info, trip_id=1)
+
+    @pytest.mark.asyncio
+    async def test_delete_trip_soft_deletes_trip(self):
+        """Successful deletion must set is_active=False and commit."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_trip = MagicMock(spec=Trip)
+        mock_trip.id = 1
+        mock_trip.driver_id = 1
+        mock_trip.is_active = True
+
+        mock_trip_result = MagicMock()
+        mock_trip_result.scalar_one_or_none.return_value = mock_trip
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(return_value=mock_trip_result)
+        mock_context.db.commit = AsyncMock()
+        mock_context.db.add = MagicMock()
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        mutations = TripMutations()
+
+        with patch(
+            "app.graphql.resolvers.trip._cancel_bookings_on_deactivation",
+            new_callable=AsyncMock,
+        ):
+            result = await mutations.delete_trip(mock_info, trip_id=1)
+
+        assert result is True
+        assert mock_trip.is_active is False
+        mock_context.db.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_delete_trip_cancels_accepted_bookings(self):
+        """Deleting a trip must trigger cancellation of accepted/pending bookings."""
+        mock_user = MagicMock(spec=User)
+        mock_user.id = 1
+
+        mock_trip = MagicMock(spec=Trip)
+        mock_trip.id = 1
+        mock_trip.driver_id = 1
+        mock_trip.is_active = True
+
+        mock_trip_result = MagicMock()
+        mock_trip_result.scalar_one_or_none.return_value = mock_trip
+
+        mock_context = MagicMock(spec=Context)
+        mock_context.user = mock_user
+        mock_context.db = MagicMock()
+        mock_context.db.execute = AsyncMock(return_value=mock_trip_result)
+        mock_context.db.commit = AsyncMock()
+        mock_context.db.add = MagicMock()
+
+        mock_info = MagicMock(spec=Info)
+        mock_info.context = mock_context
+
+        mutations = TripMutations()
+
+        with patch(
+            "app.graphql.resolvers.trip._cancel_bookings_on_deactivation",
+            new_callable=AsyncMock,
+        ) as mock_cancel:
+            await mutations.delete_trip(mock_info, trip_id=1)
+
+        mock_cancel.assert_awaited_once_with(mock_context, mock_trip)

@@ -17,7 +17,7 @@ interface DriverTripsViewProps {
 }
 
 export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
-  const { trips, loading, error } = useMyTrips()
+  const { trips, loading, error, refetch } = useMyTrips()
 
   // Categorize and sort trips (exclude completed trips)
   const sortedTrips = useMemo(() => {
@@ -106,7 +106,7 @@ export function DriverTripsView({ filter = 'all' }: DriverTripsViewProps) {
       {/* Unified Trips List */}
       <div className="space-y-4">
         {sortedTrips.map((trip) => (
-          <DriverTripCard key={trip.id} trip={trip} enableRequestActions />
+          <DriverTripCard key={trip.id} trip={trip} enableRequestActions onDelete={() => void refetch()} />
         ))}
       </div>
 

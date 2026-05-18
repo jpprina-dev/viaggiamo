@@ -4,4 +4,5 @@
 
 export { useMyTrips } from './useMyTrips'
 export { useTripBookings } from './useTripBookings'
+export { useDeleteTrip } from './useDeleteTrip'
 
