@@ -241,6 +241,11 @@ async def load_data():
             booking.status = booking_data.get("status", "pending")
             booking.notes = booking_data.get("notes")
             booking.booking_time = parse_datetime(booking_data["booking_time"])
+            booking.cancelled_by = booking_data.get("cancelled_by")
+            booking.cancellation_reason = booking_data.get("cancellation_reason")
+            booking.cancellation_time = parse_datetime(
+                booking_data.get("cancellation_time")
+            )
             booking.created_at = parse_datetime(booking_data.get("created_at"))
             booking.updated_at = parse_datetime(booking_data.get("updated_at"))
 
@@ -262,11 +267,10 @@ async def load_data():
 
             rating = Rating()
             rating.id = rating_data["id"]
-            rating.trip_id = rating_data["trip_id"]
+            rating.booking_id = rating_data["booking_id"]
             rating.rater_id = rating_data["rater_id"]
-            rating.rated_user_id = rating_data["rated_user_id"]
-            rating.role = rating_data["role"]
-            rating.rating = rating_data["rating"]
+            rating.ratee_id = rating_data["ratee_id"]
+            rating.score = rating_data["score"]
             rating.comment = rating_data.get("comment")
             rating.created_at = parse_datetime(rating_data.get("created_at"))
             rating.updated_at = parse_datetime(rating_data.get("updated_at"))

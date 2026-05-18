@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "make": "Volkswagen",
+    "model": "Gol Trend",
+    "year": 2019,
+    "color": "Blanco",
+    "license_plate": "AB123CD",
+    "seats": 4,
+    "is_active": true,
+    "vehicle_legal_compliance_ack": true,
+    "created_at": "2025-01-10T10:30:00Z",
+    "updated_at": "2025-01-10T10:30:00Z"
+  },
+  {
+    "id": 2,
+    "user_id": 2,
+    "make": "Renault",
+    "model": "Kangoo",
+    "year": 2021,
+    "color": "Gris",
+    "license_plate": "EF456GH",
+    "seats": 5,
+    "is_active": true,
+    "vehicle_legal_compliance_ack": true,
+    "created_at": "2025-01-15T09:30:00Z",
+    "updated_at": "2025-01-15T09:30:00Z"
+  },
+  {
+    "id": 3,
+    "user_id": 3,
+    "make": "Ford",
+    "model": "EcoSport",
+    "year": 2020,
+    "color": "Negro",
+    "license_plate": "IJ789KL",
+    "seats": 4,
+    "is_active": true,
+    "vehicle_legal_compliance_ack": true,
+    "created_at": "2025-02-01T11:30:00Z",
+    "updated_at": "2025-02-01T11:30:00Z"
+  },
+  {
+    "id": 4,
+    "user_id": 4,
+    "make": "Chevrolet",
+    "model": "Onix",
+    "year": 2022,
+    "color": "Rojo",
+    "license_plate": "MN012OP",
+    "seats": 4,
+    "is_active": true,
+    "vehicle_legal_compliance_ack": true,
+    "created_at": "2025-02-10T14:30:00Z",
+    "updated_at": "2025-02-10T14:30:00Z"
+  },
+  {
+    "id": 5,
+    "user_id": 5,
+    "make": "Toyota",
+    "model": "Corolla",
+    "year": 2018,
+    "color": "Plateado",
+    "license_plate": "QR345ST",
+    "seats": 4,
+    "is_active": true,
+    "vehicle_legal_compliance_ack": true,
+    "created_at": "2025-03-01T08:30:00Z",
+    "updated_at": "2025-03-01T08:30:00Z"
+  }
+]
