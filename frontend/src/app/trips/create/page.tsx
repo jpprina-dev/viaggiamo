@@ -37,7 +37,7 @@ export default function CreateTripPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container py-8">
+      <div className="container py-8 pb-36 md:pb-8">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">

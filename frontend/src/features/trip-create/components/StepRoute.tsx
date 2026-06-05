@@ -16,8 +16,8 @@ interface StepRouteProps {
 }
 
 export function StepRoute({ errors, watch, setValue }: StepRouteProps) {
-  const origin = watch('origin')
-  const destination = watch('destination')
+  const originLabel = watch('originLabel')
+  const destinationLabel = watch('destinationLabel')
 
   return (
     <div className="space-y-6">
@@ -37,10 +37,17 @@ export function StepRoute({ errors, watch, setValue }: StepRouteProps) {
           </label>
           <CityAutocomplete
             type="origin"
-            value={origin}
-            onChange={(value) => setValue('origin', value)}
+            value={originLabel}
+            onChange={(value) => {
+              setValue('originLabel', value)
+              setValue('originLocalityId', '')
+            }}
+            onSelectLocality={(locality) => {
+              setValue('originLabel', locality.displayName)
+              setValue('originLocalityId', locality.id)
+            }}
             placeholder="Ciudad o lugar de salida"
-            error={errors.origin?.message}
+            error={errors.originLocalityId?.message ?? errors.originLabel?.message}
             leftIcon={<MapPin className="h-5 w-5" />}
             rightIcon={<CircleDot className="h-5 w-5" />}
           />
@@ -52,10 +59,17 @@ export function StepRoute({ errors, watch, setValue }: StepRouteProps) {
           </label>
           <CityAutocomplete
             type="destination"
-            value={destination}
-            onChange={(value) => setValue('destination', value)}
+            value={destinationLabel}
+            onChange={(value) => {
+              setValue('destinationLabel', value)
+              setValue('destinationLocalityId', '')
+            }}
+            onSelectLocality={(locality) => {
+              setValue('destinationLabel', locality.displayName)
+              setValue('destinationLocalityId', locality.id)
+            }}
             placeholder="Ciudad o lugar de llegada"
-            error={errors.destination?.message}
+            error={errors.destinationLocalityId?.message ?? errors.destinationLabel?.message}
             leftIcon={<MapPin className="h-5 w-5" />}
             rightIcon={<Navigation className="h-5 w-5" />}
           />

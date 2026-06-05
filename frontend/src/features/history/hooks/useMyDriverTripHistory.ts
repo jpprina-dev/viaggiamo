@@ -13,8 +13,8 @@ const MY_DRIVER_TRIP_HISTORY = gql`
     myDriverTripHistory {
       trip {
         id
-        origin
-        destination
+        originName
+        destinationName
         departureTime
         pricePerSeat
         isActive

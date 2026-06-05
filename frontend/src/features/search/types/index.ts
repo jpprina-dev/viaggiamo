@@ -14,8 +14,10 @@ export interface TripSearchParams {
 
 export interface Trip {
   id: number
-  origin: string
-  destination: string
+  originLocalityId: string
+  destinationLocalityId: string
+  originName: string
+  destinationName: string
   departureTime: string
   availableSeats: number
   totalSeats: number

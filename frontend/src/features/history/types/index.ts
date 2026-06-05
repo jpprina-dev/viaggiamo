@@ -32,8 +32,8 @@ export interface PassengerInfo {
 export interface DriverTripWithPassengers {
   trip: {
     id: number
-    origin: string
-    destination: string
+    originName: string
+    destinationName: string
     departureTime: string
     pricePerSeat: number
     isActive: boolean

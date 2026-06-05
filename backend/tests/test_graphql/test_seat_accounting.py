@@ -12,6 +12,7 @@ from app.graphql.resolvers.trip import TripMutations
 from app.graphql.types.booking import BookingUpdateInput
 from app.graphql.types.trip import TripCreateInput, TripUpdateInput
 from app.models.booking import Booking, BookingStatus
+from app.models.locality import Locality
 from app.models.trip import Trip
 from app.models.user import User
 from app.models.vehicle import Vehicle
@@ -348,8 +349,22 @@ def _ctx_for_create_trip(driver_id: int, vehicle: Vehicle) -> Context:
     vehicle_result = MagicMock()
     vehicle_result.scalar_one_or_none.return_value = vehicle
 
+    mock_origin = MagicMock(spec=Locality)
+    mock_origin.id = "060700"
+    mock_origin.name = "Buenos Aires"
+    origin_result = MagicMock()
+    origin_result.scalar_one_or_none.return_value = mock_origin
+
+    mock_destination = MagicMock(spec=Locality)
+    mock_destination.id = "140150"
+    mock_destination.name = "Córdoba"
+    destination_result = MagicMock()
+    destination_result.scalar_one_or_none.return_value = mock_destination
+
     db = MagicMock()
-    db.execute = AsyncMock(return_value=vehicle_result)
+    db.execute = AsyncMock(
+        side_effect=[vehicle_result, origin_result, destination_result]
+    )
     db.add = MagicMock()
     db.commit = AsyncMock()
     db.refresh = AsyncMock()
@@ -363,8 +378,8 @@ def _ctx_for_create_trip(driver_id: int, vehicle: Vehicle) -> Context:
 def _trip_create_input(*, total_seats: int) -> TripCreateInput:
     return TripCreateInput(
         vehicle_id=1,
-        origin="Buenos Aires",
-        destination="Córdoba",
+        origin_locality_id="060700",
+        destination_locality_id="140150",
         departure_time=datetime.now(UTC) + timedelta(hours=5),
         total_seats=total_seats,
         price_per_seat=500,
@@ -400,8 +415,10 @@ async def test_create_trip_accepts_total_seats_equal_to_vehicle_capacity_minus_o
     created_trip = _trip(driver_id=driver_id, total_seats=3, available_seats=3)
     created_trip.is_completed = False
     created_trip.price_per_seat = 500
-    created_trip.origin = "Buenos Aires"
-    created_trip.destination = "Córdoba"
+    created_trip.origin_locality_id = "060700"
+    created_trip.destination_locality_id = "140150"
+    created_trip.origin_name = "Buenos Aires"
+    created_trip.destination_name = "Córdoba"
     created_trip.description = None
     created_trip.trip_legal_compliance_ack = True
     created_trip.trip_preferences = None
@@ -409,8 +426,22 @@ async def test_create_trip_accepts_total_seats_equal_to_vehicle_capacity_minus_o
     vehicle_result = MagicMock()
     vehicle_result.scalar_one_or_none.return_value = vehicle
 
+    mock_origin = MagicMock(spec=Locality)
+    mock_origin.id = "060700"
+    mock_origin.name = "Buenos Aires"
+    origin_result = MagicMock()
+    origin_result.scalar_one_or_none.return_value = mock_origin
+
+    mock_destination = MagicMock(spec=Locality)
+    mock_destination.id = "140150"
+    mock_destination.name = "Córdoba"
+    destination_result = MagicMock()
+    destination_result.scalar_one_or_none.return_value = mock_destination
+
     db = MagicMock()
-    db.execute = AsyncMock(return_value=vehicle_result)
+    db.execute = AsyncMock(
+        side_effect=[vehicle_result, origin_result, destination_result]
+    )
     db.add = MagicMock()
     db.commit = AsyncMock()
 

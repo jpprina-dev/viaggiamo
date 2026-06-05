@@ -34,8 +34,10 @@ export interface Vehicle {
 
 // Form step schemas
 export const stepRouteSchema = z.object({
-  origin: z.string().min(2, 'El origen debe tener al menos 2 caracteres'),
-  destination: z.string().min(2, 'El destino debe tener al menos 2 caracteres'),
+  originLabel: z.string().min(2, 'El origen debe tener al menos 2 caracteres'),
+  destinationLabel: z.string().min(2, 'El destino debe tener al menos 2 caracteres'),
+  originLocalityId: z.string().min(1, 'Debes seleccionar un origen del listado'),
+  destinationLocalityId: z.string().min(1, 'Debes seleccionar un destino del listado'),
 })
 
 export const stepDateTimeSchema = z.object({
@@ -98,8 +100,8 @@ export const stepSchemas = [
 
 // GraphQL mutation input type (camelCase - Strawberry auto-converts from Python snake_case)
 export interface TripCreateInput {
-  origin: string
-  destination: string
+  originLocalityId: string
+  destinationLocalityId: string
   departureTime: string
   vehicleId: number
   totalSeats: number
@@ -112,8 +114,10 @@ export interface TripCreateInput {
 // Created trip response (camelCase - Strawberry auto-converts from Python snake_case)
 export interface CreatedTrip {
   id: number
-  origin: string
-  destination: string
+  originLocalityId: string
+  destinationLocalityId: string
+  originName: string
+  destinationName: string
   departureTime: string
   availableSeats: number
   totalSeats: number

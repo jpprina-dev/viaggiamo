@@ -44,8 +44,10 @@ export function CreateTripWizard() {
   const form = useForm<CreateTripFormData>({
     resolver: zodResolver(createTripFormSchema),
     defaultValues: {
-      origin: '',
-      destination: '',
+      originLabel: '',
+      destinationLabel: '',
+      originLocalityId: '',
+      destinationLocalityId: '',
       departureDate: '',
       departureTime: '',
       vehicleId: 0,
@@ -94,8 +96,8 @@ export function CreateTripWizard() {
       const departureDateTime = new Date(`${data.departureDate}T${data.departureTime}`)
       
       const tripInput: TripCreateInput = {
-        origin: data.origin,
-        destination: data.destination,
+        originLocalityId: data.originLocalityId,
+        destinationLocalityId: data.destinationLocalityId,
         departureTime: departureDateTime.toISOString(),
         vehicleId: data.vehicleId,
         totalSeats: data.totalSeats,
@@ -173,58 +175,63 @@ export function CreateTripWizard() {
       {/* Step Indicator */}
       <StepIndicator steps={STEPS} currentStep={currentStep} />
 
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit, onFormError)}>
+      {/* Form — no type="submit" button inside; submission is triggered explicitly via onClick */}
+      <form onSubmit={(e) => e.preventDefault()}>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
           {renderStep()}
         </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Anterior
-          </Button>
-
-          {currentStep < STEPS.length ? (
+        {/* Navigation Buttons — fixed on mobile above bottom nav, natural on desktop */}
+        <div className="fixed bottom-20 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:bg-transparent md:backdrop-blur-none md:border-0 md:px-0 md:py-0 md:mt-6">
+          <div className="max-w-2xl mx-auto flex justify-between">
             <Button
               type="button"
-              onClick={handleNext}
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
               className="flex items-center gap-2"
             >
-              Siguiente
-              <ArrowRight className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" />
+              Anterior
             </Button>
-          ) : (
-            <Button
-              type="submit"
-              disabled={isSubmitting || !tripLegalComplianceAck}
-              className={`flex items-center gap-2 ${
-                tripLegalComplianceAck && !isSubmitting
-                  ? 'bg-gradient-to-r from-primary-600 to-emerald-600 hover:from-primary-700 hover:to-emerald-700'
-                  : 'bg-gray-400 cursor-not-allowed opacity-60 hover:bg-gray-400'
-              }`}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent" />
-                  Publicando...
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4" />
-                  Publicar viaje
-                </>
-              )}
-            </Button>
-          )}
+
+            {currentStep < STEPS.length ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                className="flex items-center gap-2"
+              >
+                Siguiente
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={handleSubmit(onSubmit, onFormError)}
+                disabled={isSubmitting || !tripLegalComplianceAck}
+                className={`flex items-center gap-2 ${
+                  tripLegalComplianceAck && !isSubmitting
+                    ? 'bg-gradient-to-r from-primary-600 to-emerald-600 hover:from-primary-700 hover:to-emerald-700'
+                    : 'bg-gray-400 cursor-not-allowed opacity-60 hover:bg-gray-400'
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent" />
+                    Publicando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Publicar viaje
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
+        {/* Spacer para compensar el footer fijo en mobile */}
+        <div className="h-20 md:hidden" />
       </form>
     </div>
   )

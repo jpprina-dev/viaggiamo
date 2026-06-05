@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "booking_id": 8,
+    "rater_id": 2,
+    "ratee_id": 1,
+    "score": 5,
+    "comment": "Excelente conductor, muy puntual y buen trato.",
+    "created_at": "2026-04-15T14:00:00Z",
+    "updated_at": "2026-04-15T14:00:00Z"
+  },
+  {
+    "id": 2,
+    "booking_id": 8,
+    "rater_id": 1,
+    "ratee_id": 2,
+    "score": 4,
+    "comment": "Buena pasajera, llegó a tiempo al punto de encuentro.",
+    "created_at": "2026-04-15T15:00:00Z",
+    "updated_at": "2026-04-15T15:00:00Z"
+  },
+  {
+    "id": 3,
+    "booking_id": 9,
+    "rater_id": 4,
+    "ratee_id": 1,
+    "score": 5,
+    "comment": "Muy buen viaje, auto limpio y conducción tranquila.",
+    "created_at": "2026-04-15T14:30:00Z",
+    "updated_at": "2026-04-15T14:30:00Z"
+  },
+  {
+    "id": 4,
+    "booking_id": 9,
+    "rater_id": 1,
+    "ratee_id": 4,
+    "score": 5,
+    "comment": "Pasajeras muy simpáticas, viaje muy agradable.",
+    "created_at": "2026-04-15T15:30:00Z",
+    "updated_at": "2026-04-15T15:30:00Z"
+  },
+  {
+    "id": 5,
+    "booking_id": 10,
+    "rater_id": 3,
+    "ratee_id": 1,
+    "score": 4,
+    "comment": "Buen conductor, cumplió con los horarios.",
+    "created_at": "2026-04-22T11:00:00Z",
+    "updated_at": "2026-04-22T11:00:00Z"
+  },
+  {
+    "id": 6,
+    "booking_id": 10,
+    "rater_id": 1,
+    "ratee_id": 3,
+    "score": 4,
+    "comment": "Pasajero puntual y respetuoso.",
+    "created_at": "2026-04-22T12:00:00Z",
+    "updated_at": "2026-04-22T12:00:00Z"
+  },
+  {
+    "id": 7,
+    "booking_id": 11,
+    "rater_id": 5,
+    "ratee_id": 1,
+    "score": 5,
+    "comment": "Perfecto. Lo recomiendo.",
+    "created_at": "2026-04-22T11:30:00Z",
+    "updated_at": "2026-04-22T11:30:00Z"
+  },
+  {
+    "id": 8,
+    "booking_id": 11,
+    "rater_id": 1,
+    "ratee_id": 5,
+    "score": 3,
+    "comment": "Llegó tarde al punto de salida, pero el viaje estuvo bien.",
+    "created_at": "2026-04-22T12:30:00Z",
+    "updated_at": "2026-04-22T12:30:00Z"
+  },
+  {
+    "id": 9,
+    "booking_id": 12,
+    "rater_id": 1,
+    "ratee_id": 2,
+    "score": 5,
+    "comment": "Conductora muy segura y amable. Totalmente recomendable.",
+    "created_at": "2026-04-29T14:00:00Z",
+    "updated_at": "2026-04-29T14:00:00Z"
+  },
+  {
+    "id": 10,
+    "booking_id": 12,
+    "rater_id": 2,
+    "ratee_id": 1,
+    "score": 4,
+    "comment": "Buen pasajero, sin inconvenientes.",
+    "created_at": "2026-04-29T15:00:00Z",
+    "updated_at": "2026-04-29T15:00:00Z"
+  },
+  {
+    "id": 11,
+    "booking_id": 14,
+    "rater_id": 1,
+    "ratee_id": 3,
+    "score": 4,
+    "comment": "Buen conductor, auto cómodo para el viaje largo.",
+    "created_at": "2026-05-06T12:00:00Z",
+    "updated_at": "2026-05-06T12:00:00Z"
+  },
+  {
+    "id": 12,
+    "booking_id": 14,
+    "rater_id": 3,
+    "ratee_id": 1,
+    "score": 5,
+    "comment": "Excelente pasajero, muy ameno durante todo el trayecto.",
+    "created_at": "2026-05-06T13:00:00Z",
+    "updated_at": "2026-05-06T13:00:00Z"
+  }
+]

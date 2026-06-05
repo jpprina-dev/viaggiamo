@@ -17,6 +17,17 @@ vi.mock('../../hooks/useTripBookings', () => ({
   useTripBookings: (...args: unknown[]) => mockUseTripBookings(...args),
 }))
 
+// Mock useDeleteTrip
+vi.mock('../../hooks/useDeleteTrip', () => ({
+  useDeleteTrip: () => ({ deleteTrip: vi.fn(), loading: false, error: null }),
+}))
+
+// Mock DeleteTripModal to avoid rendering it in card tests
+const mockDeleteTripModal = vi.fn(() => null)
+vi.mock('../DeleteTripModal', () => ({
+  DeleteTripModal: (...args: unknown[]) => mockDeleteTripModal(...args),
+}))
+
 // Mock BookingActionPanel to avoid deep dependency
 vi.mock('@/features/bookings/components/BookingActionPanel', () => ({
   BookingActionPanel: ({ allowedActions }: { allowedActions: string[] }) => (
@@ -24,10 +35,13 @@ vi.mock('@/features/bookings/components/BookingActionPanel', () => ({
   ),
 }))
 
+// Mock react-hot-toast
+vi.mock('react-hot-toast', () => ({ default: { success: vi.fn(), error: vi.fn() } }))
+
 const baseTrip: DriverTripInfo = {
   id: 10,
-  origin: 'Buenos Aires',
-  destination: 'Rosario',
+  originName: 'Buenos Aires',
+  destinationName: 'Rosario',
   departureTime: '2026-03-25T08:00:00',
   availableSeats: 2,
   totalSeats: 4,
@@ -82,6 +96,23 @@ describe('DriverTripCard', () => {
     const panel = screen.queryByTestId('action-panel')
     expect(panel).toBeTruthy()
     expect(panel?.getAttribute('data-actions')).toBe('revoke')
+  })
+
+  it('muestra botón de eliminar para viaje activo', () => {
+    render(<DriverTripCard trip={baseTrip} />)
+    expect(screen.getByTitle('Eliminar viaje')).toBeInTheDocument()
+  })
+
+  it('oculta botón de eliminar para viaje inactivo', () => {
+    render(<DriverTripCard trip={{ ...baseTrip, isActive: false }} />)
+    expect(screen.queryByTitle('Eliminar viaje')).toBeNull()
+  })
+
+  it('click en botón eliminar abre el DeleteTripModal', () => {
+    mockDeleteTripModal.mockReturnValue(<div data-testid="delete-modal" />)
+    render(<DriverTripCard trip={baseTrip} />)
+    fireEvent.click(screen.getByTitle('Eliminar viaje'))
+    expect(screen.getByTestId('delete-modal')).toBeInTheDocument()
   })
 
   it('renders no action panel for terminal statuses', () => {

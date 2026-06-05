@@ -141,8 +141,10 @@ class TestSchemaIntrospection:
             "id",
             "driverId",
             "vehicleId",
-            "origin",
-            "destination",
+            "originLocalityId",
+            "destinationLocalityId",
+            "originName",
+            "destinationName",
             "departureTime",
             "availableSeats",
             "totalSeats",
@@ -302,8 +304,8 @@ class TestSchemaInputTypes:
 
         field_names = [f["name"] for f in result.data["__type"]["inputFields"]]
         expected_fields = [
-            "origin",
-            "destination",
+            "originLocalityId",
+            "destinationLocalityId",
             "departureTime",
             "vehicleId",
             "totalSeats",

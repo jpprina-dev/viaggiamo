@@ -60,8 +60,8 @@ describe('HistoryView', () => {
           bookingTime: '2026-03-20T10:00:00',
           trip: {
             id: 10,
-            origin: 'Cordoba',
-            destination: 'Mendoza',
+            originName: 'Cordoba',
+            destinationName: 'Mendoza',
             departureTime: '2026-03-25T08:00:00',
             pricePerSeat: 5000,
             isActive: false,
@@ -98,8 +98,8 @@ describe('HistoryView', () => {
         {
           trip: {
             id: 5,
-            origin: 'Salta',
-            destination: 'Tucuman',
+            originName: 'Salta',
+            destinationName: 'Tucuman',
             departureTime: '2026-03-18T07:00:00',
             pricePerSeat: 3000,
             isActive: false,

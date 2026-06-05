@@ -23,6 +23,7 @@ from app.graphql.types.trip import to_trip_type
 from app.graphql.types.user import to_user_type
 from app.graphql.types.vehicle import to_vehicle_type
 from app.models.booking import Booking
+from app.models.locality import Locality
 from app.models.request_decision_event import RequestDecisionEvent
 from app.models.trip import Trip
 from app.models.user import User
@@ -59,9 +60,9 @@ class TripQueries:
         query = select(Trip).where(Trip.is_active.is_(True))
 
         if origin:
-            query = query.where(Trip.origin.ilike(f"%{origin}%"))
+            query = query.where(Trip.origin_name.ilike(f"%{origin}%"))
         if destination:
-            query = query.where(Trip.destination.ilike(f"%{destination}%"))
+            query = query.where(Trip.destination_name.ilike(f"%{destination}%"))
 
         query = query.offset(offset).limit(limit)
         result = await context.db.execute(query)
@@ -166,8 +167,8 @@ class TripQueries:
                 Trip.is_completed.is_(False),
                 Trip.available_seats >= search.min_seats,
                 # Fuzzy match using similarity (threshold 0.3)
-                func.similarity(Trip.origin, search.origin) > 0.3,
-                func.similarity(Trip.destination, search.destination) > 0.3,
+                func.similarity(Trip.origin_name, search.origin) > 0.3,
+                func.similarity(Trip.destination_name, search.destination) > 0.3,
             )
         )
 
@@ -234,12 +235,12 @@ class TripQueries:
         """
         context = info.context
         query = (
-            select(Trip.origin, func.count(Trip.id))
+            select(Trip.origin_name, func.count(Trip.id))
             .where(
                 Trip.is_active.is_(True),
-                Trip.origin.ilike(f"{prefix}%"),
+                Trip.origin_name.ilike(f"{prefix}%"),
             )
-            .group_by(Trip.origin)
+            .group_by(Trip.origin_name)
             .order_by(func.count(Trip.id).desc())
             .limit(limit)
         )
@@ -265,12 +266,12 @@ class TripQueries:
         """
         context = info.context
         query = (
-            select(Trip.destination, func.count(Trip.id))
+            select(Trip.destination_name, func.count(Trip.id))
             .where(
                 Trip.is_active.is_(True),
-                Trip.destination.ilike(f"{prefix}%"),
+                Trip.destination_name.ilike(f"{prefix}%"),
             )
-            .group_by(Trip.destination)
+            .group_by(Trip.destination_name)
             .order_by(func.count(Trip.id).desc())
             .limit(limit)
         )
@@ -388,11 +389,29 @@ class TripMutations:
         if trip_input.price_per_seat <= 0:
             raise ValidationError("Price per seat must be greater than 0")
 
+        # Validate origin locality exists and capture name snapshot
+        result = await context.db.execute(
+            select(Locality).where(Locality.id == trip_input.origin_locality_id)
+        )
+        origin_locality = result.scalar_one_or_none()
+        if not origin_locality:
+            raise ValidationError("Origin locality not found")
+
+        # Validate destination locality exists and capture name snapshot
+        result = await context.db.execute(
+            select(Locality).where(Locality.id == trip_input.destination_locality_id)
+        )
+        destination_locality = result.scalar_one_or_none()
+        if not destination_locality:
+            raise ValidationError("Destination locality not found")
+
         db_trip = Trip()
         db_trip.driver_id = user.id
         db_trip.vehicle_id = trip_input.vehicle_id
-        db_trip.origin = trip_input.origin
-        db_trip.destination = trip_input.destination
+        db_trip.origin_locality_id = trip_input.origin_locality_id
+        db_trip.destination_locality_id = trip_input.destination_locality_id
+        db_trip.origin_name = origin_locality.name
+        db_trip.destination_name = destination_locality.name
         db_trip.departure_time = trip_input.departure_time
         db_trip.available_seats = trip_input.total_seats
         db_trip.total_seats = trip_input.total_seats
@@ -439,10 +458,37 @@ class TripMutations:
             raise ForbiddenError("Not authorized to update this trip")
 
         # Update fields if provided
-        if trip_input.origin is not None:
-            trip.origin = trip_input.origin
-        if trip_input.destination is not None:
-            trip.destination = trip_input.destination
+        # Cambio de localidades requiere >24h antes del departure_time
+        if (
+            trip_input.origin_locality_id is not None
+            or trip_input.destination_locality_id is not None
+        ):
+            if trip.departure_time - utcnow() < timedelta(hours=24):
+                raise ValidationError(
+                    "Cannot change trip location within 24 hours of departure"
+                )
+
+        if trip_input.origin_locality_id is not None:
+            result = await context.db.execute(
+                select(Locality).where(Locality.id == trip_input.origin_locality_id)
+            )
+            origin_locality = result.scalar_one_or_none()
+            if not origin_locality:
+                raise ValidationError("Origin locality not found")
+            trip.origin_locality_id = trip_input.origin_locality_id
+            trip.origin_name = origin_locality.name  # resync snapshot
+
+        if trip_input.destination_locality_id is not None:
+            result = await context.db.execute(
+                select(Locality).where(
+                    Locality.id == trip_input.destination_locality_id
+                )
+            )
+            destination_locality = result.scalar_one_or_none()
+            if not destination_locality:
+                raise ValidationError("Destination locality not found")
+            trip.destination_locality_id = trip_input.destination_locality_id
+            trip.destination_name = destination_locality.name  # resync snapshot
         if trip_input.departure_time is not None:
             trip.departure_time = trip_input.departure_time
         if trip_input.vehicle_id is not None:

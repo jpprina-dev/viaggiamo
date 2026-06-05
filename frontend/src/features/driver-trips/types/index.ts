@@ -22,8 +22,8 @@ export interface BookingWithPassenger {
 
 export interface DriverTripInfo {
   id: number
-  origin: string
-  destination: string
+  originName: string
+  destinationName: string
   departureTime: string
   availableSeats: number
   totalSeats: number

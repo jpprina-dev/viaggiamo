@@ -20,8 +20,8 @@ const MY_BOOKING_HISTORY = gql`
       notes
       trip {
         id
-        origin
-        destination
+        originName
+        destinationName
         departureTime
         pricePerSeat
         isActive
