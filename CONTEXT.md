@@ -89,6 +89,31 @@ accepted ──[driver]──▶  revoked         (terminal)
 > **Dev:** "¿Un Passenger puede re-reservar después de cancelar?"
 > **Domain expert:** "Sí. Cancelled, rejected y revoked son terminales para esa Booking, pero el índice único solo bloquea duplicados en estados no-terminales — el Passenger puede crear una nueva Booking en el mismo Trip."
 
+### Chat
+
+**Thread**:
+Hilo de mensajes 1:1 entre un **Passenger** y el **Driver** de un **Trip** específico. La clave natural es `(trip_id, passenger_user_id)`. Existe independientemente de si hay una **Booking**: puede abrirse antes de reservar, sobrevive a bookings rechazadas o canceladas, y si el **Passenger** crea una nueva **Booking** en el mismo **Trip**, el hilo continúa siendo el mismo. Se crea via `get_or_create` en dos momentos: al enviar el primer mensaje (consulta previa) o al crear una **Booking** (para alojar el system message `seat_requested`).
+_Avoid_: conversation, chat, room, channel
+
+**Message**:
+Entrada en un **Thread**. Tiene un campo `kind: user | system`. Los mensajes `user` tienen `sender_id` (FK a **User**). Los mensajes `system` tienen `sender_id` null y un `event_type` que identifica el evento de dominio que los originó. Ambos tipos se ordenan cronológicamente en la misma lista.
+_Avoid_: post, event (para mensajes de usuario), notification (para mensajes de sistema dentro del hilo)
+
+**ThreadState** (derivado, no almacenado):
+Estado de un **Thread** calculado en runtime. `open` si el **Trip** está activo y `now ≤ trip.departure_time + 24h`. `closed` si `trip.is_active = false` (cancelado) o si `now > trip.departure_time + 24h` (ventana de post-viaje expirada). No existe un campo `closed_at` — el estado se deriva del **Trip**.
+_Avoid_: status (como campo explícito en la tabla Thread)
+
+**ThreadAccess**:
+Reglas de autorización sobre un **Thread**. Solo el **Passenger** puede abrir un Thread nuevo (el **Driver** no inicia hilos). Ambos participantes pueden leer y enviar mensajes en un Thread existente. Solo el **Driver** puede listar todos los Threads de su **Trip**. Solo el **Passenger** puede listar sus propios Threads como pasajero.
+
+**ThreadReadState**:
+Registro del último momento en que un **User** leyó un **Thread**. Clave `(thread_id, user_id)` con campo `last_read_at`. Al abrir el **Thread** se hace upsert con `last_read_at = now`. El unread count se calcula como `COUNT(messages WHERE created_at > last_read_at AND sender_id ≠ current_user AND kind = 'user')`. Los mensajes de sistema nunca generan badge de no leído.
+_Avoid_: read_receipt, seen_at
+
+**SystemEventType**:
+Enum de tipos de mensajes de sistema que puede contener un **Thread**. Alcance v1: `seat_requested` (Booking creada), `booking_accepted` (Driver acepta), `booking_rejected` (Driver rechaza), `trip_cancelled` (Trip cancelado), `contact_warning` (datos de contacto detectados). Fuera de scope v1 por requerir background jobs: `trip_reminder`, `trip_finished`, `rate_prompt`.
+_Avoid_: notification_type, message_type (como nombre del campo)
+
 ## Flagged ambiguities
 
 - **"cancelar"** puede referirse a `cancelled` (acción del Passenger) o a `revoked` (acción del Driver). En el código se mantienen distintos por actor; en la UI se puede mostrar "cancelado" para ambos pero el motivo especifica quién lo hizo.
