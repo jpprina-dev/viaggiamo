@@ -10,6 +10,14 @@ from app.graphql.types.booking import (
     BookingUpdateInput,
     DriverTripHistoryType,
 )
+from app.graphql.types.chat import (
+    MessageKind,
+    MessageType,
+    SystemEventType,
+    ThreadType,
+    to_message_type,
+    to_thread_type,
+)
 from app.graphql.types.locality import LocalitySuggestion, build_locality_suggestion
 from app.graphql.types.rating import RatingType, SubmitRatingInput
 from app.graphql.types.trip import (
@@ -59,4 +67,11 @@ __all__ = [
     # Locality
     "LocalitySuggestion",
     "build_locality_suggestion",
+    # Chat
+    "ThreadType",
+    "MessageType",
+    "MessageKind",
+    "SystemEventType",
+    "to_thread_type",
+    "to_message_type",
 ]
