@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.datetime_utils import utcnow
-from app.graphql.exceptions import ForbiddenError, NotFoundError
+from app.graphql.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.models.chat import (
     Message,
     MessageKind,
@@ -25,6 +25,8 @@ from app.models.chat import (
 )
 
 logger = logging.getLogger(__name__)
+
+CHAT_CLOSED_MSG = "El chat está cerrado."
 
 CONTACT_WARNING_BODY = (
     "Compartir datos personales fuera de Viajamos reduce tu protección."
@@ -104,6 +106,8 @@ class ChatService:
         """
         thread = await self._get_thread_with_trip(thread_id)
         self._assert_participant(thread, sender_id)
+        if self.is_closed(thread):
+            raise ValidationError(CHAT_CLOSED_MSG)
 
         message = Message(
             thread_id=thread_id,
@@ -199,6 +203,14 @@ class ChatService:
         else:
             state.last_read_at = utcnow()
         await self.db.commit()
+
+    async def find_thread(self, trip_id: int, passenger_user_id: int) -> Thread | None:
+        """Look up an existing thread without creating one."""
+        return await self._find_thread(trip_id, passenger_user_id)
+
+    async def get_thread(self, thread_id: int) -> Thread:
+        """Fetch a thread with its trip, raising NotFoundError if missing."""
+        return await self._get_thread_with_trip(thread_id)
 
     async def _get_thread_with_trip(self, thread_id: int) -> Thread:
         result = await self.db.execute(

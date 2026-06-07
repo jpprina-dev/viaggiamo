@@ -7,9 +7,13 @@ from strawberry.extensions import SchemaExtension
 
 # Import resolvers
 from app.graphql.exceptions import (
+    AuthenticationError,
     BookingPermissionError,
     BookingStateConflictError,
     BookingTransitionError,
+    ForbiddenError,
+    NotFoundError,
+    ValidationError,
 )
 from app.graphql.resolvers.auth import AuthMutations
 from app.graphql.resolvers.booking import BookingMutations, BookingQueries
@@ -21,14 +25,18 @@ from app.graphql.resolvers.user import UserMutations, UserQueries
 from app.graphql.resolvers.vehicle import VehicleMutations, VehicleQueries
 
 _DOMAIN_EXCEPTION_CODES: dict[type[Exception], str] = {
+    AuthenticationError: "UNAUTHENTICATED",
+    NotFoundError: "NOT_FOUND",
+    ForbiddenError: "FORBIDDEN",
+    ValidationError: "UNPROCESSABLE",
     BookingStateConflictError: "CONFLICT",
     BookingPermissionError: "FORBIDDEN",
     BookingTransitionError: "UNPROCESSABLE",
 }
 
 
-class BookingErrorExtension(SchemaExtension):
-    """Map domain booking exceptions to GraphQL errors with ``extensions.code``."""
+class DomainErrorExtension(SchemaExtension):
+    """Map domain exceptions to GraphQL errors with ``extensions.code``."""
 
     def on_execute(self) -> Any:
         yield  # let execution happen
@@ -65,6 +73,7 @@ class Query(
     - VehicleQueries: Vehicle-related queries
     - TripQueries: Trip-related queries (trips, trip, myTrips)
     - BookingQueries: Booking-related queries (myBookings, booking, tripBookings, myBookingHistory, myDriverTripHistory)
+    - ChatQueries: Chat-related queries (thread, messages)
     """
 
     @strawberry.field
@@ -101,5 +110,5 @@ class Mutation(
 schema = strawberry.Schema(
     query=Query,
     mutation=Mutation,
-    extensions=[BookingErrorExtension],
+    extensions=[DomainErrorExtension],
 )

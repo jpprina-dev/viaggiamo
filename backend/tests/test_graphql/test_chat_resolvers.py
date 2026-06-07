@@ -107,7 +107,7 @@ async def test_thread_query_driver_returns_none_when_no_thread() -> None:
     from app.graphql.resolvers.chat import ChatQueries
 
     service = AsyncMock()
-    service._find_thread.return_value = None
+    service.find_thread.return_value = None
     service.is_closed = MagicMock(return_value=False)
 
     ctx = _ctx(99)  # driver is the requester
@@ -122,7 +122,7 @@ async def test_thread_query_driver_returns_none_when_no_thread() -> None:
 
     assert result is None
     service.get_or_create_thread.assert_not_called()
-    service._find_thread.assert_called_once_with(10, 5)
+    service.find_thread.assert_called_once_with(10, 5)
 
 
 @pytest.mark.asyncio
@@ -131,7 +131,7 @@ async def test_thread_query_driver_returns_existing_thread() -> None:
 
     thread = _thread(passenger_user_id=5)
     service = AsyncMock()
-    service._find_thread.return_value = thread
+    service.find_thread.return_value = thread
     service.is_closed = MagicMock(return_value=False)
 
     ctx = _ctx(99)  # driver is the requester
@@ -203,11 +203,8 @@ async def test_messages_query_returns_messages() -> None:
 async def test_send_message_persists_and_returns_message() -> None:
     from app.graphql.resolvers.chat import ChatMutations
 
-    thread = _thread()
     message = _message(message_id=100, body="hola driver")
     service = AsyncMock()
-    service._get_thread_with_trip.return_value = thread
-    service.is_closed = MagicMock(return_value=False)
     service.send_user_message.return_value = message
 
     ctx = _ctx(5)
@@ -229,10 +226,8 @@ async def test_send_message_persists_and_returns_message() -> None:
 async def test_send_message_raises_validation_when_closed() -> None:
     from app.graphql.resolvers.chat import ChatMutations
 
-    thread = _thread()
     service = AsyncMock()
-    service._get_thread_with_trip.return_value = thread
-    service.is_closed = MagicMock(return_value=True)
+    service.send_user_message.side_effect = ValidationError("El chat está cerrado.")
 
     ctx = _ctx(5)
 
@@ -242,8 +237,6 @@ async def test_send_message_raises_validation_when_closed() -> None:
                 _build_info(ctx), thread_id=1, body="hola"
             )
 
-    service.send_user_message.assert_not_called()
-
 
 # ── Behavior 7: send_message propagates ForbiddenError ──────────────────────
 
@@ -252,10 +245,7 @@ async def test_send_message_raises_validation_when_closed() -> None:
 async def test_send_message_propagates_forbidden_for_non_participant() -> None:
     from app.graphql.resolvers.chat import ChatMutations
 
-    thread = _thread()
     service = AsyncMock()
-    service._get_thread_with_trip.return_value = thread
-    service.is_closed = MagicMock(return_value=False)
     service.send_user_message.side_effect = ForbiddenError(
         "User is not a participant of this thread"
     )

@@ -1,5 +1,7 @@
 """Chat-related queries and mutations — threads, messages, read tracking."""
 
+import logging
+
 import strawberry
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +9,7 @@ from strawberry.types import Info
 
 from app.graphql.auth import require_auth
 from app.graphql.context import Context
-from app.graphql.exceptions import ForbiddenError, NotFoundError, ValidationError
+from app.graphql.exceptions import ForbiddenError, NotFoundError
 from app.graphql.types.chat import (
     MessageType,
     ThreadType,
@@ -16,6 +18,8 @@ from app.graphql.types.chat import (
 )
 from app.models.trip import Trip
 from app.services.chat_service import ChatService
+
+logger = logging.getLogger(__name__)
 
 
 async def _get_trip_driver_id(db: AsyncSession, trip_id: int) -> int:
@@ -44,6 +48,15 @@ class ChatQueries:
         user = require_auth(context)
         service = ChatService(context.db)
 
+        logger.debug(
+            "thread query",
+            extra={
+                "trip_id": trip_id,
+                "passenger_user_id": passenger_user_id,
+                "user_id": user.id,
+            },
+        )
+
         driver_id = await _get_trip_driver_id(context.db, trip_id)
 
         if user.id == passenger_user_id:
@@ -51,7 +64,7 @@ class ChatQueries:
             thread = await service.get_or_create_thread(trip_id, passenger_user_id)
         elif user.id == driver_id:
             # The driver only sees an already-existing thread.
-            existing = await service._find_thread(trip_id, passenger_user_id)
+            existing = await service.find_thread(trip_id, passenger_user_id)
             if existing is None:
                 return None
             thread = existing
@@ -89,11 +102,6 @@ class ChatMutations:
         context = info.context
         user = require_auth(context)
         service = ChatService(context.db)
-
-        thread = await service._get_thread_with_trip(thread_id)
-        if service.is_closed(thread):
-            raise ValidationError("El chat está cerrado.")
-
         message = await service.send_user_message(thread_id, user.id, body)
         return to_message_type(message)
 
