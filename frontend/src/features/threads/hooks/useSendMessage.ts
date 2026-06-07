@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { gql } from 'graphql-request'
 import { graphqlClient } from '@/lib/graphql-client'
 import { messageSchema, type Message } from '../types'
@@ -38,7 +38,7 @@ export function useSendMessage(): UseSendMessageResult {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const sendMessage = async (threadId: number, body: string): Promise<Message> => {
+  const sendMessage = useCallback(async (threadId: number, body: string): Promise<Message> => {
     setLoading(true)
     setError(null)
     try {
@@ -53,7 +53,7 @@ export function useSendMessage(): UseSendMessageResult {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   return { sendMessage, loading, error, clearError: () => setError(null) }
 }

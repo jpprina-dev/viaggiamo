@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { gql } from 'graphql-request'
 import { graphqlClient } from '@/lib/graphql-client'
 import { threadSchema, type Thread } from '../types'
+import { MARK_THREAD_READ } from './useMarkThreadRead'
 
 const GET_THREAD = gql`
   query Thread($tripId: Int!, $passengerUserId: Int!) {
@@ -12,12 +13,6 @@ const GET_THREAD = gql`
       createdAt
       isClosed
     }
-  }
-`
-
-const MARK_THREAD_READ = gql`
-  mutation MarkThreadRead($threadId: Int!) {
-    markThreadRead(threadId: $threadId)
   }
 `
 

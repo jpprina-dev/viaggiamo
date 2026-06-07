@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { gql } from 'graphql-request'
 import { graphqlClient } from '@/lib/graphql-client'
 
-const MARK_THREAD_READ = gql`
+export const MARK_THREAD_READ = gql`
   mutation MarkThreadRead($threadId: Int!) {
     markThreadRead(threadId: $threadId)
   }
@@ -19,7 +19,7 @@ export function useMarkThreadRead(): UseMarkThreadReadResult {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const markThreadRead = async (threadId: number): Promise<void> => {
+  const markThreadRead = useCallback(async (threadId: number): Promise<void> => {
     setLoading(true)
     setError(null)
     try {
@@ -31,7 +31,7 @@ export function useMarkThreadRead(): UseMarkThreadReadResult {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   return { markThreadRead, loading, error, clearError: () => setError(null) }
 }
