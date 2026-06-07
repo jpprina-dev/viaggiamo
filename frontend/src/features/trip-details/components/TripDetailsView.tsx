@@ -16,8 +16,9 @@ import { useDeleteTrip } from '@/features/driver-trips/hooks/useDeleteTrip'
 import { DeleteTripModal } from '@/features/driver-trips/components/DeleteTripModal'
 import type { TripDetailsData } from '../types'
 import toast from 'react-hot-toast'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
+import { ThreadModal } from '@/features/threads'
 import { TripHeader } from './TripHeader'
 import { DriverInfo } from './DriverInfo'
 import { VehicleInfo } from './VehicleInfo'
@@ -43,6 +44,7 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
   const { isBlocked, loading: blockCheckLoading } = useCheckDriverBlock(trip.id)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false)
   const { deleteTrip, loading: deleteLoading } = useDeleteTrip()
 
   // Check if this is the user's own trip
@@ -234,6 +236,7 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
               {isOwnTrip ? (
                 <div className="space-y-4">
                   <TripRequestsList
+                    tripId={trip.id}
                     bookings={tripBookings}
                     loading={tripBookingsLoading}
                     onStatusChanged={refetchTripBookings}
@@ -270,12 +273,35 @@ export function TripDetailsView({ tripData, returnUrl = '/search', onBookingSucc
                       onBooking={handleBooking}
                     />
                   )}
+
+                  {/* Chat with driver */}
+                  {user && (
+                    <button
+                      type="button"
+                      onClick={() => setIsChatOpen(true)}
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary-600/30 bg-primary-container px-4 py-3 text-sm font-semibold text-primary-600 transition-colors hover:bg-primary-600 hover:text-white"
+                    >
+                      <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                      Escribirle al conductor
+                    </button>
+                  )}
                 </>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Chat modal (passenger ↔ driver) */}
+      {isChatOpen && user && (
+        <ThreadModal
+          tripId={trip.id}
+          passengerUserId={user.id}
+          title={`Chat con ${driver.name}`}
+          subtitle={`${trip.originName} → ${trip.destinationName}`}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
 
       {/* Confirmation Modal */}
       <CancelBookingModal
