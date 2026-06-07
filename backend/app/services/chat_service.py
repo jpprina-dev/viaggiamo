@@ -5,6 +5,7 @@ This service owns thread creation, message sending (with a lightweight
 contact-info guardrail), system events, read tracking and unread counts.
 """
 
+import logging
 import re
 from datetime import UTC, datetime, timedelta
 
@@ -22,6 +23,8 @@ from app.models.chat import (
     Thread,
     ThreadReadState,
 )
+
+logger = logging.getLogger(__name__)
 
 CONTACT_WARNING_BODY = (
     "Compartir datos personales fuera de Viajamos reduce tu protección."
@@ -73,9 +76,21 @@ class ChatService:
             await self.db.rollback()
             existing = await self._find_thread(trip_id, passenger_user_id)
             if existing is None:  # pragma: no cover - defensive
+                logger.error(
+                    "Thread not found after IntegrityError rollback",
+                    extra={"trip_id": trip_id, "passenger_user_id": passenger_user_id},
+                )
                 raise
             return existing
         await self.db.refresh(thread)
+        logger.info(
+            "New chat thread created",
+            extra={
+                "trip_id": thread.trip_id,
+                "passenger_user_id": thread.passenger_user_id,
+                "thread_id": thread.id,
+            },
+        )
         return thread
 
     async def send_user_message(
@@ -87,6 +102,9 @@ class ChatService:
         thread does not already carry a ``contact_warning``, a single warning
         system message is appended. The user message is delivered regardless.
         """
+        thread = await self._get_thread_with_trip(thread_id)
+        self._assert_participant(thread, sender_id)
+
         message = Message(
             thread_id=thread_id,
             kind=MessageKind.user,
@@ -164,6 +182,8 @@ class ChatService:
 
     async def mark_read(self, thread_id: int, user_id: int) -> None:
         """Upsert the ``last_read_at`` for ``(thread, user)`` to now."""
+        await self._get_thread_with_trip(thread_id)
+
         result = await self.db.execute(
             select(ThreadReadState).where(
                 ThreadReadState.thread_id == thread_id,
@@ -195,9 +215,13 @@ class ChatService:
         is_passenger = thread.passenger_user_id == user_id
         is_driver = thread.trip.driver_id == user_id
         if not (is_passenger or is_driver):
+            logger.warning(
+                "ForbiddenError: user is not a participant of this thread",
+                extra={"thread_id": thread.id, "requesting_user_id": user_id},
+            )
             raise ForbiddenError("User is not a participant of this thread")
 
-    def _is_closed(self, thread: Thread) -> bool:
+    def is_closed(self, thread: Thread) -> bool:
         """Return True if the chat is closed for new user messages.
 
         A chat closes when the trip is inactive, or once more than
@@ -220,6 +244,10 @@ class ChatService:
         if result.first() is not None:
             return
 
+        logger.info(
+            "Inserting contact_warning system message",
+            extra={"thread_id": thread_id},
+        )
         await self.insert_system_message(thread_id, SystemEventType.contact_warning)
 
     async def _find_thread(self, trip_id: int, passenger_user_id: int) -> Thread | None:

@@ -348,7 +348,7 @@ async def test_is_closed_when_trip_inactive(db_session: AsyncSession) -> None:
     thread = await service.get_or_create_thread(trip.id, passenger.id)
     full_thread = await service._get_thread_with_trip(thread.id)
 
-    assert service._is_closed(full_thread) is True
+    assert service.is_closed(full_thread) is True
 
 
 @pytest.mark.asyncio
@@ -362,7 +362,7 @@ async def test_is_closed_when_past_window(db_session: AsyncSession) -> None:
     thread = await service.get_or_create_thread(trip.id, passenger.id)
     full_thread = await service._get_thread_with_trip(thread.id)
 
-    assert service._is_closed(full_thread) is True
+    assert service.is_closed(full_thread) is True
 
 
 @pytest.mark.asyncio
@@ -375,4 +375,4 @@ async def test_is_open_within_window(db_session: AsyncSession) -> None:
     thread = await service.get_or_create_thread(trip.id, passenger.id)
     full_thread = await service._get_thread_with_trip(thread.id)
 
-    assert service._is_closed(full_thread) is False
+    assert service.is_closed(full_thread) is False
