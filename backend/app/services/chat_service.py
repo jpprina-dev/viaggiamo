@@ -84,7 +84,7 @@ class ChatService:
                 )
                 raise
             return existing
-        await self.db.refresh(thread)
+        thread = await self._get_thread_with_trip(thread.id)
         logger.info(
             "New chat thread created",
             extra={
@@ -264,10 +264,12 @@ class ChatService:
 
     async def _find_thread(self, trip_id: int, passenger_user_id: int) -> Thread | None:
         result = await self.db.execute(
-            select(Thread).where(
+            select(Thread)
+            .where(
                 Thread.trip_id == trip_id,
                 Thread.passenger_user_id == passenger_user_id,
             )
+            .options(selectinload(Thread.trip))
         )
         return result.scalar_one_or_none()
 
