@@ -2,11 +2,12 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { Clock, User } from 'lucide-react'
+import { Clock, MessageCircle, User } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useUpdateBookingStatus } from '@/features/bookings/hooks'
 import { ActionConfirmModal } from '@/features/bookings/components/ActionConfirmModal'
 import type { BookingStatus, Action } from '@/features/bookings/types'
+import { ThreadModal } from '@/features/threads'
 
 interface Booking {
   id: number
@@ -25,6 +26,7 @@ interface Booking {
 }
 
 interface TripRequestsListProps {
+  tripId: number
   bookings: Booking[]
   loading: boolean
   onStatusChanged?: () => Promise<void>
@@ -37,9 +39,15 @@ const statusToAction: Record<string, Action> = {
   revoked: 'revoke',
 }
 
-export function TripRequestsList({ bookings, loading, onStatusChanged, onTripDataChanged }: TripRequestsListProps) {
+export function TripRequestsList({ tripId, bookings, loading, onStatusChanged, onTripDataChanged }: TripRequestsListProps) {
   const { mutate, loading: submitting, error } = useUpdateBookingStatus()
   const [pendingAction, setPendingAction] = useState<{ bookingId: number; status: BookingStatus } | null>(null)
+  const [openChatPassengerId, setOpenChatPassengerId] = useState<number | null>(null)
+
+  const chatPassenger =
+    openChatPassengerId !== null
+      ? bookings.find((b) => b.passenger.id === openChatPassengerId)?.passenger ?? null
+      : null
 
   useEffect(() => {
     if (error) toast.error(error)
@@ -63,7 +71,7 @@ export function TripRequestsList({ bookings, loading, onStatusChanged, onTripDat
     const isSubmitting = submitting
     if (booking.status === 'pending') {
       return (
-        <div className="mt-3 flex items-center gap-2">
+        <>
           <button
             type="button"
             onClick={() => setPendingAction({ bookingId: booking.id, status: 'accepted' })}
@@ -80,21 +88,19 @@ export function TripRequestsList({ bookings, loading, onStatusChanged, onTripDat
           >
             Rechazar
           </button>
-        </div>
+        </>
       )
     }
     if (booking.status === 'accepted') {
       return (
-        <div className="mt-3 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setPendingAction({ bookingId: booking.id, status: 'revoked' })}
-            disabled={isSubmitting}
-            className="rounded-md bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Revocar
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setPendingAction({ bookingId: booking.id, status: 'revoked' })}
+          disabled={isSubmitting}
+          className="rounded-md bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Revocar
+        </button>
       )
     }
     return null
@@ -204,10 +210,29 @@ export function TripRequestsList({ bookings, loading, onStatusChanged, onTripDat
             </div>
           )}
 
-          {renderActionButtons(booking)}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {renderActionButtons(booking)}
+            <button
+              type="button"
+              onClick={() => setOpenChatPassengerId(booking.passenger.id)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-primary-600/30 px-3 py-1.5 text-xs font-semibold text-primary-600 transition-colors hover:bg-primary-600 hover:text-white"
+            >
+              <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              Chatear
+            </button>
+          </div>
         </div>
       ))}
     </div>
+    {chatPassenger && (
+      <ThreadModal
+        tripId={tripId}
+        passengerUserId={chatPassenger.id}
+        title={`Chat con ${chatPassenger.name}`}
+        subtitle={`@${chatPassenger.username}`}
+        onClose={() => setOpenChatPassengerId(null)}
+      />
+    )}
     </>
   )
 }
